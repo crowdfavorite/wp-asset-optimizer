@@ -141,11 +141,11 @@ class CFConcatenateStaticScripts {
 				else {
 					// This script is enabled and has not changed from the last approved version.
 					// Request the file
-					$request_url = $site_scripts[$handle]['src'];
-					if (!preg_match('/^http:\/\//', $request_url)) {
-						// Update to ensure it's a local request.
-						$request_url = home_url($request_url);
+					$request_url = $site_scripts[$handle]['src'];			
+					if ( !preg_match('|^https?://|', $request_url) && ! ( $scripts_obj->content_url && 0 === strpos($request_url, $scripts_obj->content_url) ) ) {
+						$request_url = $scripts_obj->base_url . $request_url;
 					}
+					
 					if (!empty($site_scripts[$handle]['ver'])) {
 						if (strstr($request_url, '?')) {
 							$request_url .= '&';
@@ -155,6 +155,7 @@ class CFConcatenateStaticScripts {
 						}
 						$request_url .= urlencode($site_scripts[$handle]['ver']);
 					}
+					
 					$script_request = wp_remote_get(
 						$request_url
 					);
@@ -422,9 +423,8 @@ class CFConcatenateStaticStyles {
 					// This style is enabled and has not changed from the last approved version.
 					// Request the file
 					$request_url = $site_styles[$handle]['src'];
-					if (!preg_match('/^http:\/\//', $request_url)) {
-						// Update to ensure it's a local request.
-						$request_url = home_url($request_url);
+					if (!preg_match('|^https?://|', $request_url) && ! ( $styles_obj->content_url && 0 === strpos($request_url, $styles_obj->content_url) ) ) {
+						$request_url = $styles_obj->base_url . $request_url;
 					}
 					if (!empty($site_styles[$handle]['ver'])) {
 						if (strstr($request_url, '?')) {
