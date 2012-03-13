@@ -81,13 +81,13 @@ class CFConcatenateStaticScripts {
 			// We need to attempt to make the directory.
 			if (!mkdir($directory, 0775, true)) {
 				error_log('Could not create directory: ' . $directory);
-				return;
+				exit();
 			}
 		}
 		$lockfile = '.lock';
 		if (file_exists($directory.$lockfile)) {
 			// We're currently running a build. Throttle it to avoid DDOS Attacks.
-			return;
+			exit();
 		}
 		if (empty($_POST['wp_scripts_obj'])) {
 			exit('No scripts object received');
@@ -103,7 +103,7 @@ class CFConcatenateStaticScripts {
 		$lock = fopen($directory.$lockfile, 'w');
 		if (!$lock) {
 			error_log('Could not create lockfile: ' . $directory.$lockfile);
-			return;
+			exit();
 		}
 		fwrite($lock, time());
 		fclose($lock);
@@ -366,13 +366,13 @@ class CFConcatenateStaticStyles {
 			// We need to attempt to make the directory.
 			if (!mkdir($directory, 0775, true)) {
 				error_log('Could not create directory: ' . $directory);
-				return;
+				exit();
 			}
 		}
 		$lockfile = '.lock';
 		if (file_exists($directory.$lockfile)) {
 			// We're currently running a build. Throttle it to avoid DDOS Attacks.
-			return;
+			exit();
 		}
 		if (empty($_POST['wp_styles_obj'])) {
 			exit('No styles object received');
@@ -388,7 +388,7 @@ class CFConcatenateStaticStyles {
 		$lock = fopen($directory.$lockfile, 'w');
 		if (!$lock) {
 			error_log('Could not create lockfile: ' . $directory.$lockfile);
-			return;
+			exit();
 		}
 		fwrite($lock, time());
 		fclose($lock);
