@@ -19,6 +19,9 @@ class CFConcatenateStaticScripts {
 
 	public static function onWPPrintScripts() {
 		global $wp_scripts;
+		if (!is_object($wp_scripts)) {
+			return;
+		}
 		$wp_scripts->all_deps($wp_scripts->queue);
 		$included_scripts = array();
 		$url = self::getConcatenatedScriptUrl($wp_scripts, $included_scripts, $version);
@@ -287,6 +290,9 @@ class CFConcatenateStaticStyles {
 
 	public static function onWPPrintStyles() {
 		global $wp_styles;
+		if (!is_object($wp_styles)) {
+			return;
+		}
 		$wp_styles->all_deps($wp_styles->queue);
 		$included_styles = array();
 		$url = self::getConcatenatedStyleUrl($wp_styles, $included_styles, $version);
