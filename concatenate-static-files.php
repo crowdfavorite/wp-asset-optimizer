@@ -4,7 +4,7 @@ Plugin Name: CF Concatenate Static Files
 Plugin URI: http://foodgawker.com
 Description: Used to serve concatenated versions of the static JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 0.3
+Version: 0.4
 Author URI: http://scompt.com
 */
 
