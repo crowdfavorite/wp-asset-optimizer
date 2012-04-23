@@ -4,7 +4,7 @@ Plugin Name: CF Concatenate Static Files
 Plugin URI: http://foodgawker.com
 Description: Used to serve concatenated versions of the static JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 0.3
+Version: 0.4
 Author URI: http://scompt.com
 */
 
@@ -66,6 +66,7 @@ class CFConcatenateStaticScripts {
 				array(
 					'body' => $build_args,
 					'timeout' => 1,
+					'redirection' => 0,
 				)
 			);
 		}
@@ -81,13 +82,13 @@ class CFConcatenateStaticScripts {
 			// We need to attempt to make the directory.
 			if (!mkdir($directory, 0775, true)) {
 				error_log('Could not create directory: ' . $directory);
-				return;
+				exit();
 			}
 		}
 		$lockfile = '.lock';
 		if (file_exists($directory.$lockfile)) {
 			// We're currently running a build. Throttle it to avoid DDOS Attacks.
-			return;
+			exit();
 		}
 		if (empty($_POST['wp_scripts_obj'])) {
 			exit('No scripts object received');
@@ -103,7 +104,7 @@ class CFConcatenateStaticScripts {
 		$lock = fopen($directory.$lockfile, 'w');
 		if (!$lock) {
 			error_log('Could not create lockfile: ' . $directory.$lockfile);
-			return;
+			exit();
 		}
 		fwrite($lock, time());
 		fclose($lock);
@@ -282,6 +283,7 @@ class CFConcatenateStaticScripts {
 				admin_url('admin-ajax.php?action=concat-build-js'),
 				array(
 					'body' => $build_args,
+					'redirection' => 0,
 				)
 			);
 			if (file_exists(CFCONCAT_CACHE_DIR.'/js/'.$filename)) {
@@ -351,6 +353,7 @@ class CFConcatenateStaticStyles {
 				array(
 					'body' => $build_args,
 					'timeout' => 1,
+					'redirection' => 0,
 				)
 			);
 		}
@@ -366,13 +369,13 @@ class CFConcatenateStaticStyles {
 			// We need to attempt to make the directory.
 			if (!mkdir($directory, 0775, true)) {
 				error_log('Could not create directory: ' . $directory);
-				return;
+				exit();
 			}
 		}
 		$lockfile = '.lock';
 		if (file_exists($directory.$lockfile)) {
 			// We're currently running a build. Throttle it to avoid DDOS Attacks.
-			return;
+			exit();
 		}
 		if (empty($_POST['wp_styles_obj'])) {
 			exit('No styles object received');
@@ -388,7 +391,7 @@ class CFConcatenateStaticStyles {
 		$lock = fopen($directory.$lockfile, 'w');
 		if (!$lock) {
 			error_log('Could not create lockfile: ' . $directory.$lockfile);
-			return;
+			exit();
 		}
 		fwrite($lock, time());
 		fclose($lock);
@@ -575,6 +578,7 @@ class CFConcatenateStaticStyles {
 				admin_url('admin-ajax.php?action=concat-build-css'),
 				array(
 					'body' => $build_args,
+					'redirection' => 0,
 				)
 			);
 			if (file_exists(CFCONCAT_CACHE_DIR.'/css/'.$filename)) {
