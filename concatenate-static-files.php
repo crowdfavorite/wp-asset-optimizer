@@ -4,7 +4,7 @@ Plugin Name: CF Concatenate Static Files
 Plugin URI: http://foodgawker.com
 Description: Used to serve concatenated versions of the static JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 0.2
+Version: 0.3
 Author URI: http://scompt.com
 */
 
@@ -24,7 +24,7 @@ class CFConcatenateStaticScripts {
 		}
 		$wp_scripts->all_deps($wp_scripts->queue);
 		$included_scripts = array();
-		$url = self::getConcatenatedScriptUrl($wp_scripts, $included_scripts, $version);
+		$url = self::getConcatenatedScriptUrl($wp_scripts, $included_scripts, $unknown_scripts, $version);
 		if ($url) {
 			// We have a concatenated file matching this. Output each script's localizations,
 			// dequeue the script, then enqueue our concatenated file.
@@ -54,7 +54,7 @@ class CFConcatenateStaticScripts {
 			wp_enqueue_script('cfconcat-script', $url, array(), $version);
 			$wp_scripts->to_do = array();
 		}
-		else if (!get_option('cfconcat_using_cache')) {
+		else if (!get_option('cfconcat_using_cache') && (!empty($included_scripts) || !empty($unknown_scripts)) ) {
 			// We don't have the file built yet. Fire off an asynchronous request to build it
 			// and serve the scripts normally.
 			$build_args = array(
@@ -93,6 +93,9 @@ class CFConcatenateStaticScripts {
 			exit('No scripts object received');
 		}
 		$scripts_obj = json_decode(stripcslashes($_POST['wp_scripts_obj']));
+		if (!$scripts_obj) {
+			$scripts_obj = json_decode($_POST['wp_scripts_obj']);
+		}
 		if (empty($scripts_obj) || empty($scripts_obj->to_do) || empty($scripts_obj->registered)) {
 			exit('Issue: ' . print_r($scripts_obj, true));
 		}
@@ -210,7 +213,7 @@ class CFConcatenateStaticScripts {
 		return md5(implode(',', $included_scripts)) . '.js';
 	}
 	
-	public static function getConcatenatedScriptUrl($wp_scripts, &$included_scripts, &$version) {
+	public static function getConcatenatedScriptUrl($wp_scripts, &$included_scripts, &$unknown_scripts, &$version) {
 		$directory = CFCONCAT_CACHE_DIR . '/js/';
 		$dir_url = esc_url(CFCONCAT_CACHE_URL . '/js/');
 		
@@ -221,11 +224,16 @@ class CFConcatenateStaticScripts {
 		}
 		
 		$included_scripts = array();
+		$unknown_scripts = array();
 		$registered = $wp_scripts->registered;
 		foreach ($wp_scripts->to_do as $handle) {
-			if (
-				   empty($site_scripts[$handle])
-				|| !($site_scripts[$handle]['enabled'])
+			if (empty($site_scripts[$handle])) {
+				// Note that we have an unknown script, and thus should actually still make the back-end request.
+				$unknown_scripts[] = $registered[$handle];
+				continue;
+			}
+			else if (
+				   !($site_scripts[$handle]['enabled'])
 				|| $site_scripts[$handle]['src'] != $registered[$handle]->src
 				|| $site_scripts[$handle]['ver'] != $registered[$handle]->ver
 			) {
@@ -251,6 +259,11 @@ class CFConcatenateStaticScripts {
 			}
 		}
 		
+		if (empty($included_scripts) && empty($unknown_scripts)) {
+			// All scripts are disabled on this site. Go no further.
+			return;
+		}
+		
 		$filename = self::_getConcatenatedScriptsFilename($included_scripts);
 		
 		if (file_exists(CFCONCAT_CACHE_DIR.'/js/'.$filename)) {
@@ -265,7 +278,7 @@ class CFConcatenateStaticScripts {
 				'wp_scripts_obj' => json_encode($wp_scripts),
 				'key' => get_option('cfconcat_security_key')
 			);
-			wp_remote_post(
+			$response = wp_remote_post(
 				admin_url('admin-ajax.php?action=concat-build-js'),
 				array(
 					'body' => $build_args,
@@ -295,7 +308,7 @@ class CFConcatenateStaticStyles {
 		}
 		$wp_styles->all_deps($wp_styles->queue);
 		$included_styles = array();
-		$url = self::getConcatenatedStyleUrl($wp_styles, $included_styles, $version);
+		$url = self::getConcatenatedStyleUrl($wp_styles, $included_styles, $unknown_styles, $version);
 		if ($url) {
 			// We have a concatenated file matching this. Output each style's localizations,
 			// dequeue the style, then enqueue our concatenated file.
@@ -326,7 +339,7 @@ class CFConcatenateStaticStyles {
 			wp_enqueue_style('cfconcat-style', $url, $my_deps, $version);
 			$wp_styles->to_do = array();
 		}
-		else if (!get_option('cfconcat_using_cache')) {
+		else if (!get_option('cfconcat_using_cache') && (!empty($included_styles) || !empty($unknown_styles)) ) {
 			// We don't have the file built yet. Fire off an asynchronous request to build it
 			// and serve the styles normally.
 			$build_args = array(
@@ -365,6 +378,9 @@ class CFConcatenateStaticStyles {
 			exit('No styles object received');
 		}
 		$styles_obj = json_decode(stripcslashes($_POST['wp_styles_obj']));
+		if (!$styles_obj) {
+			$styles_obj = json_decode($_POST['wp_styles_obj']);
+		}
 		if (empty($styles_obj) || empty($styles_obj->to_do) || empty($styles_obj->registered)) {
 			exit('Issue: ' . print_r($styles_obj, true));
 		}
@@ -491,7 +507,7 @@ class CFConcatenateStaticStyles {
 		return md5(implode(',', $included_styles)) . '.css';
 	}
 	
-	public static function getConcatenatedStyleUrl($wp_styles, &$included_styles, &$version) {
+	public static function getConcatenatedStyleUrl($wp_styles, &$included_styles, &$unknown_styles, &$version) {
 		$directory = CFCONCAT_CACHE_DIR . '/css/';
 		$dir_url = esc_url(CFCONCAT_CACHE_URL . '/css/');
 		
@@ -502,11 +518,16 @@ class CFConcatenateStaticStyles {
 		}
 		
 		$included_styles = array();
+		$unknown_styles = array();
 		$registered = $wp_styles->registered;
 		foreach ($wp_styles->to_do as $handle) {
-			if (
-				   empty($site_styles[$handle])
-				|| !($site_styles[$handle]['enabled'])
+			if (empty($site_styles[$handle])) {
+				// Note that we have an unknown script, and thus should actually still make the back-end request.
+				$unknown_styles[] = $registered[$handle];
+				continue;
+			}
+			else if (
+				   !($site_styles[$handle]['enabled'])
 				|| $site_styles[$handle]['src'] != $registered[$handle]->src
 				|| $site_styles[$handle]['ver'] != $registered[$handle]->ver
 			) {
@@ -530,6 +551,10 @@ class CFConcatenateStaticStyles {
 					$included_styles[$handle] = $handle;
 				}
 			}
+		}
+		
+		if (empty($included_styles) && empty($unknown_styles)) {
+			return;
 		}
 		
 		$filename = self::_getConcatenatedStylesFilename($included_styles);
