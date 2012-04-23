@@ -66,6 +66,7 @@ class CFConcatenateStaticScripts {
 				array(
 					'body' => $build_args,
 					'timeout' => 1,
+					'redirection' => 0,
 				)
 			);
 		}
@@ -282,6 +283,7 @@ class CFConcatenateStaticScripts {
 				admin_url('admin-ajax.php?action=concat-build-js'),
 				array(
 					'body' => $build_args,
+					'redirection' => 0,
 				)
 			);
 			if (file_exists(CFCONCAT_CACHE_DIR.'/js/'.$filename)) {
@@ -351,6 +353,7 @@ class CFConcatenateStaticStyles {
 				array(
 					'body' => $build_args,
 					'timeout' => 1,
+					'redirection' => 0,
 				)
 			);
 		}
@@ -575,6 +578,7 @@ class CFConcatenateStaticStyles {
 				admin_url('admin-ajax.php?action=concat-build-css'),
 				array(
 					'body' => $build_args,
+					'redirection' => 0,
 				)
 			);
 			if (file_exists(CFCONCAT_CACHE_DIR.'/css/'.$filename)) {
