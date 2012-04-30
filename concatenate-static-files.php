@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: CF Concatenate Static Files
-Plugin URI: http://foodgawker.com
+Plugin URI: http://crowdfavorite.com
 Description: Used to serve concatenated versions of the static JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 0.4
-Author URI: http://scompt.com
+Version: 0.5
+Author URI: http://crowdfavorite.com
 */
 
 @define('CFCONCAT_CACHE_DIR', WP_CONTENT_DIR . '/cfconcat-cache/' . $_SERVER['HTTP_HOST']);
@@ -122,6 +122,8 @@ class CFConcatenateStaticScripts {
 			" * Included Files\n" .
 			" *\n";
 		$script_file_src = '';
+		$script_blocks = array();
+		$current_block = 0;
 		foreach ($scripts_obj->to_do as $handle) {
 			if (empty($site_scripts[$handle])) {
 				// We need to register this script in our list
@@ -180,14 +182,46 @@ class CFConcatenateStaticScripts {
 						}
 						else {
 							// We had a valid script to add to the list.
+							
+							// Check to see if it can be concatenated.
+							error_log(print_r($site_scripts[$handle], true));
+							if (empty($site_scripts[$handle]['minify_script'])) {
+								// This cannot be minified. It will need to be kept as is.
+								if (!empty($script_blocks[$current_block])) {
+									// We need to increment the script block first.
+									++$current_block;
+								}
+								$script_blocks[$current_block] = array(
+									'minify' => false,
+									'src' => $script_request['body']
+								);
+							}
+							else {
+								// This can be minified. Allow it to be sent in a bundled minify request.
+								if (
+									   !empty($script_blocks[$current_block])
+									&& !($script_blocks[$current_block]['minify'])
+								) {
+									// Increment current block first.
+									++$current_block;
+								}
+								if (empty($script_blocks[$current_block])) {
+									$script_blocks[$current_block] = array(
+										'minify' => true,
+										'src' => ''
+									);
+								}
+								$script_blocks[$current_block]['src'] .= $script_request['body'];
+							}
 							$included_scripts[$handle] = $handle;
 							$script_file_header .= ' * ' . $handle . ' as ' . $request_url . "\n";
-							$script_file_src .= $script_request['body'] . ';';
+							//$script_file_src .= $script_request['body'] . ';';
 						}
 					}
 				}
 			}
 		}
+		error_log(print_r(count($script_blocks), true));
 		$script_file_header .= " **/\n";
 		
 		update_option('cfconcat_scripts', $site_scripts);
@@ -198,6 +232,50 @@ class CFConcatenateStaticScripts {
 			$file = fopen($directory.$filename, 'w');
 			if (!$file === false) {
 				// We have a valid file pointer.
+				
+				// Minify the file as dictated by user settings with Google Closure Compiler
+				$minify_level = get_option('cfconcat_minify_js_level', '');
+				$compiler_levels = array(
+					'whitespace' => 'WHITESPACE_ONLY',
+					'simple' => 'SIMPLE_OPTIMIZATIONS',
+					'advanced' => 'ADVANCED_OPTIMIZATIONS'
+				);
+				if (isset($compiler_levels[$minify_level])) {
+					foreach ($script_blocks as $block) {
+						$src = $block['src'];
+						if ($block['minify']) {
+							$args = array(
+								'js_code' => mb_convert_encoding($src, 'UTF-8'),
+								'compilation_level' => $compiler_levels[$minify_level],
+								'output_format' => 'text',
+								'output_info' => 'compiled_code'
+							);
+							$response = wp_remote_post(
+								'http://closure-compiler.appspot.com/compile',
+								array(
+									'body' => $args,
+									'timeout' => 60
+								)
+							);
+							if (
+								   !empty($response)
+								&& !is_wp_error($response)
+								&& !empty($response['headers'])
+								&& !empty($response['response'])
+								&& $response['response']['code'] == 200
+								&& !empty($response['body'])
+							) {
+								$src = $response['body'];
+							}
+						}
+						$script_file_src .= $src;
+					}
+				}
+				else {
+					foreach ($script_blocks as $block) {
+						$script_file_src .= $block['src'];
+					}
+				}
 				fwrite($file, $script_file_header.$script_file_src);
 				fclose($file);
 			}
@@ -421,7 +499,7 @@ class CFConcatenateStaticStyles {
 			}
 			else if (
 				   !empty($styles_obj->registered->$handle->extra)
-				&& !empty($styles_obj->registered->$handle->extra->conditional)
+				|| ( !empty($styles_obj->args) && $styles_obj->args != 'all')
 			) {
 				// Don't include conditional stylesheets, they need additional markup.
 				$site_styles[$handle] = array(
@@ -495,6 +573,20 @@ class CFConcatenateStaticStyles {
 			$file = fopen($directory.$filename, 'w');
 			if (!$file === false) {
 				// We have a valid file pointer.
+				
+				// Minify the contents
+				$style_file_src = preg_replace( '#\s{2,}#', ' ', $style_file_src );
+				$style_file_src = preg_replace( '#/\*.*?\*/#s', '', $style_file_src );
+				$style_file_src = preg_replace( '/;[\s]+/', ';', $style_file_src );
+				$style_file_src = preg_replace( '/:[\s]+/', ':', $style_file_src );
+				$style_file_src = preg_replace( '/[\s]*{[\s]*/', '{', $style_file_src );
+				//$style_file_src = preg_replace( '/{[\s]+/', '{', $style_file_src );
+				$style_file_src = preg_replace( '/,[\s]+/', ',', $style_file_src );
+				$style_file_src = preg_replace( '/[\s]*}[\s]*/', '}', $style_file_src );
+				$style_file_src = str_replace( ';}', '}', $style_file_src );
+				$style_file_src = trim( $style_file_src );
+				
+				// Write the file and close it.
 				fwrite($file, $style_file_header.$style_file_src);
 				fclose($file);
 			}

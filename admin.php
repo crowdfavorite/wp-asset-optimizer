@@ -131,11 +131,7 @@ class CFConcatenateStaticAdmin {
 					$form.prepend($tabsWrapper);
 					$tabsWrapper.append($tabsList);
 					
-					console.log('a[href="#cf-concat-static-settings-'+<?php echo json_encode($tab); ?>+'"]');
-					
 					$selectedTab = $tabsList.find('a[href="#cf-concat-static-settings-'+<?php echo json_encode($tab); ?>+'"]');
-					
-					console.log($selectedTab);
 					
 					if ($selectedTab.length > 0) {
 						$selectedTab.click();
@@ -179,6 +175,7 @@ class CFConcatenateStaticAdmin {
 		private static function _displayGeneralSettingsTab() {
 			$cfconcat_using_cache = get_option('cfconcat_using_cache', false);
 			$security_key = get_option('cfconcat_security_key', '');
+			$minify_js_level = get_option('cfconcat_minify_js_level', '');
 		?>
 			<div class="tab" id="cf-concat-static-settings-general">
 				<h2 class="tab-title"><?php echo esc_html(__('General Settings')); ?></h2>
@@ -193,6 +190,28 @@ class CFConcatenateStaticAdmin {
 							<p><?php echo esc_html(__('Select this option if your site is using a plugin like WP Super Cache, or another static caching solution, to ensure that the concatenated files are generated and served before the cache occurs.')); ?></p>
 						</li>
 						<?php do_action('cfconcat_general_settings_tab_list'); ?>
+					</ul>
+				</fieldset>
+				<fieldset id="cf-concat-static-settings-minify-settings">
+					<legend><h3><?php echo esc_html(__('JavaScript Minification Settings')); ?></h3></legend>
+					<p>Minification of JavaScript is done through Google's Closure Compiler. Levels of minification available are listed below.
+					<ul>
+						<li>
+							<input type="radio" name="js-minify" id="cfconcat-js-minify-none" value=""<?php checked (empty($minify_js_level)); ?> />
+							<label for="cfconcat-js-minify-none"><?php echo esc_html(__('None')); ?></label>
+						</li>
+						<li>
+							<input type="radio" name="js-minify" id="cfconcat-js-minify-wsonly" value="whitespace"<?php checked($minify_js_level, 'whitespace'); ?> />
+							<label for="cfconcat-js-minify-wsonly"><?php echo esc_html(__('Whitespace only (recommended)')); ?></label>
+						</li>
+						<li>
+							<input type="radio" name="js-minify" id="cfconcat-js-minify-simple" value="simple"<?php checked($minify_js_level, 'simple'); ?> />
+							<label for="cfconcat-js-minify-simple"><?php echo esc_html(__('Simple (usually works)')); ?></label>
+						</li>
+						<li>
+							<input type="radio" name="js-minify" id="cfconcat-js-minify-advanced" value="advanced"<?php checked($minify_js_level, 'advanced'); ?> />
+							<label for="cfconcat-js-minify-advanced"><?php echo esc_html(__('Advanced (best performance, requires strict code use)')); ?></label>
+						</li>
 					</ul>
 				</fieldset>
 				<button class="button-primary" name="cfconcat_save_settings" value="save_general_settings"><?php echo esc_html('Save General Settings', true); ?></button>
@@ -237,6 +256,17 @@ class CFConcatenateStaticAdmin {
 								<li><input type="radio" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][enabled]" value=""<?php checked($details['enabled'], false); ?> />Disabled</li>
 								<?php if (!($details['enabled'])) { ?>
 								<li>Disabled reason: <?php echo esc_html($details['disable_reason']); ?><input type="hidden" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][disable_reason]" value="<?php echo esc_attr($details['disable_reason']); ?>" /></li>
+								<?php
+								}
+								if ($tab_type == 'scripts') {
+								?>
+								<li>
+									<label><?php echo esc_html(__('Allow Minification?')); ?></label>
+									<input type="radio" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][minify_script]" id="<?php echo $attr_escaped_type.'-'.$handle.'-minify_script-no'; ?>" value=""<?php checked(empty($details['minify_script'])); ?> />
+									<label for="<?php echo $attr_escaped_type.'-'.$handle.'-minify_script-no'; ?>"><?php echo esc_html(__('No')); ?></label>
+									<input type="radio" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][minify_script]" id="<?php echo $attr_escaped_type.'-'.$handle.'-minify_script-yes'; ?>" value="true"<?php checked(!empty($details['minify_script'])); ?> />
+									<label for="<?php echo $attr_escaped_type.'-'.$handle.'-minify_script-yes'; ?>"><?php echo esc_html(__('Yes (recommended)')); ?></label>
+								</li>
 								<?php } ?>
 							</ul>
 							<?php if ($details['enabled']) { ?>
@@ -272,6 +302,7 @@ class CFConcatenateStaticAdmin {
 					update_option('cfconcat_using_cache', false);
 				}
 				update_option('cfconcat_security_key', md5($_SERVER['SERVER_ADDR'] . time()));
+				update_option('cfconcat_minify_js_level', $_POST['js-minify']);
 				do_action('cfconcat_save_general_settings', $_POST);
 			}
 			else if ($_POST['cfconcat_save_settings'] == 'save_scripts') {
