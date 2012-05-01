@@ -8,8 +8,8 @@ Version: 0.5
 Author URI: http://crowdfavorite.com
 */
 
-@define('CFCONCAT_CACHE_DIR', WP_CONTENT_DIR . '/cfconcat-cache/' . $_SERVER['HTTP_HOST']);
-@define('CFCONCAT_CACHE_URL', WP_CONTENT_URL . '/cfconcat-cache/' . $_SERVER['HTTP_HOST']);
+@define('CFCONCAT_CACHE_DIR', WP_CONTENT_DIR . '/cfconcat-cache/' . get_bloginfo('name'));
+@define('CFCONCAT_CACHE_URL', WP_CONTENT_URL . '/cfconcat-cache/' . get_bloginfo('name'));
 
 if (is_admin()) {
 	include_once dirname(__file__).'/admin.php';
@@ -55,11 +55,15 @@ class CFConcatenateStaticScripts {
 			$wp_scripts->to_do = array();
 		}
 		else if (!get_option('cfconcat_using_cache') && (!empty($included_scripts) || !empty($unknown_scripts)) ) {
+			if (file_exists(CFCONCAT_CACHE_DIR.'/js/.lock')) {
+				// Currently building. Don't overload the system.
+				return;
+			}
 			// We don't have the file built yet. Fire off an asynchronous request to build it
 			// and serve the scripts normally.
 			$build_args = array(
 				'wp_scripts_obj' => json_encode($wp_scripts),
-				'key' => get_option('cfconcat_security_key')
+				'key' => get_option('cfconcat_security_key'),
 			);
 			wp_remote_post(
 				admin_url('admin-ajax.php?action=concat-build-js'),
@@ -184,7 +188,6 @@ class CFConcatenateStaticScripts {
 							// We had a valid script to add to the list.
 							
 							// Check to see if it can be concatenated.
-							error_log(print_r($site_scripts[$handle], true));
 							if (empty($site_scripts[$handle]['minify_script'])) {
 								// This cannot be minified. It will need to be kept as is.
 								if (!empty($script_blocks[$current_block])) {
@@ -221,7 +224,6 @@ class CFConcatenateStaticScripts {
 				}
 			}
 		}
-		error_log(print_r(count($script_blocks), true));
 		$script_file_header .= " **/\n";
 		
 		update_option('cfconcat_scripts', $site_scripts);
@@ -264,6 +266,7 @@ class CFConcatenateStaticScripts {
 								&& !empty($response['response'])
 								&& $response['response']['code'] == 200
 								&& !empty($response['body'])
+								&& !(preg_match('/^Error\([\d]+\)/', $response['body']))
 							) {
 								$src = $response['body'];
 							}
@@ -355,7 +358,8 @@ class CFConcatenateStaticScripts {
 			// file so that it gets cached properly without needing to do multiple invalidations.
 			$build_args = array(
 				'wp_scripts_obj' => json_encode($wp_scripts),
-				'key' => get_option('cfconcat_security_key')
+				'key' => get_option('cfconcat_security_key'),
+				'referer' => $_SERVER['HTTP_HOST'] . '/' . $_SERVER['REQUEST_URI']
 			);
 			$response = wp_remote_post(
 				admin_url('admin-ajax.php?action=concat-build-js'),
@@ -420,6 +424,10 @@ class CFConcatenateStaticStyles {
 			$wp_styles->to_do = array();
 		}
 		else if (!get_option('cfconcat_using_cache') && (!empty($included_styles) || !empty($unknown_styles)) ) {
+			if (file_exists(CFCONCAT_CACHE_DIR.'/css/.lock')) {
+				// Currently building. Don't overload the system.
+				return;
+			}
 			// We don't have the file built yet. Fire off an asynchronous request to build it
 			// and serve the styles normally.
 			$build_args = array(
@@ -456,14 +464,16 @@ class CFConcatenateStaticStyles {
 			exit();
 		}
 		if (empty($_POST['wp_styles_obj'])) {
-			exit('No styles object received');
+			error_log('No styles object received');
+			exit();
 		}
 		$styles_obj = json_decode(stripcslashes($_POST['wp_styles_obj']));
 		if (!$styles_obj) {
 			$styles_obj = json_decode($_POST['wp_styles_obj']);
 		}
 		if (empty($styles_obj) || empty($styles_obj->to_do) || empty($styles_obj->registered)) {
-			exit('Issue: ' . print_r($styles_obj, true));
+			error_log('Issue: ' . print_r($styles_obj, true));
+			exit();
 		}
 		
 		$lock = fopen($directory.$lockfile, 'w');
@@ -557,7 +567,27 @@ class CFConcatenateStaticStyles {
 							// We had a valid style to add to the list.
 							$included_styles[$handle] = $handle;
 							$style_file_header .= ' * ' . $handle . ' as ' . $request_url . "\n";
-							$style_file_src .= $style_request['body'] . "\n";
+							$src = $style_request['body'] . "\n";
+							
+							// Convert relative URLs to absolute URLs.
+								// Get URL parts for this script.
+							$parts = array();
+							preg_match('#(https?://[^/]*)([^?]*/)([^?]*)(\?.*)?#', $request_url, $parts);
+							
+								// Update paths that are based on web root.
+							if (count($parts) > 1) {
+								$src = preg_replace('#url\s*\(\s*(["\'])\s*(/[^[:space:]].+?)\s*\1\s*\)#x',
+									'url('.$parts[1].'$2)', $src
+								);
+							}
+								// Update paths based on script location
+							if (count($parts) > 2) {
+								$src = preg_replace('#url\s*\(\s*(["\']?)\s*(?!(?://|https?://))(/?[^[:space:]].+?)\s*\1\s*\)#x',
+									'url('.$parts[1].$parts[2].'$2)', $src
+								);
+							}
+							
+							$style_file_src .= $src . "\n";
 						}
 					}
 				}
@@ -575,16 +605,15 @@ class CFConcatenateStaticStyles {
 				// We have a valid file pointer.
 				
 				// Minify the contents
-				$style_file_src = preg_replace( '#\s{2,}#', ' ', $style_file_src );
-				$style_file_src = preg_replace( '#/\*.*?\*/#s', '', $style_file_src );
-				$style_file_src = preg_replace( '/;[\s]+/', ';', $style_file_src );
-				$style_file_src = preg_replace( '/:[\s]+/', ':', $style_file_src );
-				$style_file_src = preg_replace( '/[\s]*{[\s]*/', '{', $style_file_src );
-				//$style_file_src = preg_replace( '/{[\s]+/', '{', $style_file_src );
-				$style_file_src = preg_replace( '/,[\s]+/', ',', $style_file_src );
-				$style_file_src = preg_replace( '/[\s]*}[\s]*/', '}', $style_file_src );
-				$style_file_src = str_replace( ';}', '}', $style_file_src );
-				$style_file_src = trim( $style_file_src );
+				//$style_file_src = preg_replace( '#\s{2,}#', ' ', $style_file_src );
+				//$style_file_src = preg_replace( '#/\*.*?\*/#s', '', $style_file_src );
+				//$style_file_src = preg_replace( '/;[\s]+/', ';', $style_file_src );
+				//$style_file_src = preg_replace( '/:[\s]+/', ':', $style_file_src );
+				//$style_file_src = preg_replace( '/[\s]*{[\s]*/', '{', $style_file_src );
+				//$style_file_src = preg_replace( '/,[\s]+/', ',', $style_file_src );
+				//$style_file_src = preg_replace( '/[\s]*}[\s]*/', '}', $style_file_src );
+				//$style_file_src = str_replace( ';}', '}', $style_file_src );
+				//$style_file_src = trim( $style_file_src );*/
 				
 				// Write the file and close it.
 				fwrite($file, $style_file_header.$style_file_src);
@@ -616,17 +645,19 @@ class CFConcatenateStaticStyles {
 		$unknown_styles = array();
 		$registered = $wp_styles->registered;
 		foreach ($wp_styles->to_do as $handle) {
-			if (empty($site_styles[$handle])) {
+			if (
+				   empty($site_styles[$handle])
+				|| $site_styles[$handle]['src'] != $registered[$handle]->src
+				|| $site_styles[$handle]['ver'] != $registered[$handle]->ver
+			) {
 				// Note that we have an unknown script, and thus should actually still make the back-end request.
 				$unknown_styles[] = $registered[$handle];
 				continue;
 			}
 			else if (
 				   !($site_styles[$handle]['enabled'])
-				|| $site_styles[$handle]['src'] != $registered[$handle]->src
-				|| $site_styles[$handle]['ver'] != $registered[$handle]->ver
 			) {
-				// We shouldn't include this style, it's not enabled or recognized.
+				// We shouldn't include this style, it's not enabled.
 				continue;
 			}
 			else {
@@ -649,7 +680,7 @@ class CFConcatenateStaticStyles {
 		}
 		
 		if (empty($included_styles) && empty($unknown_styles)) {
-			return;
+			return false;
 		}
 		
 		$filename = self::_getConcatenatedStylesFilename($included_styles);
@@ -660,6 +691,9 @@ class CFConcatenateStaticStyles {
 			return esc_url($url);
 		}
 		else if (get_option('cfconcat_using_cache', false)) {
+			if (file_exists($directory.'.lock')) {
+				return false;
+			}
 			// We're in a cached environment, so run a synchronous request to build the concatenated
 			// file so that it gets cached properly without needing to do multiple invalidations.
 			$build_args = array(
