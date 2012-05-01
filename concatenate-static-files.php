@@ -605,15 +605,15 @@ class CFConcatenateStaticStyles {
 				// We have a valid file pointer.
 				
 				// Minify the contents
-				//$style_file_src = preg_replace( '#\s{2,}#', ' ', $style_file_src );
-				//$style_file_src = preg_replace( '#/\*.*?\*/#s', '', $style_file_src );
-				//$style_file_src = preg_replace( '/;[\s]+/', ';', $style_file_src );
-				//$style_file_src = preg_replace( '/:[\s]+/', ':', $style_file_src );
-				//$style_file_src = preg_replace( '/[\s]*{[\s]*/', '{', $style_file_src );
-				//$style_file_src = preg_replace( '/,[\s]+/', ',', $style_file_src );
-				//$style_file_src = preg_replace( '/[\s]*}[\s]*/', '}', $style_file_src );
-				//$style_file_src = str_replace( ';}', '}', $style_file_src );
-				//$style_file_src = trim( $style_file_src );*/
+				$style_file_src = preg_replace( '#\s{2,}#', ' ', $style_file_src );
+				$style_file_src = preg_replace( '#/\*.*?\*/#s', '', $style_file_src );
+				$style_file_src = preg_replace( '/;[\s]+/', ';', $style_file_src );
+				$style_file_src = preg_replace( '/:[\s]+/', ':', $style_file_src );
+				$style_file_src = preg_replace( '/[\s]*{[\s]*/', '{', $style_file_src );
+				$style_file_src = preg_replace( '/,[\s]+/', ',', $style_file_src );
+				$style_file_src = preg_replace( '/[\s]*}[\s]*/', '}', $style_file_src );
+				$style_file_src = str_replace( ';}', '}', $style_file_src );
+				$style_file_src = trim( $style_file_src );
 				
 				// Write the file and close it.
 				fwrite($file, $style_file_header.$style_file_src);
