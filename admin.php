@@ -160,7 +160,6 @@ class CFConcatenateStaticAdmin {
 		<?php screen_icon(); ?><h1><?php echo esc_html(__('CF Concatenate Static Files')); ?></h1>
 		<p>Here you can manage the settings for dynamically concatenating and serving your static files.<p>
 		<p>Each file lists its handle, information about that file, and the reason it was disabled if such was required.</p>
-		<p>Files are stored in: <?php echo esc_html(CFCONCAT_CACHE_DIR); ?></p>
 		<form method="post" action="" id="cf-concat-static-settings">
 			<?php
 			wp_nonce_field('cfconcat-save-settings', 'cfconcat-save-settings');
@@ -241,6 +240,19 @@ class CFConcatenateStaticAdmin {
 			?>
 			<div class="tab" id="cf-concat-static-settings-<?php echo $attr_escaped_type; ?>">
 				<h2 class="tab-title"><?php echo $html_escaped_name; ?></h2>
+				<?php if (in_array($tab_type, array('scripts', 'styles'))) { ?>
+				<p><?php echo $html_escaped_name; ?> files are stored in:
+				<?php
+					if ($tab_type == 'scripts') {
+						echo CFConcatenateStaticScripts::getCacheDir();
+					}
+					else if ($tab_type == 'styles') {
+						echo CFConcatenateStaticStyles::getCacheDir();
+					}
+				?>
+				</p>
+				<p>Please be sure the above directory is writable, or could be created, by the web user.</p>
+				<?php } ?>
 				<fieldset id="cf-concat-static-<?php echo $attr_escaped_type; ?>-list">
 					<legend><h3><?php echo esc_html(__($filetab_types[$tab_type] . ' Files')); ?></h3></legend>
 					<ul class="concat-file-list">
@@ -320,7 +332,7 @@ class CFConcatenateStaticAdmin {
 					$files = opendir($dir);
 					if ($files) {
 						while ($file = readdir($files)) {
-							if (is_file($dir.'/'.$file) && (preg_match('/\.js$/', $file) || $file == '.lock')) {
+							if (is_file($dir.'/'.$file) && (preg_match('/\.js$/', $file) || $file == CFConcatenateStaticScripts::getLockFile())) {
 								unlink($dir.'/'.$file);
 							}
 						}
@@ -334,7 +346,7 @@ class CFConcatenateStaticAdmin {
 					$files = opendir($dir);
 					if ($files) {
 						while ($file = readdir($files)) {
-							if (is_file($dir.'/'.$file) && (preg_match('/\.css$/', $file) || $file == '.lock')) {
+							if (is_file($dir.'/'.$file) && (preg_match('/\.css$/', $file) || $file == CFConcatenateStaticStyles::getLockFile())) {
 								unlink($dir.'/'.$file);
 							}
 						}

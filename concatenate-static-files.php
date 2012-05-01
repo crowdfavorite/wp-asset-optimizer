@@ -8,9 +8,6 @@ Version: 0.5
 Author URI: http://crowdfavorite.com
 */
 
-@define('CFCONCAT_CACHE_DIR', WP_CONTENT_DIR . '/cfconcat-cache/' . $_SERVER['HTTP_HOST']);
-@define('CFCONCAT_CACHE_URL', WP_CONTENT_URL . '/cfconcat-cache/' . $_SERVER['HTTP_HOST']);
-
 if (is_admin()) {
 	include_once dirname(__file__).'/admin.php';
 }
@@ -18,11 +15,11 @@ if (is_admin()) {
 class CFConcatenateStaticScripts {
 	protected static $_CFCONCAT_CACHE_DIR;
 	protected static $_CFCONCAT_CACHE_URL;
-	protected static $_LOCKFILE = '.cfconcatjslock';
+	protected static $_LOCKFILE = '';
 	
 	public static function getCacheDir() {
 		if (empty(self::$_CFCONCAT_CACHE_DIR)) {
-			$cache_dir = WP_CONTENT_DIR . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/';
+			$cache_dir = WP_CONTENT_DIR . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/js/';
 			self::$_CFCONCAT_CACHE_DIR = trailingslashit(apply_filters('cfconcat_script_cache_dir', $cache_dir));
 		}
 		return self::$_CFCONCAT_CACHE_DIR;
@@ -30,10 +27,18 @@ class CFConcatenateStaticScripts {
 	
 	public static function getCacheUrl() {
 		if (empty(self::$_CFCONCAT_CACHE_URL)) {
-			$cache_url = WP_CONTENT_URL . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/';
-			self::$_CFCONCAT_CACHE_URL = trailingslashit(apply_filters('cfconcat_script_cache_dir', $cache_url, $type));
+			$cache_url = WP_CONTENT_URL . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/js/';
+			self::$_CFCONCAT_CACHE_URL = trailingslashit(apply_filters('cfconcat_script_cache_dir', $cache_url));
 		}
 		return self::$_CFCONCAT_CACHE_URL;
+	}
+	
+	public static function getLockFile() {
+		if (empty(self::$_LOCKFILE)) {
+			$lockfile = '.cfconcatjslock';
+			self::$_LOCKFILE = apply_filters('cfconcat_script_lockfile', $lockfile);
+		}
+		return self::$_LOCKFILE;
 	}
 
 	public static function onWPPrintScripts() {
@@ -74,7 +79,7 @@ class CFConcatenateStaticScripts {
 			$wp_scripts->to_do = array();
 		}
 		else if (!get_option('cfconcat_using_cache') && (!empty($included_scripts) || !empty($unknown_scripts)) ) {
-			if (file_exists(trailingslashit(self::getCacheDir()).self::$_LOCKFILE)) {
+			if (file_exists(trailingslashit(self::getCacheDir()).self::getLockFile())) {
 				// Currently building. Don't overload the system.
 				return;
 			}
@@ -108,7 +113,7 @@ class CFConcatenateStaticScripts {
 				exit();
 			}
 		}
-		$lockfile = self::$_LOCKFILE;
+		$lockfile = self::getLockFile();
 		if (file_exists($directory.$lockfile)) {
 			// We're currently running a build. Throttle it to avoid DDOS Attacks.
 			exit();
@@ -373,7 +378,7 @@ class CFConcatenateStaticScripts {
 			return esc_url($url);
 		}
 		else if (get_option('cfconcat_using_cache', false)) {
-			if (file_exists($directory.self::$_LOCKFILE)) {
+			if (file_exists($directory.self::getLockFile())) {
 				// We're currently building. Don't overload the system.
 				$included_scripts = $unknown_scripts = array();
 				return false;
@@ -410,11 +415,11 @@ if (!is_admin()) {
 class CFConcatenateStaticStyles {
 	protected static $_CFCONCAT_CACHE_DIR;
 	protected static $_CFCONCAT_CACHE_URL;
-	public static $_LOCKFILE = '.cfconcatcsslock';
+	protected static $_LOCKFILE = '';
 	
 	public static function getCacheDir() {
 		if (empty(self::$_CFCONCAT_CACHE_DIR)) {
-			$cache_dir = WP_CONTENT_DIR . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/';
+			$cache_dir = WP_CONTENT_DIR . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/css/';
 			self::$_CFCONCAT_CACHE_DIR = trailingslashit(apply_filters('cfconcat_style_cache_dir', $cache_dir));
 		}
 		return self::$_CFCONCAT_CACHE_DIR;
@@ -422,10 +427,18 @@ class CFConcatenateStaticStyles {
 	
 	public static function getCacheUrl() {
 		if (empty(self::$_CFCONCAT_CACHE_URL)) {
-			$cache_url = WP_CONTENT_URL . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/';
-			self::$_CFCONCAT_CACHE_URL = trailingslashit(apply_filters('cfconcat_style_cache_dir', $cache_url, $type));
+			$cache_url = WP_CONTENT_URL . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/css/';
+			self::$_CFCONCAT_CACHE_URL = trailingslashit(apply_filters('cfconcat_style_cache_dir', $cache_url));
 		}
 		return self::$_CFCONCAT_CACHE_URL;
+	}
+	
+	public static function getLockFile() {
+		if (empty(self::$_LOCKFILE)) {
+			$lockfile = '.cfconcatcsslock';
+			self::$_LOCKFILE = apply_filters('cfconcat_css_lockfile', $lockfile);
+		}
+		return self::$_LOCKFILE;
 	}
 
 	public static function onWPPrintStyles() {
@@ -467,7 +480,7 @@ class CFConcatenateStaticStyles {
 			$wp_styles->to_do = array();
 		}
 		else if (!get_option('cfconcat_using_cache') && (!empty($included_styles) || !empty($unknown_styles)) ) {
-			if (file_exists(trailingslashit(self::getCacheDir()).self::$_LOCKFILE)) {
+			if (file_exists(trailingslashit(self::getCacheDir()).self::getLockFile())) {
 				// Currently building. Don't overload the system.
 				return;
 			}
@@ -501,7 +514,7 @@ class CFConcatenateStaticStyles {
 				exit();
 			}
 		}
-		$lockfile = self::$_LOCKFILE;
+		$lockfile = self::getLockFile();
 		if (file_exists($directory.$lockfile)) {
 			// We're currently running a build. Throttle it to avoid DDOS Attacks.
 			exit();
@@ -734,7 +747,7 @@ class CFConcatenateStaticStyles {
 			return esc_url($url);
 		}
 		else if (get_option('cfconcat_using_cache', false)) {
-			if (file_exists($directory.self::$_LOCKFILE)) {
+			if (file_exists($directory.self::getLockFile())) {
 				$included_scripts = $unknown_scripts = array();
 				return false;
 			}
