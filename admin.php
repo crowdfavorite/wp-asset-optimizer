@@ -158,9 +158,8 @@ class CFConcatenateStaticAdmin {
 		public static function adminMenuCallback() {
 		?>
 		<?php screen_icon(); ?><h1><?php echo esc_html(__('CF Concatenate Static Files')); ?></h1>
-		<p>Here you can manage the settings for dynamically concatenating and serving your static files.<p>
-		<p>Each file lists its handle, information about that file, and the reason it was disabled if such was required.</p>
-		<p>Files are stored in: <?php echo esc_html(CFCONCAT_CACHE_DIR); ?></p>
+		<p><?php echo esc_html(__('Here you can manage the settings for dynamically concatenating and serving your static files.')); ?><p>
+		<p><?php echo esc_html(__('Each file lists its handle, information about that file, and the reason it was disabled if such was required.')); ?></p>
 		<form method="post" action="" id="cf-concat-static-settings">
 			<?php
 			wp_nonce_field('cfconcat-save-settings', 'cfconcat-save-settings');
@@ -194,7 +193,7 @@ class CFConcatenateStaticAdmin {
 				</fieldset>
 				<fieldset id="cf-concat-static-settings-minify-settings">
 					<legend><h3><?php echo esc_html(__('JavaScript Minification Settings')); ?></h3></legend>
-					<p>Minification of JavaScript is done through Google's Closure Compiler. Levels of minification available are listed below.
+					<p><?php echo esc_html(__('Minification of JavaScript is done through Google\'s Closure Compiler. Levels of minification available are listed below.')); ?></p>
 					<ul>
 						<li>
 							<input type="radio" name="js-minify" id="cfconcat-js-minify-none" value=""<?php checked (empty($minify_js_level)); ?> />
@@ -241,6 +240,19 @@ class CFConcatenateStaticAdmin {
 			?>
 			<div class="tab" id="cf-concat-static-settings-<?php echo $attr_escaped_type; ?>">
 				<h2 class="tab-title"><?php echo $html_escaped_name; ?></h2>
+				<?php if (in_array($tab_type, array('scripts', 'styles'))) { ?>
+				<p><?php echo esc_html(sprintf(__('%s files are stored in: '), $filetab_types[$tab_type])); ?>
+				<?php
+					if ($tab_type == 'scripts') {
+						echo CFConcatenateStaticScripts::getCacheDir();
+					}
+					else if ($tab_type == 'styles') {
+						echo CFConcatenateStaticStyles::getCacheDir();
+					}
+				?>
+				</p>
+				<p><?php echo esc_html(__('Please be sure the above directory is writable, or could be created, by the web user.')); ?></p>
+				<?php } ?>
 				<fieldset id="cf-concat-static-<?php echo $attr_escaped_type; ?>-list">
 					<legend><h3><?php echo esc_html(__($filetab_types[$tab_type] . ' Files')); ?></h3></legend>
 					<ul class="concat-file-list">
@@ -316,20 +328,28 @@ class CFConcatenateStaticAdmin {
 			}
 			else if ($_POST['cfconcat_save_settings'] == 'clear_scripts_cache') {
 				$dir = CFCONCAT_CACHE_DIR.'/js';
-				$files = opendir($dir);
-				while ($file = readdir($files)) {
-					if (is_file($dir.'/'.$file) && (preg_match('/\.js$/', $file) || $file == '.lock')) {
-						unlink($dir.'/'.$file);
+				if (is_dir($dir)) {
+					$files = opendir($dir);
+					if ($files) {
+						while ($file = readdir($files)) {
+							if (is_file($dir.'/'.$file) && (preg_match('/\.js$/', $file) || $file == CFConcatenateStaticScripts::getLockFile())) {
+								unlink($dir.'/'.$file);
+							}
+						}
 					}
 				}
 				$tab = 'scripts';
 			}
 			else if ($_POST['cfconcat_save_settings'] == 'clear_styles_cache') {
 				$dir = CFCONCAT_CACHE_DIR.'/css';
-				$files = opendir($dir);
-				while ($file = readdir($files)) {
-					if (is_file($dir.'/'.$file) && (preg_match('/\.css$/', $file) || $file == '.lock')) {
-						unlink($dir.'/'.$file);
+				if (is_dir($dir)) {
+					$files = opendir($dir);
+					if ($files) {
+						while ($file = readdir($files)) {
+							if (is_file($dir.'/'.$file) && (preg_match('/\.css$/', $file) || $file == CFConcatenateStaticStyles::getLockFile())) {
+								unlink($dir.'/'.$file);
+							}
+						}
 					}
 				}
 				$tab = 'styles';
