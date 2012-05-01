@@ -4,7 +4,7 @@ Plugin Name: CF Asset Optimizer
 Plugin URI: http://crowdfavorite.com
 Description: Used to serve optimized and concatenated JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 1.0.4
+Version: 1.1
 Author URI: http://crowdfavorite.com
 */
 
@@ -13,30 +13,30 @@ if (is_admin()) {
 }
 
 class CFAssetOptimizerScripts {
-	protected static $_CFCONCAT_CACHE_DIR;
-	protected static $_CFCONCAT_CACHE_URL;
+	protected static $_cfao_CACHE_DIR;
+	protected static $_cfao_CACHE_URL;
 	protected static $_LOCKFILE = '';
 	
 	public static function getCacheDir() {
-		if (empty(self::$_CFCONCAT_CACHE_DIR)) {
-			$cache_dir = WP_CONTENT_DIR . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/js/';
-			self::$_CFCONCAT_CACHE_DIR = trailingslashit(apply_filters('cfconcat_script_cache_dir', $cache_dir));
+		if (empty(self::$_cfao_CACHE_DIR)) {
+			$cache_dir = WP_CONTENT_DIR . '/cfao-cache/' . $_SERVER['HTTP_HOST'] . '/js/';
+			self::$_cfao_CACHE_DIR = trailingslashit(apply_filters('cfao_script_cache_dir', $cache_dir));
 		}
-		return self::$_CFCONCAT_CACHE_DIR;
+		return self::$_cfao_CACHE_DIR;
 	}
 	
 	public static function getCacheUrl() {
-		if (empty(self::$_CFCONCAT_CACHE_URL)) {
-			$cache_url = WP_CONTENT_URL . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/js/';
-			self::$_CFCONCAT_CACHE_URL = trailingslashit(apply_filters('cfconcat_script_cache_url', $cache_url));
+		if (empty(self::$_cfao_CACHE_URL)) {
+			$cache_url = WP_CONTENT_URL . '/cfao-cache/' . $_SERVER['HTTP_HOST'] . '/js/';
+			self::$_cfao_CACHE_URL = trailingslashit(apply_filters('cfao_script_cache_url', $cache_url));
 		}
-		return self::$_CFCONCAT_CACHE_URL;
+		return self::$_cfao_CACHE_URL;
 	}
 	
 	public static function getLockFile() {
 		if (empty(self::$_LOCKFILE)) {
-			$lockfile = '.cfconcatjslock';
-			self::$_LOCKFILE = apply_filters('cfconcat_script_lockfile', $lockfile);
+			$lockfile = '.cfaojslock';
+			self::$_LOCKFILE = apply_filters('cfao_script_lockfile', $lockfile);
 		}
 		return self::$_LOCKFILE;
 	}
@@ -70,15 +70,15 @@ class CFAssetOptimizerScripts {
 					$new_deps = array_diff($my_deps, $included_scripts);
 					if (count($my_deps) > count($new_deps)) {
 						// We need to add the concatenated script as a dependency
-						$new_deps[] = 'cfconcat-script';
+						$new_deps[] = 'cfao-script';
 					}
 					$wp_scripts->registered[$handle]->deps = $new_deps;
 				}
 			}
-			wp_enqueue_script('cfconcat-script', $url, array(), $version);
+			wp_enqueue_script('cfao-script', $url, array(), $version);
 			$wp_scripts->to_do = array();
 		}
-		else if (!get_option('cfconcat_using_cache') && (!empty($included_scripts) || !empty($unknown_scripts)) ) {
+		else if (!get_option('cfao_using_cache') && (!empty($included_scripts) || !empty($unknown_scripts)) ) {
 			if (file_exists(trailingslashit(self::getCacheDir()).self::getLockFile())) {
 				// Currently building. Don't overload the system.
 				return;
@@ -87,7 +87,7 @@ class CFAssetOptimizerScripts {
 			// and serve the scripts normally.
 			$build_args = array(
 				'wp_scripts_obj' => json_encode($wp_scripts),
-				'key' => get_option('cfconcat_security_key'),
+				'key' => get_option('cfao_security_key'),
 			);
 			wp_remote_post(
 				admin_url('admin-ajax.php?action=concat-build-js'),
@@ -102,7 +102,7 @@ class CFAssetOptimizerScripts {
 	
 	public static function buildConcatenatedScriptFile() {
 		$directory = trailingslashit(self::getCacheDir());
-		$security_key = get_option('cfconcat_security_key');
+		$security_key = get_option('cfao_security_key');
 		if ($security_key != $_POST['key']) {
 			exit();
 		}
@@ -137,7 +137,7 @@ class CFAssetOptimizerScripts {
 		fwrite($lock, time());
 		fclose($lock);
 		
-		$site_scripts = get_option('cfconcat_scripts', array());
+		$site_scripts = get_option('cfao_scripts', array());
 		
 		if (!is_array($site_scripts)) {
 			$site_scripts = array();
@@ -250,7 +250,7 @@ class CFAssetOptimizerScripts {
 		}
 		$script_file_header .= " **/\n";
 		
-		update_option('cfconcat_scripts', $site_scripts);
+		update_option('cfao_scripts', $site_scripts);
 		
 		if (!empty($included_scripts)) {
 			// We have a file to write
@@ -260,7 +260,7 @@ class CFAssetOptimizerScripts {
 				// We have a valid file pointer.
 				
 				// Minify the file as dictated by user settings with Google Closure Compiler
-				$minify_level = get_option('cfconcat_minify_js_level', '');
+				$minify_level = get_option('cfao_minify_js_level', '');
 				$compiler_levels = array(
 					'whitespace' => 'WHITESPACE_ONLY',
 					'simple' => 'SIMPLE_OPTIMIZATIONS',
@@ -323,7 +323,7 @@ class CFAssetOptimizerScripts {
 		$directory = trailingslashit(self::getCacheDir());
 		$dir_url = trailingslashit(esc_url(self::getCacheUrl()));
 		
-		$site_scripts = get_option('cfconcat_scripts', array());
+		$site_scripts = get_option('cfao_scripts', array());
 		
 		if (!is_array($site_scripts)) {
 			$site_scripts = array();
@@ -355,7 +355,7 @@ class CFAssetOptimizerScripts {
 						$can_include = false;
 						$site_scripts[$handle]['enabled'] = false;
 						$site_scripts[$handle]['disable_reason'] = 'Dependent on disabled script: ' . $dep;
-						update_option('cfconcat_scripts', $site_scripts);
+						update_option('cfao_scripts', $site_scripts);
 						break;
 					}
 				}
@@ -374,10 +374,10 @@ class CFAssetOptimizerScripts {
 		
 		if (file_exists($directory.$filename)) {
 			$version = filemtime($directory.$filename);
-			$url = apply_filters('cfconcat_script_file_url', $dir_url.$filename, $directory.$filename, $filename);
+			$url = apply_filters('cfao_script_file_url', $dir_url.$filename, $directory.$filename, $filename);
 			return esc_url($url);
 		}
-		else if (get_option('cfconcat_using_cache', false)) {
+		else if (get_option('cfao_using_cache', false)) {
 			if (file_exists($directory.self::getLockFile())) {
 				// We're currently building. Don't overload the system.
 				$included_scripts = $unknown_scripts = array();
@@ -387,7 +387,7 @@ class CFAssetOptimizerScripts {
 			// file so that it gets cached properly without needing to do multiple invalidations.
 			$build_args = array(
 				'wp_scripts_obj' => json_encode($wp_scripts),
-				'key' => get_option('cfconcat_security_key'),
+				'key' => get_option('cfao_security_key'),
 				'referer' => $_SERVER['HTTP_HOST'] . '/' . $_SERVER['REQUEST_URI']
 			);
 			$response = wp_remote_post(
@@ -399,7 +399,7 @@ class CFAssetOptimizerScripts {
 			);
 			if (file_exists($directory.$filename)) {
 				$version = filemtime($directory.$filename);
-				$url = apply_filters('cfconcat_script_file_url', $dir_url.$filename, $directory.$filename, $filename);
+				$url = apply_filters('cfao_script_file_url', $dir_url.$filename, $directory.$filename, $filename);
 				return esc_url($url);
 			}
 		}
@@ -413,30 +413,30 @@ if (!is_admin()) {
 }
 
 class CFAssetOptimizerStyles {
-	protected static $_CFCONCAT_CACHE_DIR;
-	protected static $_CFCONCAT_CACHE_URL;
+	protected static $_cfao_CACHE_DIR;
+	protected static $_cfao_CACHE_URL;
 	protected static $_LOCKFILE = '';
 	
 	public static function getCacheDir() {
-		if (empty(self::$_CFCONCAT_CACHE_DIR)) {
-			$cache_dir = WP_CONTENT_DIR . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/css/';
-			self::$_CFCONCAT_CACHE_DIR = trailingslashit(apply_filters('cfconcat_style_cache_dir', $cache_dir));
+		if (empty(self::$_cfao_CACHE_DIR)) {
+			$cache_dir = WP_CONTENT_DIR . '/cfao-cache/' . $_SERVER['HTTP_HOST'] . '/css/';
+			self::$_cfao_CACHE_DIR = trailingslashit(apply_filters('cfao_style_cache_dir', $cache_dir));
 		}
-		return self::$_CFCONCAT_CACHE_DIR;
+		return self::$_cfao_CACHE_DIR;
 	}
 	
 	public static function getCacheUrl() {
-		if (empty(self::$_CFCONCAT_CACHE_URL)) {
-			$cache_url = WP_CONTENT_URL . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/css/';
-			self::$_CFCONCAT_CACHE_URL = trailingslashit(apply_filters('cfconcat_style_cache_url', $cache_url));
+		if (empty(self::$_cfao_CACHE_URL)) {
+			$cache_url = WP_CONTENT_URL . '/cfao-cache/' . $_SERVER['HTTP_HOST'] . '/css/';
+			self::$_cfao_CACHE_URL = trailingslashit(apply_filters('cfao_style_cache_url', $cache_url));
 		}
-		return self::$_CFCONCAT_CACHE_URL;
+		return self::$_cfao_CACHE_URL;
 	}
 	
 	public static function getLockFile() {
 		if (empty(self::$_LOCKFILE)) {
-			$lockfile = '.cfconcatcsslock';
-			self::$_LOCKFILE = apply_filters('cfconcat_css_lockfile', $lockfile);
+			$lockfile = '.cfaocsslock';
+			self::$_LOCKFILE = apply_filters('cfao_css_lockfile', $lockfile);
 		}
 		return self::$_LOCKFILE;
 	}
@@ -463,7 +463,7 @@ class CFAssetOptimizerStyles {
 					$new_deps = array_diff($my_deps, $included_styles);
 					if (count($my_deps) > count($new_deps)) {
 						// We need to add the concatenated style as a dependency
-						$new_deps[] = 'cfconcat-style';
+						$new_deps[] = 'cfao-style';
 					}
 					$wp_styles->registered[$handle]->deps = $new_deps;
 				}
@@ -476,10 +476,10 @@ class CFAssetOptimizerStyles {
 					$my_deps[] = $dep;
 				}
 			}
-			wp_enqueue_style('cfconcat-style', $url, $my_deps, $version);
+			wp_enqueue_style('cfao-style', $url, $my_deps, $version);
 			$wp_styles->to_do = array();
 		}
-		else if (!get_option('cfconcat_using_cache') && (!empty($included_styles) || !empty($unknown_styles)) ) {
+		else if (!get_option('cfao_using_cache') && (!empty($included_styles) || !empty($unknown_styles)) ) {
 			if (file_exists(trailingslashit(self::getCacheDir()).self::getLockFile())) {
 				// Currently building. Don't overload the system.
 				return;
@@ -488,7 +488,7 @@ class CFAssetOptimizerStyles {
 			// and serve the styles normally.
 			$build_args = array(
 				'wp_styles_obj' => json_encode($wp_styles),
-				'key' => get_option('cfconcat_security_key')
+				'key' => get_option('cfao_security_key')
 			);
 			$response = wp_remote_post(
 				admin_url('admin-ajax.php?action=concat-build-css'),
@@ -503,7 +503,7 @@ class CFAssetOptimizerStyles {
 	
 	public static function buildConcatenatedStyleFile() {
 		$directory = trailingslashit(self::getCacheDir());
-		$security_key = get_option('cfconcat_security_key');
+		$security_key = get_option('cfao_security_key');
 		if ($security_key != $_POST['key']) {
 			exit();
 		}
@@ -540,7 +540,7 @@ class CFAssetOptimizerStyles {
 		fwrite($lock, time());
 		fclose($lock);
 		
-		$site_styles = get_option('cfconcat_styles', array());
+		$site_styles = get_option('cfao_styles', array());
 		
 		if (!is_array($site_styles)) {
 			$site_styles = array();
@@ -651,7 +651,7 @@ class CFAssetOptimizerStyles {
 		}
 		$style_file_header .= " **/\n";
 		
-		update_option('cfconcat_styles', $site_styles);
+		update_option('cfao_styles', $site_styles);
 		
 		if (!empty($included_styles)) {
 			// We have a file to write
@@ -686,7 +686,7 @@ class CFAssetOptimizerStyles {
 		$directory = self::getCacheDir();;
 		$dir_url = esc_url(self::getCacheUrl());
 		
-		$site_styles = get_option('cfconcat_styles', array());
+		$site_styles = get_option('cfao_styles', array());
 		
 		if (!is_array($site_styles)) {
 			$site_styles = array();
@@ -720,7 +720,7 @@ class CFAssetOptimizerStyles {
 						$can_include = false;
 						$site_styles[$handle]['enabled'] = false;
 						$site_styles[$handle]['disable_reason'] = 'Dependent on disabled style: ' . $dep;
-						update_option('cfconcat_styles', $site_styles);
+						update_option('cfao_styles', $site_styles);
 						break;
 					}
 				}
@@ -738,10 +738,10 @@ class CFAssetOptimizerStyles {
 		
 		if (file_exists($directory.$filename)) {
 			$version = filemtime($directory.$filename);
-			$url = apply_filters('cfconcat_style_file_url', $dir_url.$filename, $directory.$filename, $filename);
+			$url = apply_filters('cfao_style_file_url', $dir_url.$filename, $directory.$filename, $filename);
 			return esc_url($url);
 		}
-		else if (get_option('cfconcat_using_cache', false)) {
+		else if (get_option('cfao_using_cache', false)) {
 			if (file_exists($directory.self::getLockFile())) {
 				$included_styles = $unknown_styles = array();
 				return false;
@@ -750,7 +750,7 @@ class CFAssetOptimizerStyles {
 			// file so that it gets cached properly without needing to do multiple invalidations.
 			$build_args = array(
 				'wp_styles_obj' => json_encode($wp_styles),
-				'key' => get_option('cfconcat_security_key')
+				'key' => get_option('cfao_security_key')
 			);
 			$response = wp_remote_post(
 				admin_url('admin-ajax.php?action=concat-build-css'),
@@ -761,7 +761,7 @@ class CFAssetOptimizerStyles {
 			);
 			if (file_exists($directory.$filename)) {
 				$version = filemtime($directory.$filename);
-				$url = apply_filters('cfconcat_style_file_url', $dir_url.$filename, $directory.$filename, $filename);
+				$url = apply_filters('cfao_style_file_url', $dir_url.$filename, $directory.$filename, $filename);
 				return esc_url($url);
 			}
 		}
