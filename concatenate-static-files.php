@@ -16,6 +16,25 @@ if (is_admin()) {
 }
 
 class CFConcatenateStaticScripts {
+	protected static $_CFCONCAT_CACHE_DIR;
+	protected static $_CFCONCAT_CACHE_URL;
+	protected static $_LOCKFILE = '.cfconcatjslock';
+	
+	public static function getCacheDir() {
+		if (empty(self::$_CFCONCAT_CACHE_DIR)) {
+			$cache_dir = WP_CONTENT_DIR . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/';
+			self::$_CFCONCAT_CACHE_DIR = trailingslashit(apply_filters('cfconcat_script_cache_dir', $cache_dir));
+		}
+		return self::$_CFCONCAT_CACHE_DIR;
+	}
+	
+	public static function getCacheUrl() {
+		if (empty(self::$_CFCONCAT_CACHE_URL)) {
+			$cache_url = WP_CONTENT_URL . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/';
+			self::$_CFCONCAT_CACHE_URL = trailingslashit(apply_filters('cfconcat_script_cache_dir', $cache_url, $type));
+		}
+		return self::$_CFCONCAT_CACHE_URL;
+	}
 
 	public static function onWPPrintScripts() {
 		global $wp_scripts;
@@ -55,7 +74,7 @@ class CFConcatenateStaticScripts {
 			$wp_scripts->to_do = array();
 		}
 		else if (!get_option('cfconcat_using_cache') && (!empty($included_scripts) || !empty($unknown_scripts)) ) {
-			if (file_exists(CFCONCAT_CACHE_DIR.'/js/.lock')) {
+			if (file_exists(trailingslashit(self::getCacheDir()).self::$_LOCKFILE)) {
 				// Currently building. Don't overload the system.
 				return;
 			}
@@ -77,7 +96,7 @@ class CFConcatenateStaticScripts {
 	}
 	
 	public static function buildConcatenatedScriptFile() {
-		$directory = CFCONCAT_CACHE_DIR . '/js/';
+		$directory = trailingslashit(self::getCacheDir());
 		$security_key = get_option('cfconcat_security_key');
 		if ($security_key != $_POST['key']) {
 			exit();
@@ -89,7 +108,7 @@ class CFConcatenateStaticScripts {
 				exit();
 			}
 		}
-		$lockfile = '.lock';
+		$lockfile = self::$_LOCKFILE;
 		if (file_exists($directory.$lockfile)) {
 			// We're currently running a build. Throttle it to avoid DDOS Attacks.
 			exit();
@@ -296,8 +315,8 @@ class CFConcatenateStaticScripts {
 	}
 	
 	public static function getConcatenatedScriptUrl($wp_scripts, &$included_scripts, &$unknown_scripts, &$version) {
-		$directory = CFCONCAT_CACHE_DIR . '/js/';
-		$dir_url = esc_url(CFCONCAT_CACHE_URL . '/js/');
+		$directory = trailingslashit(self::getCacheDir());
+		$dir_url = trailingslashit(esc_url(self::getCacheUrl()));
 		
 		$site_scripts = get_option('cfconcat_scripts', array());
 		
@@ -348,12 +367,17 @@ class CFConcatenateStaticScripts {
 		
 		$filename = self::_getConcatenatedScriptsFilename($included_scripts);
 		
-		if (file_exists(CFCONCAT_CACHE_DIR.'/js/'.$filename)) {
-			$version = filemtime(CFCONCAT_CACHE_DIR.'/js/'.$filename);
+		if (file_exists($directory.$filename)) {
+			$version = filemtime($directory.$filename);
 			$url = apply_filters('cfconcat_script_file_url', $dir_url.$filename, $directory.$filename, $filename);
 			return esc_url($url);
 		}
 		else if (get_option('cfconcat_using_cache', false)) {
+			if (file_exists($directory.self::$_LOCKFILE)) {
+				// We're currently building. Don't overload the system.
+				$included_scripts = $unknown_scripts = array();
+				return false;
+			}
 			// We're in a cached environment, so run a synchronous request to build the concatenated
 			// file so that it gets cached properly without needing to do multiple invalidations.
 			$build_args = array(
@@ -368,8 +392,8 @@ class CFConcatenateStaticScripts {
 					'redirection' => 0,
 				)
 			);
-			if (file_exists(CFCONCAT_CACHE_DIR.'/js/'.$filename)) {
-				$version = filemtime(CFCONCAT_CACHE_DIR.'/js/'.$filename);
+			if (file_exists($directory.$filename)) {
+				$version = filemtime($directory.$filename);
 				$url = apply_filters('cfconcat_script_file_url', $dir_url.$filename, $directory.$filename, $filename);
 				return esc_url($url);
 			}
@@ -384,6 +408,25 @@ if (!is_admin()) {
 }
 
 class CFConcatenateStaticStyles {
+	protected static $_CFCONCAT_CACHE_DIR;
+	protected static $_CFCONCAT_CACHE_URL;
+	public static $_LOCKFILE = '.cfconcatcsslock';
+	
+	public static function getCacheDir() {
+		if (empty(self::$_CFCONCAT_CACHE_DIR)) {
+			$cache_dir = WP_CONTENT_DIR . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/';
+			self::$_CFCONCAT_CACHE_DIR = trailingslashit(apply_filters('cfconcat_style_cache_dir', $cache_dir));
+		}
+		return self::$_CFCONCAT_CACHE_DIR;
+	}
+	
+	public static function getCacheUrl() {
+		if (empty(self::$_CFCONCAT_CACHE_URL)) {
+			$cache_url = WP_CONTENT_URL . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/';
+			self::$_CFCONCAT_CACHE_URL = trailingslashit(apply_filters('cfconcat_style_cache_dir', $cache_url, $type));
+		}
+		return self::$_CFCONCAT_CACHE_URL;
+	}
 
 	public static function onWPPrintStyles() {
 		global $wp_styles;
@@ -424,7 +467,7 @@ class CFConcatenateStaticStyles {
 			$wp_styles->to_do = array();
 		}
 		else if (!get_option('cfconcat_using_cache') && (!empty($included_styles) || !empty($unknown_styles)) ) {
-			if (file_exists(CFCONCAT_CACHE_DIR.'/css/.lock')) {
+			if (file_exists(trailingslashit(self::getCacheDir()).self::$_LOCKFILE)) {
 				// Currently building. Don't overload the system.
 				return;
 			}
@@ -446,7 +489,7 @@ class CFConcatenateStaticStyles {
 	}
 	
 	public static function buildConcatenatedStyleFile() {
-		$directory = CFCONCAT_CACHE_DIR . '/css/';
+		$directory = trailingslashit(self::getCacheDir());
 		$security_key = get_option('cfconcat_security_key');
 		if ($security_key != $_POST['key']) {
 			exit();
@@ -458,7 +501,7 @@ class CFConcatenateStaticStyles {
 				exit();
 			}
 		}
-		$lockfile = '.lock';
+		$lockfile = self::$_LOCKFILE;
 		if (file_exists($directory.$lockfile)) {
 			// We're currently running a build. Throttle it to avoid DDOS Attacks.
 			exit();
@@ -632,8 +675,8 @@ class CFConcatenateStaticStyles {
 	}
 	
 	public static function getConcatenatedStyleUrl($wp_styles, &$included_styles, &$unknown_styles, &$version) {
-		$directory = CFCONCAT_CACHE_DIR . '/css/';
-		$dir_url = esc_url(CFCONCAT_CACHE_URL . '/css/');
+		$directory = self::getCacheDir();;
+		$dir_url = esc_url(self::getCacheUrl());
 		
 		$site_styles = get_option('cfconcat_styles', array());
 		
@@ -685,13 +728,14 @@ class CFConcatenateStaticStyles {
 		
 		$filename = self::_getConcatenatedStylesFilename($included_styles);
 		
-		if (file_exists(CFCONCAT_CACHE_DIR.'/css/'.$filename)) {
-			$version = filemtime(CFCONCAT_CACHE_DIR.'/css/'.$filename);
+		if (file_exists($directory.$filename)) {
+			$version = filemtime($directory.$filename);
 			$url = apply_filters('cfconcat_style_file_url', $dir_url.$filename, $directory.$filename, $filename);
 			return esc_url($url);
 		}
 		else if (get_option('cfconcat_using_cache', false)) {
-			if (file_exists($directory.'.lock')) {
+			if (file_exists($directory.self::$_LOCKFILE)) {
+				$included_scripts = $unknown_scripts = array();
 				return false;
 			}
 			// We're in a cached environment, so run a synchronous request to build the concatenated
@@ -707,8 +751,8 @@ class CFConcatenateStaticStyles {
 					'redirection' => 0,
 				)
 			);
-			if (file_exists(CFCONCAT_CACHE_DIR.'/css/'.$filename)) {
-				$version = filemtime(CFCONCAT_CACHE_DIR.'/css/'.$filename);
+			if (file_exists($directory.$filename)) {
+				$version = filemtime($directory.$filename);
 				$url = apply_filters('cfconcat_style_file_url', $dir_url.$filename, $directory.$filename, $filename);
 				return esc_url($url);
 			}
