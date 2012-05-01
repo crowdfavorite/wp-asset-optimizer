@@ -327,7 +327,7 @@ class CFConcatenateStaticAdmin {
 				$tab = 'styles';
 			}
 			else if ($_POST['cfconcat_save_settings'] == 'clear_scripts_cache') {
-				$dir = CFCONCAT_CACHE_DIR.'/js';
+				$dir = CFConcatenateStaticScripts::getCacheDir();
 				if (is_dir($dir)) {
 					$files = opendir($dir);
 					if ($files) {
@@ -341,7 +341,7 @@ class CFConcatenateStaticAdmin {
 				$tab = 'scripts';
 			}
 			else if ($_POST['cfconcat_save_settings'] == 'clear_styles_cache') {
-				$dir = CFCONCAT_CACHE_DIR.'/css';
+				$dir = CFConcatenateStaticStyles::getCacheDir();
 				if (is_dir($dir)) {
 					$files = opendir($dir);
 					if ($files) {

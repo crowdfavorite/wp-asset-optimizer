@@ -4,7 +4,7 @@ Plugin Name: CF Concatenate Static Files
 Plugin URI: http://crowdfavorite.com
 Description: Used to serve concatenated versions of the static JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 1.0
+Version: 1.0.1
 Author URI: http://crowdfavorite.com
 */
 
