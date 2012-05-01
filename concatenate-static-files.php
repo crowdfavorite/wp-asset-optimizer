@@ -129,7 +129,7 @@ class CFConcatenateStaticScripts {
 			exit('Issue: ' . print_r($scripts_obj, true));
 		}
 		
-		$lock = fopen($directory.$lockfile, 'w');
+		$lock = fopen($directory.$lockfile, 'x');
 		if (!$lock) {
 			error_log('Could not create lockfile: ' . $directory.$lockfile);
 			exit();
@@ -532,7 +532,7 @@ class CFConcatenateStaticStyles {
 			exit();
 		}
 		
-		$lock = fopen($directory.$lockfile, 'w');
+		$lock = fopen($directory.$lockfile, 'x');
 		if (!$lock) {
 			error_log('Could not create lockfile: ' . $directory.$lockfile);
 			exit();
@@ -748,7 +748,7 @@ class CFConcatenateStaticStyles {
 		}
 		else if (get_option('cfconcat_using_cache', false)) {
 			if (file_exists($directory.self::getLockFile())) {
-				$included_scripts = $unknown_scripts = array();
+				$included_styles = $unknown_styles = array();
 				return false;
 			}
 			// We're in a cached environment, so run a synchronous request to build the concatenated
