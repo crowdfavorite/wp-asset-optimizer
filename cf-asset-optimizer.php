@@ -1,10 +1,10 @@
 <?php
 /*
-Plugin Name: CF Concatenate Static Files
+Plugin Name: CF Asset Optimizer
 Plugin URI: http://crowdfavorite.com
-Description: Used to serve concatenated versions of the static JS and CSS files enqueued on a page.
+Description: Used to serve optimized and concatenated JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 1.0.3
+Version: 1.0.4
 Author URI: http://crowdfavorite.com
 */
 
@@ -12,7 +12,7 @@ if (is_admin()) {
 	include_once dirname(__file__).'/admin.php';
 }
 
-class CFConcatenateStaticScripts {
+class CFAssetOptimizerScripts {
 	protected static $_CFCONCAT_CACHE_DIR;
 	protected static $_CFCONCAT_CACHE_URL;
 	protected static $_LOCKFILE = '';
@@ -406,13 +406,13 @@ class CFConcatenateStaticScripts {
 		return false;
 	}
 }
-add_action('wp_ajax_concat-build-js', 'CFConcatenateStaticScripts::buildConcatenatedScriptFile');
-add_action('wp_ajax_nopriv_concat-build-js', 'CFConcatenateStaticScripts::buildConcatenatedScriptFile');
+add_action('wp_ajax_concat-build-js', 'CFAssetOptimizerScripts::buildConcatenatedScriptFile');
+add_action('wp_ajax_nopriv_concat-build-js', 'CFAssetOptimizerScripts::buildConcatenatedScriptFile');
 if (!is_admin()) {
-	add_action('wp_print_scripts', 'CFConcatenateStaticScripts::onWPPrintScripts', 100);
+	add_action('wp_print_scripts', 'CFAssetOptimizerScripts::onWPPrintScripts', 100);
 }
 
-class CFConcatenateStaticStyles {
+class CFAssetOptimizerStyles {
 	protected static $_CFCONCAT_CACHE_DIR;
 	protected static $_CFCONCAT_CACHE_URL;
 	protected static $_LOCKFILE = '';
@@ -768,10 +768,10 @@ class CFConcatenateStaticStyles {
 		return false;
 	}
 }
-add_action('wp_ajax_concat-build-css', 'CFConcatenateStaticStyles::buildConcatenatedStyleFile');
-add_action('wp_ajax_nopriv_concat-build-css', 'CFConcatenateStaticStyles::buildConcatenatedStyleFile');
+add_action('wp_ajax_concat-build-css', 'CFAssetOptimizerStyles::buildConcatenatedStyleFile');
+add_action('wp_ajax_nopriv_concat-build-css', 'CFAssetOptimizerStyles::buildConcatenatedStyleFile');
 if (!is_admin()) {
-	add_action('wp_print_styles', 'CFConcatenateStaticStyles::onWPPrintStyles', 100);
+	add_action('wp_print_styles', 'CFAssetOptimizerStyles::onWPPrintStyles', 100);
 }
 
 

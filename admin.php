@@ -1,6 +1,6 @@
 <?php
 
-class CFConcatenateStaticAdmin {
+class CFAssetOptimizerAdmin {
 
 	public static function adminInit() {
 		$tab = !empty($_GET['tab']) ? $_GET['tab'] : 'general';
@@ -151,7 +151,7 @@ class CFConcatenateStaticAdmin {
 			__('Concat Static Files'),
 			'manage_options',
 			'cf-concat-static-options',
-			'CFConcatenateStaticAdmin::adminMenuCallback'
+			'CFAssetOptimizerAdmin::adminMenuCallback'
 		);
 	}
 	
@@ -244,10 +244,10 @@ class CFConcatenateStaticAdmin {
 				<p><?php echo esc_html(sprintf(__('%s files are stored in: '), $filetab_types[$tab_type])); ?>
 				<?php
 					if ($tab_type == 'scripts') {
-						echo CFConcatenateStaticScripts::getCacheDir();
+						echo CFAssetOptimizerScripts::getCacheDir();
 					}
 					else if ($tab_type == 'styles') {
-						echo CFConcatenateStaticStyles::getCacheDir();
+						echo CFAssetOptimizerStyles::getCacheDir();
 					}
 				?>
 				</p>
@@ -327,12 +327,12 @@ class CFConcatenateStaticAdmin {
 				$tab = 'styles';
 			}
 			else if ($_POST['cfconcat_save_settings'] == 'clear_scripts_cache') {
-				$dir = CFConcatenateStaticScripts::getCacheDir();
+				$dir = CFAssetOptimizerScripts::getCacheDir();
 				if (is_dir($dir)) {
 					$files = opendir($dir);
 					if ($files) {
 						while ($file = readdir($files)) {
-							if (is_file($dir.'/'.$file) && (preg_match('/\.js$/', $file) || $file == CFConcatenateStaticScripts::getLockFile())) {
+							if (is_file($dir.'/'.$file) && (preg_match('/\.js$/', $file) || $file == CFAssetOptimizerScripts::getLockFile())) {
 								unlink($dir.'/'.$file);
 							}
 						}
@@ -341,12 +341,12 @@ class CFConcatenateStaticAdmin {
 				$tab = 'scripts';
 			}
 			else if ($_POST['cfconcat_save_settings'] == 'clear_styles_cache') {
-				$dir = CFConcatenateStaticStyles::getCacheDir();
+				$dir = CFAssetOptimizerStyles::getCacheDir();
 				if (is_dir($dir)) {
 					$files = opendir($dir);
 					if ($files) {
 						while ($file = readdir($files)) {
-							if (is_file($dir.'/'.$file) && (preg_match('/\.css$/', $file) || $file == CFConcatenateStaticStyles::getLockFile())) {
+							if (is_file($dir.'/'.$file) && (preg_match('/\.css$/', $file) || $file == CFAssetOptimizerStyles::getLockFile())) {
 								unlink($dir.'/'.$file);
 							}
 						}
@@ -360,8 +360,8 @@ class CFConcatenateStaticAdmin {
 	}
 
 }
-add_action('admin_menu', 'CFConcatenateStaticAdmin::adminMenu');
-add_action('admin_init', 'CFConcatenateStaticAdmin::saveSettings');
-add_action('admin_init', 'CFConcatenateStaticAdmin::adminInit');
-add_action('wp_ajax_cfconcat-admin-css', 'CFConcatenateStaticAdmin::adminCSS');
-add_action('wp_ajax_cfconcat-admin-js', 'CFConcatenateStaticAdmin::adminJS');
+add_action('admin_menu', 'CFAssetOptimizerAdmin::adminMenu');
+add_action('admin_init', 'CFAssetOptimizerAdmin::saveSettings');
+add_action('admin_init', 'CFAssetOptimizerAdmin::adminInit');
+add_action('wp_ajax_cfconcat-admin-css', 'CFAssetOptimizerAdmin::adminCSS');
+add_action('wp_ajax_cfconcat-admin-js', 'CFAssetOptimizerAdmin::adminJS');
