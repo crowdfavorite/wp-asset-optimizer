@@ -316,20 +316,28 @@ class CFConcatenateStaticAdmin {
 			}
 			else if ($_POST['cfconcat_save_settings'] == 'clear_scripts_cache') {
 				$dir = CFCONCAT_CACHE_DIR.'/js';
-				$files = opendir($dir);
-				while ($file = readdir($files)) {
-					if (is_file($dir.'/'.$file) && (preg_match('/\.js$/', $file) || $file == '.lock')) {
-						unlink($dir.'/'.$file);
+				if (is_dir($dir)) {
+					$files = opendir($dir);
+					if ($files) {
+						while ($file = readdir($files)) {
+							if (is_file($dir.'/'.$file) && (preg_match('/\.js$/', $file) || $file == '.lock')) {
+								unlink($dir.'/'.$file);
+							}
+						}
 					}
 				}
 				$tab = 'scripts';
 			}
 			else if ($_POST['cfconcat_save_settings'] == 'clear_styles_cache') {
 				$dir = CFCONCAT_CACHE_DIR.'/css';
-				$files = opendir($dir);
-				while ($file = readdir($files)) {
-					if (is_file($dir.'/'.$file) && (preg_match('/\.css$/', $file) || $file == '.lock')) {
-						unlink($dir.'/'.$file);
+				if (is_dir($dir)) {
+					$files = opendir($dir);
+					if ($files) {
+						while ($file = readdir($files)) {
+							if (is_file($dir.'/'.$file) && (preg_match('/\.css$/', $file) || $file == '.lock')) {
+								unlink($dir.'/'.$file);
+							}
+						}
 					}
 				}
 				$tab = 'styles';

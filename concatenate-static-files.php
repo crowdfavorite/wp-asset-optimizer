@@ -8,8 +8,8 @@ Version: 0.5
 Author URI: http://crowdfavorite.com
 */
 
-@define('CFCONCAT_CACHE_DIR', WP_CONTENT_DIR . '/cfconcat-cache/' . get_bloginfo('name'));
-@define('CFCONCAT_CACHE_URL', WP_CONTENT_URL . '/cfconcat-cache/' . get_bloginfo('name'));
+@define('CFCONCAT_CACHE_DIR', WP_CONTENT_DIR . '/cfconcat-cache/' . $_SERVER['HTTP_HOST']);
+@define('CFCONCAT_CACHE_URL', WP_CONTENT_URL . '/cfconcat-cache/' . $_SERVER['HTTP_HOST']);
 
 if (is_admin()) {
 	include_once dirname(__file__).'/admin.php';
