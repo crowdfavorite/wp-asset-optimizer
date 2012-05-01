@@ -28,7 +28,7 @@ class CFConcatenateStaticScripts {
 	public static function getCacheUrl() {
 		if (empty(self::$_CFCONCAT_CACHE_URL)) {
 			$cache_url = WP_CONTENT_URL . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/js/';
-			self::$_CFCONCAT_CACHE_URL = trailingslashit(apply_filters('cfconcat_script_cache_dir', $cache_url));
+			self::$_CFCONCAT_CACHE_URL = trailingslashit(apply_filters('cfconcat_script_cache_url', $cache_url));
 		}
 		return self::$_CFCONCAT_CACHE_URL;
 	}
@@ -428,7 +428,7 @@ class CFConcatenateStaticStyles {
 	public static function getCacheUrl() {
 		if (empty(self::$_CFCONCAT_CACHE_URL)) {
 			$cache_url = WP_CONTENT_URL . '/cfconcat-cache/' . $_SERVER['HTTP_HOST'] . '/css/';
-			self::$_CFCONCAT_CACHE_URL = trailingslashit(apply_filters('cfconcat_style_cache_dir', $cache_url));
+			self::$_CFCONCAT_CACHE_URL = trailingslashit(apply_filters('cfconcat_style_cache_url', $cache_url));
 		}
 		return self::$_CFCONCAT_CACHE_URL;
 	}
