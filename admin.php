@@ -147,8 +147,8 @@ class CFAssetOptimizerAdmin {
 
 	public static function adminMenu() {
 		add_options_page(
-			__('CF Concatenate Static Files'),
-			__('Concat Static Files'),
+			__('CF Asset Optimizer'),
+			__('CF Asset Optimizer'),
 			'manage_options',
 			'cf-concat-static-options',
 			'CFAssetOptimizerAdmin::adminMenuCallback'
@@ -157,7 +157,7 @@ class CFAssetOptimizerAdmin {
 	
 		public static function adminMenuCallback() {
 		?>
-		<?php screen_icon(); ?><h1><?php echo esc_html(__('CF Concatenate Static Files')); ?></h1>
+		<?php screen_icon(); ?><h1><?php echo esc_html(__('CF Asset Optimizer')); ?></h1>
 		<p><?php echo esc_html(__('Here you can manage the settings for dynamically concatenating and serving your static files.')); ?><p>
 		<p><?php echo esc_html(__('Each file lists its handle, information about that file, and the reason it was disabled if such was required.')); ?></p>
 		<form method="post" action="" id="cf-concat-static-settings">
