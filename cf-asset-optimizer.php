@@ -4,7 +4,7 @@ Plugin Name: CF Asset Optimizer
 Plugin URI: http://crowdfavorite.com
 Description: Used to serve optimized and concatenated JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 1.1
+Version: 1.1.1
 Author URI: http://crowdfavorite.com
 */
 
@@ -629,6 +629,7 @@ class CFAssetOptimizerStyles {
 								// Get URL parts for this script.
 							$parts = array();
 							preg_match('#(https?://[^/]*)([^?]*/)([^?]*)(\?.*)?#', $request_url, $parts);
+							$parts[1] = apply_filters('cfao_styles_relative_domain', $parts[1]);
 							
 								// Update paths that are based on web root.
 							if (count($parts) > 1) {
