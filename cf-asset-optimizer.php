@@ -629,6 +629,7 @@ class CFAssetOptimizerStyles {
 								// Get URL parts for this script.
 							$parts = array();
 							preg_match('#(https?://[^/]*)([^?]*/)([^?]*)(\?.*)?#', $request_url, $parts);
+							$parts[1] = apply_filters('cfao_styles_relative_domain', $parts[1]);
 							
 								// Update paths that are based on web root.
 							if (count($parts) > 1) {
