@@ -4,7 +4,7 @@ Plugin Name: CF Asset Optimizer
 Plugin URI: http://crowdfavorite.com
 Description: Used to serve optimized and concatenated JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 1.1.1
+Version: 1.1.2
 Author URI: http://crowdfavorite.com
 */
 
@@ -164,7 +164,7 @@ class CFAssetOptimizerScripts {
 			}
 			else if ($site_scripts[$handle]['enabled']) {
 				if (
-					   $scripts_obj->registered->$handle->src != $site_scripts[$handle]['src']
+					   strtolower($scripts_obj->registered->$handle->src) != strtolower($site_scripts[$handle]['src'])
 					|| $scripts_obj->registered->$handle->ver != $site_scripts[$handle]['ver']
 				) {
 					// This may not be the same script. Update site_scripts array and disable.
@@ -340,7 +340,7 @@ class CFAssetOptimizerScripts {
 			}
 			else if (
 				   !($site_scripts[$handle]['enabled'])
-				|| $site_scripts[$handle]['src'] != $registered[$handle]->src
+				|| strtolower($site_scripts[$handle]['src']) != strtolower($registered[$handle]->src)
 				|| $site_scripts[$handle]['ver'] != $registered[$handle]->ver
 			) {
 				// We shouldn't include this script, it's not enabled or recognized.
@@ -577,7 +577,7 @@ class CFAssetOptimizerStyles {
 			}
 			else if ($site_styles[$handle]['enabled']) {
 				if (
-					   $styles_obj->registered->$handle->src != $site_styles[$handle]['src']
+					   strtolower($styles_obj->registered->$handle->src) != strtolower($site_styles[$handle]['src'])
 					|| $styles_obj->registered->$handle->ver != $site_styles[$handle]['ver']
 				) {
 					// This may not be the same style. Update site_styles array and disable.
@@ -699,7 +699,7 @@ class CFAssetOptimizerStyles {
 		foreach ($wp_styles->to_do as $handle) {
 			if (
 				   empty($site_styles[$handle])
-				|| $site_styles[$handle]['src'] != $registered[$handle]->src
+				|| strtolower($site_styles[$handle]['src']) != strtolower($registered[$handle]->src)
 				|| $site_styles[$handle]['ver'] != $registered[$handle]->ver
 			) {
 				// Note that we have an unknown script, and thus should actually still make the back-end request.
