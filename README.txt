@@ -1,5 +1,8 @@
 # CF Asset Optimizer Readme
 
+## Server Requirements
+- PHP 5.3 or later with multibyte string package installed.
+
 ## Installation
 - Install the plugin in the WordPress plugins directory
 - Create a cfao-cache directory in wp-content. This directory must be writable by the web user.
