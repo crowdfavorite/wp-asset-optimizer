@@ -2,6 +2,8 @@
 
 ## Server Requirements
 - PHP 5.3 or later with multibyte string package installed.
+- Server must be capable of making http requests to itself.
+- Server must be capable of making calls to the Google Closure Compiler if JS minification is selected at any level.
 
 ## Installation
 - Install the plugin in the WordPress plugins directory
