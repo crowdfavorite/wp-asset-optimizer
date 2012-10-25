@@ -1,4 +1,7 @@
 # CHANGE LOG
 
+# 1.1.3
+- Updated concatenation to always append file content with ";\n" to prevent concatenation errors
+
 # 1.1.2
 - Changed comparison of src attributes on scripts and styles to be case insensitive.
