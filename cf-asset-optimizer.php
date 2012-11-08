@@ -152,6 +152,7 @@ class CFAssetOptimizerScripts {
 		$script_file_src = '';
 		$script_blocks = array();
 		$current_block = 0;
+		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:', '', site_url())));
 		foreach ($scripts_obj->to_do as $handle) {
 			if (empty($site_scripts[$handle])) {
 				// We need to register this script in our list
@@ -163,6 +164,12 @@ class CFAssetOptimizerScripts {
 				);
 			}
 			else if ($site_scripts[$handle]['enabled']) {
+				$compare_src = $styles_obj->registered->$handle->src;
+				$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
+				if (strpos($no_protocol, $my_domain) === 0) {
+					// This is a local script. Use the $no_protocol version for enqueuing and management.
+					$compare_src = $no_protocol;
+				}
 				if (
 					   strtolower($scripts_obj->registered->$handle->src) != strtolower($site_scripts[$handle]['src'])
 					|| $scripts_obj->registered->$handle->ver != $site_scripts[$handle]['ver']
@@ -559,6 +566,7 @@ class CFAssetOptimizerStyles {
 			" * Included Files\n" .
 			" *\n";
 		$style_file_src = '';
+		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:', '', site_url())));
 		foreach ($styles_obj->to_do as $handle) {
 			if (empty($site_styles[$handle])) {
 				// We need to register this style in our list
@@ -582,13 +590,19 @@ class CFAssetOptimizerStyles {
 				);
 			}
 			else if ($site_styles[$handle]['enabled']) {
+				$compare_src = $styles_obj->registered->$handle->src;
+				$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
+				if (strpos($no_protocol, $my_domain) === 0) {
+					// This is a local script. Use the $no_protocol version for enqueuing and management.
+					$compare_src = $no_protocol;
+				}
 				if (
-					   strtolower($styles_obj->registered->$handle->src) != strtolower($site_styles[$handle]['src'])
+					   strtolower($compare_src) != strtolower($site_styles[$handle]['src'])
 					|| $styles_obj->registered->$handle->ver != $site_styles[$handle]['ver']
 				) {
 					// This may not be the same style. Update site_styles array and disable.
 					$site_styles[$handle] = array(
-						'src' => $styles_obj->registered->$handle->src,
+						'src' => $compare_src,
 						'ver' => $styles_obj->registered->$handle->ver,
 						'enabled' => false,
 						'disable_reason' => 'Style changed, automatically disabled.'
