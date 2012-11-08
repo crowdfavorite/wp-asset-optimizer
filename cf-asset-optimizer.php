@@ -154,29 +154,29 @@ class CFAssetOptimizerScripts {
 		$current_block = 0;
 		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:#', '', site_url())));
 		foreach ($scripts_obj->to_do as $handle) {
+			$compare_src = $scripts_obj->registered->$handle->src;
+			$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
+			if (strpos($no_protocol, $my_domain) === 0) {
+				// This is a local script. Use the $no_protocol version for enqueuing and management.
+				$compare_src = $no_protocol;
+			}
 			if (empty($site_scripts[$handle])) {
 				// We need to register this script in our list
 				$site_scripts[$handle] = array(
-					'src' => $scripts_obj->registered->$handle->src,
+					'src' => $compare_src,
 					'ver' => $scripts_obj->registered->$handle->ver,
 					'enabled' => false,
 					'disable_reason' => 'Disabled by default.'
 				);
 			}
 			else if ($site_scripts[$handle]['enabled']) {
-				$compare_src = $scripts_obj->registered->$handle->src;
-				$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
-				if (strpos($no_protocol, $my_domain) === 0) {
-					// This is a local script. Use the $no_protocol version for enqueuing and management.
-					$compare_src = $no_protocol;
-				}
 				if (
-					   strtolower($scripts_obj->registered->$handle->src) != strtolower($site_scripts[$handle]['src'])
+					   strtolower($compare_src) != strtolower($site_scripts[$handle]['src'])
 					|| $scripts_obj->registered->$handle->ver != $site_scripts[$handle]['ver']
 				) {
 					// This may not be the same script. Update site_scripts array and disable.
 					$site_scripts[$handle] = array(
-						'src' => $scripts_obj->registered->$handle->src,
+						'src' => $compare_src,
 						'ver' => $scripts_obj->registered->$handle->ver,
 						'enabled' => false,
 						'disable_reason' => 'Script changed, automatically disabled.'
@@ -186,6 +186,9 @@ class CFAssetOptimizerScripts {
 					// This script is enabled and has not changed from the last approved version.
 					// Request the file
 					$request_url = $site_scripts[$handle]['src'];			
+					if (strpos($request_url, '//') === 0) {
+						$request_url = 'http:'.$request_url;
+					}
 					if ( !preg_match('|^https?://|', $request_url) && ! ( $scripts_obj->content_url && 0 === strpos($request_url, $scripts_obj->content_url) ) ) {
 						$request_url = $scripts_obj->base_url . $request_url;
 					}
@@ -568,10 +571,16 @@ class CFAssetOptimizerStyles {
 		$style_file_src = '';
 		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:#', '', site_url())));
 		foreach ($styles_obj->to_do as $handle) {
+			$compare_src = $styles_obj->registered->$handle->src;
+			$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
+			if (strpos($no_protocol, $my_domain) === 0) {
+				// This is a local script. Use the $no_protocol version for enqueuing and management.
+				$compare_src = $no_protocol;
+			}
 			if (empty($site_styles[$handle])) {
 				// We need to register this style in our list
 				$site_styles[$handle] = array(
-					'src' => $styles_obj->registered->$handle->src,
+					'src' => $compare_src,
 					'ver' => $styles_obj->registered->$handle->ver,
 					'enabled' => false,
 					'disable_reason' => 'Disabled by default.'
@@ -590,12 +599,6 @@ class CFAssetOptimizerStyles {
 				);
 			}
 			else if ($site_styles[$handle]['enabled']) {
-				$compare_src = $styles_obj->registered->$handle->src;
-				$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
-				if (strpos($no_protocol, $my_domain) === 0) {
-					// This is a local script. Use the $no_protocol version for enqueuing and management.
-					$compare_src = $no_protocol;
-				}
 				if (
 					   strtolower($compare_src) != strtolower($site_styles[$handle]['src'])
 					|| $styles_obj->registered->$handle->ver != $site_styles[$handle]['ver']
@@ -612,6 +615,9 @@ class CFAssetOptimizerStyles {
 					// This style is enabled and has not changed from the last approved version.
 					// Request the file
 					$request_url = $site_styles[$handle]['src'];
+					if (strpos($request_url, '//') === 0) {
+						$request_url = 'http:'.$request_url;
+					}
 					if (!preg_match('|^https?://|', $request_url) && ! ( $styles_obj->content_url && 0 === strpos($request_url, $styles_obj->content_url) ) ) {
 						$request_url = $styles_obj->base_url . $request_url;
 					}
