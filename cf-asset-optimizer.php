@@ -4,7 +4,7 @@ Plugin Name: CF Asset Optimizer
 Plugin URI: http://crowdfavorite.com
 Description: Used to serve optimized and concatenated JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 1.1.3
+Version: 1.1.4
 Author URI: http://crowdfavorite.com
 */
 
@@ -152,6 +152,7 @@ class CFAssetOptimizerScripts {
 		$script_file_src = '';
 		$script_blocks = array();
 		$current_block = 0;
+		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:', '', site_url())));
 		foreach ($scripts_obj->to_do as $handle) {
 			if (empty($site_scripts[$handle])) {
 				// We need to register this script in our list
@@ -163,6 +164,12 @@ class CFAssetOptimizerScripts {
 				);
 			}
 			else if ($site_scripts[$handle]['enabled']) {
+				$compare_src = $styles_obj->registered->$handle->src;
+				$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
+				if (strpos($no_protocol, $my_domain) === 0) {
+					// This is a local script. Use the $no_protocol version for enqueuing and management.
+					$compare_src = $no_protocol;
+				}
 				if (
 					   strtolower($scripts_obj->registered->$handle->src) != strtolower($site_scripts[$handle]['src'])
 					|| $scripts_obj->registered->$handle->ver != $site_scripts[$handle]['ver']
@@ -331,7 +338,14 @@ class CFAssetOptimizerScripts {
 		$included_scripts = array();
 		$unknown_scripts = array();
 		$registered = $wp_scripts->registered;
+		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:', '', site_url())));
 		foreach ($wp_scripts->to_do as $handle) {
+			$compare_src = $registered[$handle]->src;
+			$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
+			if (strpos($no_protocol, $my_domain) === 0) {
+				// This is a local script. Use the $no_protocol version for enqueuing and management.
+				$compare_src = $no_protocol;
+			}
 			if (empty($site_scripts[$handle])) {
 				// Note that we have an unknown script, and thus should actually still make the back-end request.
 				$unknown_scripts[] = $registered[$handle];
@@ -339,7 +353,7 @@ class CFAssetOptimizerScripts {
 			}
 			else if (
 				   !($site_scripts[$handle]['enabled'])
-				|| strtolower($site_scripts[$handle]['src']) != strtolower($registered[$handle]->src)
+				|| strtolower($site_scripts[$handle]['src']) != strtolower($compare_src)
 				|| $site_scripts[$handle]['ver'] != $registered[$handle]->ver
 			) {
 				// We shouldn't include this script, it's not enabled or recognized.
@@ -552,6 +566,7 @@ class CFAssetOptimizerStyles {
 			" * Included Files\n" .
 			" *\n";
 		$style_file_src = '';
+		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:', '', site_url())));
 		foreach ($styles_obj->to_do as $handle) {
 			if (empty($site_styles[$handle])) {
 				// We need to register this style in our list
@@ -575,13 +590,19 @@ class CFAssetOptimizerStyles {
 				);
 			}
 			else if ($site_styles[$handle]['enabled']) {
+				$compare_src = $styles_obj->registered->$handle->src;
+				$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
+				if (strpos($no_protocol, $my_domain) === 0) {
+					// This is a local script. Use the $no_protocol version for enqueuing and management.
+					$compare_src = $no_protocol;
+				}
 				if (
-					   strtolower($styles_obj->registered->$handle->src) != strtolower($site_styles[$handle]['src'])
+					   strtolower($compare_src) != strtolower($site_styles[$handle]['src'])
 					|| $styles_obj->registered->$handle->ver != $site_styles[$handle]['ver']
 				) {
 					// This may not be the same style. Update site_styles array and disable.
 					$site_styles[$handle] = array(
-						'src' => $styles_obj->registered->$handle->src,
+						'src' => $compare_src,
 						'ver' => $styles_obj->registered->$handle->ver,
 						'enabled' => false,
 						'disable_reason' => 'Style changed, automatically disabled.'
@@ -695,10 +716,17 @@ class CFAssetOptimizerStyles {
 		$included_styles = array();
 		$unknown_styles = array();
 		$registered = $wp_styles->registered;
+		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:', '', site_url())));
 		foreach ($wp_styles->to_do as $handle) {
+			$compare_src = $registered[$handle]->src;
+			$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
+			if (strpos($no_protocol, $my_domain) === 0) {
+				// This is a local script. Use the $no_protocol version for enqueuing and management.
+				$compare_src = $no_protocol;
+			}
 			if (
 				   empty($site_styles[$handle])
-				|| strtolower($site_styles[$handle]['src']) != strtolower($registered[$handle]->src)
+				|| strtolower($site_styles[$handle]['src']) != strtolower($compare_src)
 				|| $site_styles[$handle]['ver'] != $registered[$handle]->ver
 			) {
 				// Note that we have an unknown script, and thus should actually still make the back-end request.
