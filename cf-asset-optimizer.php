@@ -164,7 +164,7 @@ class CFAssetOptimizerScripts {
 				);
 			}
 			else if ($site_scripts[$handle]['enabled']) {
-				$compare_src = $styles_obj->registered->$handle->src;
+				$compare_src = $scripts_obj->registered->$handle->src;
 				$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
 				if (strpos($no_protocol, $my_domain) === 0) {
 					// This is a local script. Use the $no_protocol version for enqueuing and management.
