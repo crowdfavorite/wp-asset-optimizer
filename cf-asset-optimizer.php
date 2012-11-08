@@ -152,7 +152,7 @@ class CFAssetOptimizerScripts {
 		$script_file_src = '';
 		$script_blocks = array();
 		$current_block = 0;
-		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:', '', site_url())));
+		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:#', '', site_url())));
 		foreach ($scripts_obj->to_do as $handle) {
 			if (empty($site_scripts[$handle])) {
 				// We need to register this script in our list
@@ -338,7 +338,7 @@ class CFAssetOptimizerScripts {
 		$included_scripts = array();
 		$unknown_scripts = array();
 		$registered = $wp_scripts->registered;
-		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:', '', site_url())));
+		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:#', '', site_url())));
 		foreach ($wp_scripts->to_do as $handle) {
 			$compare_src = $registered[$handle]->src;
 			$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
@@ -566,7 +566,7 @@ class CFAssetOptimizerStyles {
 			" * Included Files\n" .
 			" *\n";
 		$style_file_src = '';
-		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:', '', site_url())));
+		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:#', '', site_url())));
 		foreach ($styles_obj->to_do as $handle) {
 			if (empty($site_styles[$handle])) {
 				// We need to register this style in our list
@@ -716,7 +716,7 @@ class CFAssetOptimizerStyles {
 		$included_styles = array();
 		$unknown_styles = array();
 		$registered = $wp_styles->registered;
-		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:', '', site_url())));
+		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:#', '', site_url())));
 		foreach ($wp_styles->to_do as $handle) {
 			$compare_src = $registered[$handle]->src;
 			$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
