@@ -129,7 +129,7 @@ class CFAssetOptimizerScripts {
 			exit('Issue: ' . print_r($scripts_obj, true));
 		}
 		
-		$lock = fopen($directory.$lockfile, 'x');
+		$lock = @fopen($directory.$lockfile, 'x');
 		if (!$lock) {
 			error_log('Could not create lockfile: ' . $directory.$lockfile);
 			exit();
@@ -264,7 +264,7 @@ class CFAssetOptimizerScripts {
 		if (!empty($included_scripts)) {
 			// We have a file to write
 			$filename = self::_getConcatenatedScriptsFilename($included_scripts);
-			$file = fopen($directory.$filename, 'w');
+			$file = @fopen($directory.$filename, 'w');
 			if (!$file === false) {
 				// We have a valid file pointer.
 				
@@ -548,7 +548,7 @@ class CFAssetOptimizerStyles {
 			exit();
 		}
 		
-		$lock = fopen($directory.$lockfile, 'x');
+		$lock = @fopen($directory.$lockfile, 'x');
 		if (!$lock) {
 			error_log('Could not create lockfile: ' . $directory.$lockfile);
 			exit();
@@ -683,7 +683,7 @@ class CFAssetOptimizerStyles {
 		if (!empty($included_styles)) {
 			// We have a file to write
 			$filename = self::_getConcatenatedStylesFilename($included_styles);
-			$file = fopen($directory.$filename, 'w');
+			$file = @fopen($directory.$filename, 'w');
 			if (!$file === false) {
 				// We have a valid file pointer.
 				
