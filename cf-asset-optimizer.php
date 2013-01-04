@@ -4,7 +4,7 @@ Plugin Name: CF Asset Optimizer
 Plugin URI: http://crowdfavorite.com
 Description: Used to serve optimized and concatenated JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 1.1.4
+Version: 1.1.5
 Author URI: http://crowdfavorite.com
 */
 
@@ -129,7 +129,7 @@ class CFAssetOptimizerScripts {
 			exit('Issue: ' . print_r($scripts_obj, true));
 		}
 		
-		$lock = fopen($directory.$lockfile, 'x');
+		$lock = @fopen($directory.$lockfile, 'x');
 		if (!$lock) {
 			error_log('Could not create lockfile: ' . $directory.$lockfile);
 			exit();
@@ -264,7 +264,7 @@ class CFAssetOptimizerScripts {
 		if (!empty($included_scripts)) {
 			// We have a file to write
 			$filename = self::_getConcatenatedScriptsFilename($included_scripts);
-			$file = fopen($directory.$filename, 'w');
+			$file = @fopen($directory.$filename, 'w');
 			if (!$file === false) {
 				// We have a valid file pointer.
 				
@@ -342,6 +342,7 @@ class CFAssetOptimizerScripts {
 		$unknown_scripts = array();
 		$registered = $wp_scripts->registered;
 		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:#', '', site_url())));
+		$update_scripts = false;
 		foreach ($wp_scripts->to_do as $handle) {
 			$compare_src = $registered[$handle]->src;
 			$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
@@ -354,12 +355,22 @@ class CFAssetOptimizerScripts {
 				$unknown_scripts[] = $registered[$handle];
 				continue;
 			}
+			else if (!($site_scripts[$handle]['enabled'])) {
+				// We shouldn't include this script, it's not enabled or recognized.
+				continue;
+			}
 			else if (
-				   !($site_scripts[$handle]['enabled'])
-				|| strtolower($site_scripts[$handle]['src']) != strtolower($compare_src)
+				   strtolower($site_scripts[$handle]['src']) != strtolower($compare_src)
 				|| $site_scripts[$handle]['ver'] != $registered[$handle]->ver
 			) {
-				// We shouldn't include this script, it's not enabled or recognized.
+				// Script needs to be updated and disabled.
+				$site_scripts[$handle] = array(
+					'src' => $compare_src,
+					'ver' => $registered[$handle]->ver,
+					'enabled' => false,
+					'disable_reason' => 'Script changed, automatically disabled',
+				);
+				$update_scripts = true;
 				continue;
 			}
 			else {
@@ -371,7 +382,7 @@ class CFAssetOptimizerScripts {
 						$can_include = false;
 						$site_scripts[$handle]['enabled'] = false;
 						$site_scripts[$handle]['disable_reason'] = 'Dependent on disabled script: ' . $dep;
-						update_option('cfao_scripts', $site_scripts);
+						$update_scripts = true;
 						break;
 					}
 				}
@@ -380,7 +391,11 @@ class CFAssetOptimizerScripts {
 				}
 			}
 		}
-		
+
+		if ($update_scripts) {
+			update_option('cfao_scripts', $site_scripts);
+		}
+
 		if (empty($included_scripts) && empty($unknown_scripts)) {
 			// All scripts are disabled on this site. Go no further.
 			return;
@@ -548,7 +563,7 @@ class CFAssetOptimizerStyles {
 			exit();
 		}
 		
-		$lock = fopen($directory.$lockfile, 'x');
+		$lock = @fopen($directory.$lockfile, 'x');
 		if (!$lock) {
 			error_log('Could not create lockfile: ' . $directory.$lockfile);
 			exit();
@@ -683,7 +698,7 @@ class CFAssetOptimizerStyles {
 		if (!empty($included_styles)) {
 			// We have a file to write
 			$filename = self::_getConcatenatedStylesFilename($included_styles);
-			$file = fopen($directory.$filename, 'w');
+			$file = @fopen($directory.$filename, 'w');
 			if (!$file === false) {
 				// We have a valid file pointer.
 				
