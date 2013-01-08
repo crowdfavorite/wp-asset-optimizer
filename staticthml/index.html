@@ -1,0 +1,114 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+	<title>Asset Optimizer Redesign</title>
+	<link rel="stylesheet" href="stylesheets/style.css">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+	<script type="text/javascript" src="js/plugins/jquery.tablesorter.min.js"></script>
+	<script type="text/javascript" src="js/script.js"></script>
+</head>
+<body>
+	<div class="wrap">
+		<h2>Asset Optimizer</h2>
+		<p><a href="http://www.crowdfavorite.com">CrowdFavorite</a>'s Asset Optimizer takes all the separate CSS and JS files included in plugins and external add-ons, and compiles them into one file, helping your pages load faster.</p>
+		<form class="settings" action="AO_TEST">
+			<div>
+				<input type="radio" name="setting" value="on" id="on" />
+				<label for="on">ON</label>
+				<span>| This will automatically recompile all CSS and JS files whenever they change.</span>
+			</div>
+			<div>
+				<input type="radio" name="setting" value="off" id="off" />
+				<label for="off">OFF</label>
+				<span>| This will stop any files from being compiled.</span>
+			</div>
+			<div>
+				<input type="radio" name="setting" value="custom" id="custom"/>
+				<label for="custom">CUSTOM</label>
+				<span>| This lets you choose what you want compiled and what you want to exclude.</span>
+			</div>
+		</form>
+		<div class="advanced">
+<!-- 			<div class="advanced" style="display:none;">
+ -->			<label for="chk_cfao_using_cache">
+				<input type="checkbox" name="cfao_using_cache" id="chk_cfao_using_cache" value="true">
+				This site is using a site-caching solution.
+			</label>
+			<p>Select this option if your site is using a plugin like WP Super Cache, or another static caching solution, to ensure that the concatenated files are generated and served before the cache occurs.
+			</p>
+			<section id="ao-js" class="section">
+				<div class="main">
+					<div class="section-info">
+						<h3 class="section-header">Javascript</h3>
+						<span class="last-updated">
+							Latest version: <time>12/12/32 at 12:41:11pm</time>
+						</span>
+					</div>
+					<table id="js-table" class="files"  cellspacing="0">
+						<thead>
+							<tr>
+								<th><a href="#">Order<i class="icon">V</i></a></th>
+								<th class="filename"><a href="#">Name<i class="icon">V</i></a></th>
+								<th class="center">Compile
+									<br />
+									<input type="checkbox" id="js-compile-all" />
+								</th>
+								<th class="center">Minify
+									<br />
+									<input type="checkbox" id="js-min-all" >
+								</th>
+							</tr>
+							<tr>
+							</tr>
+						</thead>
+						<tr class="compiled">
+							<td>1</td>
+							<td><b>ngg-slideshow</b>
+								<br />//a-o.dev/wp-content//plugins/nextgen-gallery/js/jquery.cycle.all.min.js
+							</td>
+							<td class="center">
+								<input class="js-compile" type="checkbox" />
+							</td>
+							<td class="center">
+								<input class="js-min" type="checkbox" checked />
+							</td>
+						</tr>
+						<tr class="not">
+							<td class="reason-hover">
+								<p class="icon">O</p>
+								<div class="reason">
+									<form>
+										<label for="reason-value-1">Reason:</label>
+										<input type="text" name="reason-value" class="reason-value"id="reason-value-1" value="[User's reasons here, defaults to a standard message.]"></input>
+										<input type="submit" />
+									</form>
+								</div>
+							</td>
+							<td><b>jquery</b><br/>
+							/wp-includes/js/jquery/jquery.js</td>
+							<td class="center">
+								<input type="checkbox" class="js-compile" />
+							</td>
+							<td class="center"></td>
+						</tr>
+					</table>
+					<form>
+						<ul>
+						<li><label for="minset-whitespace">Whitespace only (recommended)</label>
+						<input name="minset" id="minset-whitespace" type="radio"></li>
+						<li><label for="minset-simple">Simple (usually works)</label>
+						<input name="minset" id="minset-simple" type="radio"></li>
+						<li><label for="minset-advanced">Advanced (best performance, but requires strict code use)</label>
+						<input name="minset" id="minset-advanced" type="radio"></li></ul>
+					</form>
+					<input type="submit" id="js-obliterate" value="Obliterate all files" />
+				</div>
+			</section>
+		</div>
+		<div class="save-container">
+			<button type="submit" class="save" value="Save">Save</button>
+		</div>
+	</div>
+</body>
+</html>

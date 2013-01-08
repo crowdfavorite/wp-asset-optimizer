@@ -1,0 +1,220 @@
+// Variables
+
+$v-margin: 12px;
+$fullwidth: 645px;
+$border-color: #DFDFDF;
+$blue: #6C8F97;
+
+/* 	Fonts
+	------------------------------------------------------- */
+
+@font-face {
+	font-family: 'icons';
+	src: url('../fonts/pulsarjs.ttf');
+	font-weight: normal;
+	font-style: normal;
+}
+
+.icon {
+	font-family: 'icons';
+	font-weight: normal;
+	font-style: normal;
+	font-size: 16px;
+	vertical-align: bottom;
+}
+
+/* 	Elements
+	------------------------------------------------------- */
+
+p {
+	margin: 0;
+}
+
+th,td {
+	padding: 4px;
+}
+
+thead {
+	background-color: #F1F1F1;
+	background-image: -moz-linear-gradient(top,#F9F9F9,#ECECEC);
+	background-image: -ms-linear-gradient(top,#F9F9F9,#ECECEC);
+	background-image: -o-linear-gradient(top,#F9F9F9,#ECECEC);
+	background-image: -webkit-gradient(linear,left top,left bottom,from(#F9F9F9),to(#ECECEC));
+	background-image: -webkit-linear-gradient(top,#F9F9F9,#ECECEC);
+	background-image: linear-gradient(top,#F9F9F9,#ECECEC);
+	border-bottom: 1px solid $border-color;
+	text-align: left;
+
+	a {
+		text-decoration: none;
+		color: none;
+
+		&:visited {
+			color: inherit;
+		}
+	}
+}
+
+/* 	Containers
+	------------------------------------------------------- */
+.wrap {
+	color: #333;
+	display: inline-block;
+	font-family: sans-serif;
+	font-size: 12px;
+	line-height: 18px;
+	width: $fullwidth;
+	position: relative;
+}
+
+h2 {
+	color: #464646;
+	font-family: HelveticaNeue-Light, 'Helvetica Neue Light', 'Helvetica Neue', sans-serif;
+	font-size: 23px;
+	font-weight: normal;
+	line-height: 29px;
+	margin: 10px 0;
+}
+
+h3 {
+	@extend h2;
+	font-size: 18px;
+	line-height: 25px;
+}
+
+.settings {
+	margin-top: $v-margin;
+}
+
+.advanced {
+	margin-top: $v-margin;
+}
+
+.main {
+	display: inline-block
+}
+
+.files {
+	        border-radius: 3px;
+	   -moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	-moz-background-clip: padding; -webkit-background-clip: padding-box; background-clip: padding-box;
+	background-color: #F9F9F9;
+	display: block;
+	border-collapse: collapse;
+	border: 1px $border-color solid;
+	border: 1px solid $border-color;
+	width: $fullwidth;
+}
+
+.filename {
+	width: 100%;
+}
+
+/* 	State
+	------------------------------------------------------- */
+
+.compiled {
+	background-color: #FCFCFC;
+}
+
+.not {
+	background-color: #D1D1D1;
+	color: #555;
+}
+
+/* 	General
+	------------------------------------------------------- */
+
+.section-info {
+	width: 100%;
+	overflow: hidden;
+	position: relative;
+	margin-bottom: 4px;
+}
+
+.section-header {
+	float: left;
+	margin-bottom: 0;
+}
+
+.last-updated {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+}
+
+.center {
+	text-align: center;
+}
+
+.reason {
+	background-color: $blue;
+	bottom: 0;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	box-sizing: border-box;
+	color: #fff;
+	overflow: hidden;
+	padding: 4px;
+	position: absolute;
+	top: 0;
+	left: 0;
+	visibility: hidden;
+	width: 100%;
+	z-index: 1;
+}
+.reason-hover {
+	cursor: pointer;
+	position: relative;
+
+	&:hover {
+		&>.reason {
+			width: $fullwidth - 90px;
+			visibility: visible;
+		}
+	}
+}
+.reason-value {
+	width: $fullwidth - 240px;
+}
+
+.save-container {
+	width: 100%;
+	text-align: center;
+	background-color: #fff;
+	padding: 10px 0;
+	width: $fullwidth;
+
+	&.fix {
+		position: fixed;
+		bottom: 0;
+	}
+}
+
+.save {
+	background-image:         linear-gradient(to bottom, $blue, #556E74);
+	background-image:      -o-linear-gradient(top, $blue, #556E74);
+	background-image:     -ms-linear-gradient(top, $blue, #556E74);
+	background-image:    -moz-linear-gradient(top, $blue, #556E74);
+	background-image: -webkit-gradient(linear, left top, left bottom, from($blue), to(#556E74));
+	background-image: -webkit-linear-gradient(top, $blue, #556E74);
+	        border-radius: 3px;
+	   -moz-border-radius: 3px;
+    -moz-background-clip: padding; -webkit-background-clip: padding-box; background-clip: padding-box;
+    -webkit-border-radius: 3px;
+	background-color: $blue;
+	background-color: $blue;
+	border: 1px #888 solid;
+	bottom: 0;
+	color: #fff;
+	cursor: pointer;
+	font-size: 20px;
+	margin-top: $v-margin;
+	padding: 8px 0;
+	width: 300px;
+}
+
+
+
