@@ -29,14 +29,18 @@
 				<span>| This lets you choose what you want compiled and what you want to exclude.</span>
 			</div>
 		</form>
-		<div class="advanced">
-<!-- 			<div class="advanced" style="display:none;">
- -->			<label for="chk_cfao_using_cache">
-				<input type="checkbox" name="cfao_using_cache" id="chk_cfao_using_cache" value="true">
+		<div class="advanced" style="display:none;">
+			<label for="chk_cfao_using_cache">
+				<input type="checkbox" name="cfao_using_cache" id="chk_cfao_using_cache" value="true" />
 				This site is using a site-caching solution.
 			</label>
-			<p>Select this option if your site is using a plugin like WP Super Cache, or another static caching solution, to ensure that the concatenated files are generated and served before the cache occurs.
-			</p>
+			<span class="cachehelp-hover">
+				<i class="icon"> O</i>
+				<p class="cachehelp">
+					Select this option if your site is using a plugin like WP Super Cache, or another static caching solution, to ensure that the concatenated files are generated and served before the cache occurs.
+				</p>
+			</span>
+
 			<section id="ao-js" class="section">
 				<div class="main">
 					<div class="section-info">
@@ -109,7 +113,7 @@
 							</li>
 						</ul>
 					</form>
-					<input type="submit" id="js-obliterate" value="Obliterate all files" />
+					<input type="submit" id="js-obliterate" value="Obliterate JS Files" />
 				</div>
 			</section>
 			<section id="ao-css" class="section">
@@ -127,7 +131,7 @@
 								<th class="filename"><a href="#">Name<i class="icon">V</i></a></th>
 								<th class="center">Compile
 									<br />
-									<input type="checkbox" id="js-compile-all" />
+									<input type="checkbox" id="css-compile-all" />
 								</th>
 							</tr>
 							<tr>
@@ -139,7 +143,7 @@
 								<br />//a-o.dev/wp-content//plugins/nextgen-gallery/css/style.css
 							</td>
 							<td class="center">
-								<input class="js-compile" type="checkbox" />
+								<input class="css-compile" type="checkbox" />
 							</td>
 						</tr>
 						<tr class="not">
@@ -156,11 +160,11 @@
 							<td><b>styling-maniac</b><br/>
 							/wp-includes/css/styling-maniac.css</td>
 							<td class="center">
-								<input type="checkbox" class="js-compile" />
+								<input type="checkbox" class="css-compile" />
 							</td>
 						</tr>
 					</table>
-					<input type="submit" id="js-obliterate" value="Obliterate all files" />
+					<input type="submit" id="css-obliterate" value="Obliterate CSS Files" />
 				</div>
 			</section>
 		</div>

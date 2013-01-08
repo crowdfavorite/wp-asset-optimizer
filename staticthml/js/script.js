@@ -22,11 +22,12 @@ jQuery(document).ready(function() {
 		initialConfig: function() {
 			var $custom = $('#custom');
 			var $save = $('.save-container');
+			var $advanced = $('.advanced');
 
 			if ( $custom.is(':checked') ) {
 				$save.addClass('fix');
+				$advanced.show();
 			}
-
 		},
 
 		// Checks or unchecks boxes depending on on_or_off, utility to other methods

@@ -96,8 +96,34 @@ h3 {
   background-color: #D1D1D1;
   color: #555; }
 
-/* 	General
+/* 	Content
 	------------------------------------------------------- */
+.cachehelp-hover {
+  position: relative; }
+  .cachehelp-hover:hover {
+    cursor: pointer; }
+    .cachehelp-hover:hover > .cachehelp {
+      visibility: visible; }
+
+.cachehelp {
+  visibility: hidden;
+  background-color: #F1F1F1;
+  background-color: white;
+  background-image: -moz-linear-gradient(top, #f9f9f9, #ececec);
+  background-image: -ms-linear-gradient(top, #f9f9f9, #ececec);
+  background-image: -o-linear-gradient(top, #f9f9f9, #ececec);
+  background-image: -webkit-gradient(linear, left top, left bottom, from(#f9f9f9), to(#ececec));
+  background-image: -webkit-linear-gradient(top, #f9f9f9, #ececec);
+  background-image: linear-gradient(top, #f9f9f9, #ececec);
+  border: 1px solid #dfdfdf;
+  display: block;
+  left: 30px;
+  padding: 4px;
+  position: absolute;
+  top: -32px;
+  width: 300px;
+  z-index: 1; }
+
 .section-info {
   width: 100%;
   overflow: hidden;
@@ -149,7 +175,7 @@ h3 {
   margin: 8px 0;
   float: left; }
 
-#js-obliterate {
+#js-obliterate, #css-obliterate {
   float: right;
   margin-top: 6px; }
 
