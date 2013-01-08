@@ -47,7 +47,7 @@ thead {
 
 	a {
 		text-decoration: none;
-		color: none;
+		color: inherit;
 
 		&:visited {
 			color: inherit;
@@ -181,6 +181,18 @@ h3 {
 	width: $fullwidth - 240px;
 }
 
+.js-minset {
+	list-style-type: none;
+	padding-left: 0;
+	margin: 8px 0;
+	float: left;
+}
+
+#js-obliterate {
+	float: right;
+	margin-top: 6px;
+}
+
 .save-container {
 	width: 100%;
 	text-align: center;
@@ -192,9 +204,9 @@ h3 {
 		position: fixed;
 		bottom: 0;
 		border-top: 1px solid $border-color;
-			  -webkit-box-shadow: 0px -1px 2px #DFDFDF;
-			     -moz-box-shadow: 0px -1px 2px #DFDFDF;
-			          box-shadow: 0px -1px 2px #DFDFDF;
+			  -webkit-box-shadow: 0px -1px 1px #DFDFDF;
+			     -moz-box-shadow: 0px -1px 1px #DFDFDF;
+			          box-shadow: 0px -1px 1px #DFDFDF;
 
 	}
 }
