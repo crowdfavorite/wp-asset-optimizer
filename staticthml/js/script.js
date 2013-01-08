@@ -16,6 +16,7 @@ jQuery(document).ready(function() {
 			this.masterCheck();
 			this.obliterateHandler();
 			this.tableSorter();
+			this.toggleMinify();
 		},
 
 		// Checks for settings and establishes settings on page load
@@ -84,6 +85,29 @@ jQuery(document).ready(function() {
 			bind(AO.$js_min_all, [AO.$js_min , AO.$js_default_min ]);
 			bind(AO.$js_min,[AO.$js_default_min ]);
 			bind(AO.$css_compile_all, [AO.$css_compile]);
+		},
+
+		// Show/hide minification if a JS file is enabled, default to checked
+		toggleMinify: function() {
+			AO.$js_compile.on('click', function() {
+				var com_id = $(this).attr('id');
+				var min_id = '#' + com_id.replace('com','min');
+
+				if ($(this).attr('checked')) {
+					console.log('checked');
+
+					$(min_id).prop({
+						'checked': true,
+						'disabled': false
+					});
+				}
+				else {
+					$(min_id).prop({
+						'checked': false,
+						'disabled': true
+					});
+				}
+			});
 		},
 
 		// Pop up confirm box on "Obliterate" submission

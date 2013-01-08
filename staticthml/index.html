@@ -72,10 +72,10 @@
 								<br />//a-o.dev/wp-content//plugins/nextgen-gallery/js/jquery.cycle.all.min.js
 							</td>
 							<td class="center">
-								<input class="js-compile" type="checkbox" />
+								<input class="js-compile" id="com-1" type="checkbox" />
 							</td>
 							<td class="center">
-								<input class="js-min" type="checkbox" checked />
+								<input class="js-min" id="min-1" type="checkbox" checked />
 							</td>
 						</tr>
 						<tr class="not">
@@ -84,7 +84,7 @@
 								<div class="reason">
 									<form>
 										<label for="reason-value-1">Reason:</label>
-										<input type="text" name="reason-value" class="reason-value"id="reason-value-1" value="[User's reasons here, defaults to a standard message.]"></input>
+										<input type="text" name="reason-value" class="reason-value" id="reason-value-1" value="Enter reason for disabling this file."></input>
 										<input type="submit" />
 									</form>
 								</div>
@@ -92,9 +92,11 @@
 							<td><b>jquery</b><br/>
 							/wp-includes/js/jquery/jquery.js</td>
 							<td class="center">
-								<input type="checkbox" class="js-compile" />
+								<input type="checkbox" id="com-2" class="js-compile" />
 							</td>
-							<td class="center"></td>
+							<td class="center">
+								<input class="js-min" id="min-2" type="checkbox" disabled />
+							</td>
 						</tr>
 					</table>
 					<form>
