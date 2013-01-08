@@ -35,8 +35,20 @@ jQuery(document).ready(function() {
 		massCheck: function (checkboxes, on_or_off) {
 			var state = (on_or_off === "on") ? true : false;
 
+
+			// Left off here: problem with array receiving a multiple arrays of JQUERY OBJECTS (not arrays!), see masterCHecker.
+			var arr = [];
+			console.log(checkboxes);
 			for (var i = 0; i < checkboxes.length; i++) {
-				checkboxes[i].prop('checked', state);
+				arr.concat(checkboxes[i]);
+				console.log(arr);
+			}
+
+			for (var j = 0; j < checkboxes.length; i++) {
+				if ( !(checkboxes[i].prop('disabled'))) {
+					console.log((checkboxes[i]));
+					checkboxes[i].attr('checked', state);
+				}
 			}
 		},
 
@@ -72,7 +84,7 @@ jQuery(document).ready(function() {
 		masterCheck: function() {
 			var bind = function(check_all , check) {
 				check_all.on('click', function() {
-					if (check_all.prop('checked')) {
+					if (check_all.attr('checked')) {
 						AO.massCheck(check, 'on');
 					}
 					else {
@@ -96,13 +108,13 @@ jQuery(document).ready(function() {
 				if ($(this).attr('checked')) {
 					console.log('checked');
 
-					$(min_id).prop({
+					$(min_id).attr({
 						'checked': true,
 						'disabled': false
 					});
 				}
 				else {
-					$(min_id).prop({
+					$(min_id).attr({
 						'checked': false,
 						'disabled': true
 					});
