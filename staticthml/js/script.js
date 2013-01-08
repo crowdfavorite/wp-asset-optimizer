@@ -11,10 +11,22 @@ jQuery(document).ready(function() {
 		$js_default_min : $('#minset-whitespace'),
 
 		init: function() {
+			this.initialConfig();
 			this.userPreference();
 			this.masterCheck();
 			this.obliterateHandler();
 			this.tableSorter();
+		},
+
+		// Checks for settings and establishes settings on page load
+		initialConfig: function() {
+			var $custom = $('#custom');
+			var $save = $('.save-container');
+
+			if ( $custom.is(':checked') ) {
+				$save.addClass('fix');
+			}
+
 		},
 
 		// Checks or unchecks boxes depending on on_or_off, utility to other methods

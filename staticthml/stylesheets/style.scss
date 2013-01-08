@@ -65,6 +65,7 @@ thead {
 	line-height: 18px;
 	width: $fullwidth;
 	position: relative;
+	padding-bottom: 70px;
 }
 
 h2 {
@@ -190,6 +191,11 @@ h3 {
 	&.fix {
 		position: fixed;
 		bottom: 0;
+		border-top: 1px solid $border-color;
+			  -webkit-box-shadow: 0px -1px 2px #DFDFDF;
+			     -moz-box-shadow: 0px -1px 2px #DFDFDF;
+			          box-shadow: 0px -1px 2px #DFDFDF;
+
 	}
 }
 
