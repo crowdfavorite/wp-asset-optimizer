@@ -31,27 +31,6 @@ jQuery(document).ready(function() {
 			}
 		},
 
-		// Checks or unchecks boxes depending on on_or_off, utility to other methods
-		massCheck: function (checkboxes, on_or_off) {
-			var state = (on_or_off === "on") ? true : false;
-
-
-			// Left off here: problem with array receiving a multiple arrays of JQUERY OBJECTS (not arrays!), see masterCHecker.
-			var arr = [];
-			console.log(checkboxes);
-			for (var i = 0; i < checkboxes.length; i++) {
-				arr.concat(checkboxes[i]);
-				console.log(arr);
-			}
-
-			for (var j = 0; j < checkboxes.length; i++) {
-				if ( !(checkboxes[i].prop('disabled'))) {
-					console.log((checkboxes[i]));
-					checkboxes[i].attr('checked', state);
-				}
-			}
-		},
-
 		// Toggles advanced preferences
 		userPreference: function() {
 			var $advanced = $('.advanced');
@@ -78,6 +57,17 @@ jQuery(document).ready(function() {
 					$save.removeClass('fix');
 				}
 			});
+		},
+
+		// Checks or unchecks boxes depending on on_or_off, utility to other methods
+		massCheck: function (checkboxes, on_or_off) {
+			var state = (on_or_off === "on") ? true : false;
+
+			for (var j = 0; j < checkboxes.length; j++) {
+				if ( !(checkboxes[j].prop('disabled'))) {
+					checkboxes[j].attr('checked', state);
+				}
+			}
 		},
 
 		// Allows master boxes to check/uncheck children

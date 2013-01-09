@@ -19,7 +19,8 @@ p {
   margin: 0; }
 
 th, td {
-  padding: 4px; }
+  padding: 4px;
+  font-weight: inherit; }
 
 thead {
   background-color: #F1F1F1;
@@ -30,7 +31,11 @@ thead {
   background-image: -webkit-linear-gradient(top, #f9f9f9, #ececec);
   background-image: linear-gradient(top, #f9f9f9, #ececec);
   border-bottom: 1px solid #dfdfdf;
-  text-align: left; }
+  font-family: Georgia, 'Times New Roman', 'Bitstream Charter', Times, serif;
+  font-size: 14px;
+  font-weight: normal;
+  text-align: left;
+  text-shadow: rgba(255, 255, 255, 0.8) 0 1px 0; }
   thead a {
     text-decoration: none;
     color: inherit; }
@@ -63,6 +68,9 @@ h3 {
 
 .settings {
   margin-top: 12px; }
+
+.option {
+  font-weight: bold; }
 
 .advanced {
   margin-top: 12px; }

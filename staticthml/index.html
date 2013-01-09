@@ -15,17 +15,17 @@
 		<form class="settings" action="AO_TEST">
 			<div>
 				<input type="radio" name="setting" value="on" id="on" />
-				<label for="on">ON</label>
+				<label class="option" for="on">ON</label>
 				<span>| This will automatically recompile all CSS and JS files whenever they change.</span>
 			</div>
 			<div>
 				<input type="radio" name="setting" value="off" id="off" />
-				<label for="off">OFF</label>
+				<label class="option" for="off">OFF</label>
 				<span>| This will stop any files from being compiled.</span>
 			</div>
 			<div>
 				<input type="radio" name="setting" value="custom" id="custom" checked/>
-				<label for="custom">CUSTOM</label>
+				<label class="option" for="custom">CUSTOM</label>
 				<span>| This lets you choose what you want compiled and what you want to exclude.</span>
 			</div>
 		</form>
@@ -75,7 +75,7 @@
 								<input class="js-compile" id="com-1" type="checkbox" />
 							</td>
 							<td class="center">
-								<input class="js-min" id="min-1" type="checkbox" checked />
+								<input class="js-min" id="min-1" type="checkbox"  />
 							</td>
 						</tr>
 						<tr class="not">

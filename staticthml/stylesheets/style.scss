@@ -32,6 +32,7 @@ p {
 
 th,td {
 	padding: 4px;
+	font-weight: inherit;
 }
 
 thead {
@@ -43,7 +44,12 @@ thead {
 	background-image: -webkit-linear-gradient(top,#F9F9F9,#ECECEC);
 	background-image: linear-gradient(top,#F9F9F9,#ECECEC);
 	border-bottom: 1px solid $border-color;
+	font-family: Georgia, 'Times New Roman', 'Bitstream Charter', Times, serif;
+	font-size: 14px;
+	font-weight: normal;
 	text-align: left;
+	text-shadow: rgba(255, 255, 255, 0.8) 0 1px 0;
+
 
 	a {
 		text-decoration: none;
@@ -85,6 +91,10 @@ h3 {
 
 .settings {
 	margin-top: $v-margin;
+}
+
+.option {
+	font-weight: bold;
 }
 
 .advanced {
