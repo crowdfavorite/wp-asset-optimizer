@@ -51,12 +51,12 @@
 						$save.addClass('fix');
 					}
 					else if ( $on.is(':checked') ) {
-						AO.massCheck([ AO.$js_compile_all, AO.$js_compile, AO.$js_min_all, AO.$js_min, AO.$css_compile_all, AO.$css_compile, AO.$js_default_min ] , 'on');
+						// AO.massCheck([ AO.$js_compile_all, AO.$js_compile, AO.$js_min_all, AO.$js_min, AO.$css_compile_all, AO.$css_compile, AO.$js_default_min ] , 'on');
 						$advanced.hide();
 						$save.removeClass('fix');
 					}
 					else if ( $off.is(':checked') ) {
-						AO.massCheck([ AO.$js_compile_all, AO.$js_compile, AO.$js_min_all, AO.$js_min, AO.$css_compile_all, AO.$css_compile, AO.$js_default_min ] , 'off');
+						// AO.massCheck([ AO.$js_compile_all, AO.$js_compile, AO.$js_min_all, AO.$js_min, AO.$css_compile_all, AO.$css_compile, AO.$js_default_min ] , 'off');
 						$advanced.hide();
 						$save.removeClass('fix');
 					}
@@ -135,12 +135,11 @@
 			// Pop up confirm box on "Obliterate" submission
 			obliterateHandler: function() {
 				$('#js-obliterate').on('click', function() {
-					window.console && console.log('ks');
-					window.confirm("ALERT, OBLITERATING YOUR JAVASCRIPT IS THE MOST EXTREME THING YOU COULD EVER DO! ARE YOU SURE?");
+					return window.confirm("ALERT, OBLITERATING YOUR JAVASCRIPT IS THE MOST EXTREME THING YOU COULD EVER DO! ARE YOU SURE?");
 				});
 
 				$('#css-obliterate').on('click', function() {
-					window.confirm("ALERT, OBLITERATING YOUR CSS IS THE MOST EXTREME THING YOU COULD EVER DO! ARE YOU SURE?");
+					return window.confirm("ALERT, OBLITERATING YOUR CSS IS THE MOST EXTREME THING YOU COULD EVER DO! ARE YOU SURE?");
 				});
 			},
 
