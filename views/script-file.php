@@ -7,10 +7,13 @@
 
 $reason_value = !empty($details['disable_reason']) ? $details['disable_reason'] : __('Enter reason for disabling this file.');
 
-$enabled = !empty($details['minify_script']);
+$enabled = !empty($details['enabled']);
 $row_class = $enabled ? 'compiled' : 'not';
 $input_disabled = $enabled ? '' : ' disabled="disabled"';
+
+$attr_escaped_type = esc_attr($tab_type);
 $input_class = $tab_type == 'scripts' ? 'js-compile' : 'css-compile';
+
 ?>
 <tr class="<?php echo $row_class; ?>">
 	<td class="reason-hover">
