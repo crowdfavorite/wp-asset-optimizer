@@ -222,7 +222,7 @@ h3 {
 	cursor: pointer;
 	position: relative;
 
-	&:hover {
+	.not &:hover {
 		&>.reason {
 			width: $fullwidth - 90px;
 			visibility: visible;
@@ -255,6 +255,7 @@ h3 {
 	&.fix {
 		position: fixed;
 		bottom: 0;
+		z-index: 1;
 		border-top: 1px solid $border-color;
 			  -webkit-box-shadow: 0px -1px 1px #DFDFDF;
 			     -moz-box-shadow: 0px -1px 1px #DFDFDF;
