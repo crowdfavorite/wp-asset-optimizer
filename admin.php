@@ -153,10 +153,11 @@ class CFAssetOptimizerAdmin {
 			exit();
 		}
 	}
-
+	
 }
+
 add_action('admin_menu', 'CFAssetOptimizerAdmin::adminMenu');
 add_action('admin_init', 'CFAssetOptimizerAdmin::saveSettings');
-add_action('admin_init', 'CFAssetOptimizerAdmin::adminInit');
+add_action('load-settings_page_cf-asset-optimizer-options', 'CFAssetOptimizerAdmin::adminInit');
 add_action('wp_ajax_cfao-admin-css', 'CFAssetOptimizerAdmin::adminCSS');
 add_action('wp_ajax_cfao-admin-js', 'CFAssetOptimizerAdmin::adminJS');
