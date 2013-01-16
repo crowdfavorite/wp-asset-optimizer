@@ -20,130 +20,17 @@ class CFAssetOptimizerAdmin {
 		);
 	}
 	
-		public static function adminCSS() {
-			header('Content-type: text/css');
-			?>
-			form#cf-asset-optimizer-settings fieldset {
-				padding: 5px;
-				border: thin solid #000;
-			}
-			
-				form#cf-asset-optimizer-settings fieldset > ul > li {
-					padding: 5px;
-					margin: 5px auto;
-					border-top: thin solid #000;
-				}
-				
-				form#cf-asset-optimizer-settings fieldset > ul > li:first-child {
-					border-top: none;
-					margin-top: 0px;
-					padding-top: 0px;
-				}
-				
-			form#cf-asset-optimizer-settings div.tabs {
-				margin-top: 10px;
-				overflow: hidden;
-			}
-			
-				form#cf-asset-optimizer-settings div.tabs ul {
-					overflow: hidden;
-				}
-				
-					form#cf-asset-optimizer-settings div.tabs li {
-						float: left;
-						margin: 0px 5px;
-					}
-					
-					form#cf-asset-optimizer-settings div.tabs li a {
-						font-size: 18px;
-					}
-					
-					form#cf-asset-optimizer-settings div.tabs li.active-tab a {
-						color: #333;
-						font-weight: bold;
-						text-decoration: none;
-						cursor: default;
-					}
-			<?php
-			exit();
-		}
-		
-		public static function adminJS() {
-			header('Content-type: application/javascript');
-			$tab = !empty($_REQUEST['tab']) ? $_REQUEST['tab'] : 'general';
-			?>
-			jQuery(document).ready(function($) {
-				var $tabsWrapper = $('<div></div>').addClass('tabs'),
-					$tabsList = $('<ul></ul>'),
-					$myLink, 
-					tabs = {},
-					$form = $('form#cf-asset-optimizer-settings'),
-					numTabs = 0;
-					
-				$form.find('div.tab').each(function() {
-					var $this = $(this),
-						myLabelText = $this.find('h2.tab-title').text();
-					tabs[myLabelText] = $this.attr('id');
-					$this.find('h2.tab-title').remove();
-				});
-				
-				for (var key in tabs) {
-					if (tabs.hasOwnProperty(key)) {
-						numTabs ++;
-					}
-				}
-				
-				$('.concat-file-list ul').after('<a href="#" class="remove-concat-file">Remove</a>');
-				
-				$('a.remove-concat-file').click(function(event) {
-					event.stopPropagation();
-					event.preventDefault();
-					$(this).parent().remove();
-				});
-				
-				if (numTabs > 1) {
-					for (var name in tabs) {
-						$tabsList.append('<li><a href="#'+tabs[name]+'">'+name+'</a></li>');
-					}
-					
-					$tabsList.find('a').click(function(e) {
-						var $this = $(this);
-						e.preventDefault();
-						e.stopPropagation();
-						$this
-							.parents('ul')
-								.children()
-									.removeClass('active-tab')
-									.end()
-								.end()
-							.parent()
-								.addClass('active-tab')
-								.end()
-							.parents('form')
-								.find('div.tab')
-									.hide()
-									.end()
-								.end();
-								
-						$($this.attr('href')).show();
-					});
-					
-					$form.prepend($tabsWrapper);
-					$tabsWrapper.append($tabsList);
-					
-					$selectedTab = $tabsList.find('a[href="#cf-asset-optimizer-settings-'+<?php echo json_encode($tab); ?>+'"]');
-					
-					if ($selectedTab.length > 0) {
-						$selectedTab.click();
-					}
-					else {
-						$tabsList.find('li:first-child a').click();
-					}
-				}
-			});
-			<?php
-			exit();
-		}
+	public static function adminCSS() {
+		header('Content-type: text/css');
+		echo file_get_contents(dirname(__file__) . '/css/style.css');
+		exit();
+	}
+
+	public static function adminJS() {
+		header('Content-type: application/javascript');
+		echo file_get_contents(dirname(__file__) . '/js/script.js');
+		exit();
+	}
 
 	public static function adminMenu() {
 		add_options_page(
@@ -154,8 +41,8 @@ class CFAssetOptimizerAdmin {
 			'CFAssetOptimizerAdmin::adminMenuCallback'
 		);
 	}
-	
-		public static function adminMenuCallback() {
+
+	public static function adminMenuCallback() {
 		?>
 		<?php screen_icon(); ?><h1><?php echo esc_html(__('CF Asset Optimizer')); ?></h1>
 		<p><?php echo esc_html(__('Here you can manage the settings for dynamically concatenating and serving your static files.')); ?><p>
@@ -175,46 +62,10 @@ class CFAssetOptimizerAdmin {
 			$cfao_using_cache = get_option('cfao_using_cache', false);
 			$security_key = get_option('cfao_security_key', '');
 			$minify_js_level = get_option('cfao_minify_js_level', '');
+
+			include dirname(__file__).'/views/general-settings.php';
 		?>
-			<div class="tab" id="cf-asset-optimizer-settings-general">
-				<h2 class="tab-title"><?php echo esc_html(__('General Settings')); ?></h2>
-				<fieldset id="cf-asset-optimizer-general-settings">
-					<legend><h3><?php echo esc_html(__('General Settings')); ?></h3></legend>
-					<ul>
-						<li>
-							<label for="chk_cfao_using_cache">
-								<input type="checkbox" name="cfao_using_cache" id="chk_cfao_using_cache" value="true"<?php checked($cfao_using_cache, true); ?> />
-								<?php echo esc_html(__('This site is using a site-caching solution.')); ?>
-							</label>
-							<p><?php echo esc_html(__('Select this option if your site is using a plugin like WP Super Cache, or another static caching solution, to ensure that the concatenated files are generated and served before the cache occurs.')); ?></p>
-						</li>
-						<?php do_action('cfao_general_settings_tab_list'); ?>
-					</ul>
-				</fieldset>
-				<fieldset id="cf-asset-optimizer-settings-minify-settings">
-					<legend><h3><?php echo esc_html(__('JavaScript Minification Settings')); ?></h3></legend>
-					<p><?php echo esc_html(__('Minification of JavaScript is done through Google\'s Closure Compiler. Levels of minification available are listed below.')); ?></p>
-					<ul>
-						<li>
-							<input type="radio" name="js-minify" id="cfao-js-minify-none" value=""<?php checked (empty($minify_js_level)); ?> />
-							<label for="cfao-js-minify-none"><?php echo esc_html(__('None')); ?></label>
-						</li>
-						<li>
-							<input type="radio" name="js-minify" id="cfao-js-minify-wsonly" value="whitespace"<?php checked($minify_js_level, 'whitespace'); ?> />
-							<label for="cfao-js-minify-wsonly"><?php echo esc_html(__('Whitespace only (recommended)')); ?></label>
-						</li>
-						<li>
-							<input type="radio" name="js-minify" id="cfao-js-minify-simple" value="simple"<?php checked($minify_js_level, 'simple'); ?> />
-							<label for="cfao-js-minify-simple"><?php echo esc_html(__('Simple (usually works)')); ?></label>
-						</li>
-						<li>
-							<input type="radio" name="js-minify" id="cfao-js-minify-advanced" value="advanced"<?php checked($minify_js_level, 'advanced'); ?> />
-							<label for="cfao-js-minify-advanced"><?php echo esc_html(__('Advanced (best performance, requires strict code use)')); ?></label>
-						</li>
-					</ul>
-				</fieldset>
-				<button class="button-primary" name="cfao_save_settings" value="save_general_settings"><?php echo esc_html('Save General Settings', true); ?></button>
-			</div>
+
 		<?php
 		}
 		
@@ -236,64 +87,8 @@ class CFAssetOptimizerAdmin {
 			if (empty($files) || !is_array($files)) {
 				$files = array();
 			}
-			
-			?>
-			<div class="tab" id="cf-asset-optimizer-settings-<?php echo $attr_escaped_type; ?>">
-				<h2 class="tab-title"><?php echo $html_escaped_name; ?></h2>
-				<?php if (in_array($tab_type, array('scripts', 'styles'))) { ?>
-				<p><?php echo esc_html(sprintf(__('%s files are stored in: '), $filetab_types[$tab_type])); ?>
-				<?php
-					if ($tab_type == 'scripts') {
-						echo CFAssetOptimizerScripts::getCacheDir();
-					}
-					else if ($tab_type == 'styles') {
-						echo CFAssetOptimizerStyles::getCacheDir();
-					}
-				?>
-				</p>
-				<p><?php echo esc_html(__('Please be sure the above directory is writable, or could be created, by the web user.')); ?></p>
-				<?php } ?>
-				<fieldset id="cf-asset-optimizer-<?php echo $attr_escaped_type; ?>-list">
-					<legend><h3><?php echo esc_html(__($filetab_types[$tab_type] . ' Files')); ?></h3></legend>
-					<ul class="concat-file-list">
-					<?php
-						foreach ($files as $handle=>$details) {
-						?>
-						<li>
-							<h4><?php echo esc_html($handle); ?></h4>
-							<ul>
-								<li><?php echo esc_html(__('Source: ') . $details['src']); ?><input type="hidden" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][src]" value="<?php echo esc_attr($details['src']); ?>" /></li>
-								<li><?php echo esc_html(__('Version: ') . $details['ver']); ?><input type="hidden" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][ver]" value="<?php echo esc_attr($details['ver']); ?>" /></li>
-								<li><input type="radio" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][enabled]" value="1"<?php checked($details['enabled'], true); ?> />Enabled</li>
-								<li><input type="radio" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][enabled]" value=""<?php checked($details['enabled'], false); ?> />Disabled</li>
-								<?php if (!($details['enabled'])) { ?>
-								<li>Disabled reason: <?php echo esc_html($details['disable_reason']); ?><input type="hidden" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][disable_reason]" value="<?php echo esc_attr($details['disable_reason']); ?>" /></li>
-								<?php
-								}
-								if ($tab_type == 'scripts') {
-								?>
-								<li>
-									<label><?php echo esc_html(__('Allow Minification?')); ?></label>
-									<input type="radio" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][minify_script]" id="<?php echo $attr_escaped_type.'-'.$handle.'-minify_script-no'; ?>" value=""<?php checked(empty($details['minify_script'])); ?> />
-									<label for="<?php echo $attr_escaped_type.'-'.$handle.'-minify_script-no'; ?>"><?php echo esc_html(__('No')); ?></label>
-									<input type="radio" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][minify_script]" id="<?php echo $attr_escaped_type.'-'.$handle.'-minify_script-yes'; ?>" value="true"<?php checked(!empty($details['minify_script'])); ?> />
-									<label for="<?php echo $attr_escaped_type.'-'.$handle.'-minify_script-yes'; ?>"><?php echo esc_html(__('Yes (recommended)')); ?></label>
-								</li>
-								<?php } ?>
-							</ul>
-							<?php if ($details['enabled']) { ?>
-							<input type="hidden" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][disable_reason]" value="<?php echo esc_attr('Disabled by user'); ?>" />
-							<?php } ?>
-						</li>
-						<?php
-						}
-					?>
-					</ul>
-				</fieldset>
-				<button class="button-primary" name="cfao_save_settings" value="save_<?php echo $attr_escaped_type; ?>"><?php echo esc_html(__('Save '. $filetab_types[$tab_type] . ' Settings')); ?></button>
-				<button class="button" name="cfao_save_settings" value="clear_<?php echo $attr_escaped_type; ?>_cache"><?php echo esc_html(__('Clear '. $filetab_types[$tab_type] .' Cache')); ?></button>
-			</div>
-			<?php
+
+			include dirname(__file__).'/views/file-list.php';
 		}
 		
 	public static function saveSettings() {
