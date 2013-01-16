@@ -101,6 +101,15 @@ class CFAssetOptimizerScripts {
 	}
 
 	public static function buildConcatenatedScriptFile() {
+
+		$compile_setting = get_option('cfao_compile_setting');
+
+		if (empty($compile_setting) || $compile_setting == 'off') {
+			return;
+		}
+
+		$compile_all = $compile_setting == 'on';
+
 		$directory = trailingslashit(self::getCacheDir());
 		$security_key = get_option('cfao_security_key');
 		if ($security_key != $_POST['key']) {
@@ -165,11 +174,11 @@ class CFAssetOptimizerScripts {
 				$site_scripts[$handle] = array(
 					'src' => $compare_src,
 					'ver' => $scripts_obj->registered->$handle->ver,
-					'enabled' => false,
+					'enabled' => $compile_all,
 					'disable_reason' => 'Disabled by default.'
 				);
 			}
-			else if ($site_scripts[$handle]['enabled']) {
+			if ($compile_all || $site_scripts[$handle]['enabled']) {
 				if (
 					   strtolower($compare_src) != strtolower($site_scripts[$handle]['src'])
 					|| $scripts_obj->registered->$handle->ver != $site_scripts[$handle]['ver']
@@ -178,7 +187,7 @@ class CFAssetOptimizerScripts {
 					$site_scripts[$handle] = array(
 						'src' => $compare_src,
 						'ver' => $scripts_obj->registered->$handle->ver,
-						'enabled' => false,
+						'enabled' => $compile_all,
 						'disable_reason' => 'Script changed, automatically disabled.'
 					);
 				}
@@ -329,6 +338,15 @@ class CFAssetOptimizerScripts {
 	}
 
 	public static function getConcatenatedScriptUrl($wp_scripts, &$included_scripts, &$unknown_scripts, &$version) {
+
+		$compile_setting = get_option('cfao_compile_setting');
+
+		if (empty($compile_setting) || $compile_setting == 'off') {
+			return;
+		}
+
+		$compile_all = $compile_setting == 'on';
+
 		$directory = trailingslashit(self::getCacheDir());
 		$dir_url = trailingslashit(esc_url(self::getCacheUrl()));
 
@@ -350,12 +368,25 @@ class CFAssetOptimizerScripts {
 				// This is a local script. Use the $no_protocol version for enqueuing and management.
 				$compare_src = $no_protocol;
 			}
+
 			if (empty($site_scripts[$handle])) {
-				// Note that we have an unknown script, and thus should actually still make the back-end request.
-				$unknown_scripts[] = $registered[$handle];
-				continue;
+				if ($compile_all) {
+					// Script needs to be added.
+					$site_scripts[$handle] = array(
+						'src' => $compare_src,
+						'ver' => $registered[$handle]->ver,
+						'enabled' => true,
+						'disable_reason' => 'Compile all',
+					);
+					$update_scripts = true;
+				}
+				else {
+					// Note that we have an unknown script, and thus should actually still make the back-end request.
+					$unknown_scripts[] = $registered[$handle];
+					continue;
+				}
 			}
-			else if (!($site_scripts[$handle]['enabled'])) {
+			else if (!$compile_all && !($site_scripts[$handle]['enabled'])) {
 				// We shouldn't include this script, it's not enabled or recognized.
 				continue;
 			}
@@ -367,7 +398,7 @@ class CFAssetOptimizerScripts {
 				$site_scripts[$handle] = array(
 					'src' => $compare_src,
 					'ver' => $registered[$handle]->ver,
-					'enabled' => false,
+					'enabled' => $compile_all,
 					'disable_reason' => 'Script changed, automatically disabled',
 				);
 				$update_scripts = true;
@@ -386,7 +417,8 @@ class CFAssetOptimizerScripts {
 						break;
 					}
 				}
-				if ($can_include) {
+				
+				if ($compile_all || $can_include) {
 					$included_scripts[$handle] = $handle;
 				}
 			}
@@ -422,7 +454,7 @@ class CFAssetOptimizerScripts {
 				'referer' => $_SERVER['HTTP_HOST'] . '/' . $_SERVER['REQUEST_URI']
 			);
 			$response = wp_remote_post(
-				admin_url('admin-ajax.php?action=concat-build-js'),
+				admin_url('admin-ajax.php?XDEBUG_SESSION_START=netbeans-xdebug&action=concat-build-js'),
 				array(
 					'body' => $build_args,
 					'redirection' => 0,
@@ -522,7 +554,7 @@ class CFAssetOptimizerStyles {
 				'key' => get_option('cfao_security_key')
 			);
 			$response = wp_remote_post(
-				admin_url('admin-ajax.php?action=concat-build-css'),
+				admin_url('admin-ajax.php?XDEBUG_SESSION_START=netbeans-xdebug&action=concat-build-css'),
 				array(
 					'body' => $build_args,
 					'timeout' => 1,
@@ -533,6 +565,15 @@ class CFAssetOptimizerStyles {
 	}
 
 	public static function buildConcatenatedStyleFile() {
+
+		$compile_setting = get_option('cfao_compile_setting');
+
+		if (empty($compile_setting) || $compile_setting == 'off') {
+			return;
+		}
+
+		$compile_all = $compile_setting == 'on';
+
 		$directory = trailingslashit(self::getCacheDir());
 		$security_key = get_option('cfao_security_key');
 		if ($security_key != $_POST['key']) {
@@ -597,7 +638,7 @@ class CFAssetOptimizerStyles {
 				$site_styles[$handle] = array(
 					'src' => $compare_src,
 					'ver' => $styles_obj->registered->$handle->ver,
-					'enabled' => false,
+					'enabled' => $compile_all,
 					'disable_reason' => 'Disabled by default.'
 				);
 			}
@@ -609,11 +650,12 @@ class CFAssetOptimizerStyles {
 				$site_styles[$handle] = array(
 					'src' => $styles_obj->registered->$handle->src,
 					'ver' => $styles_obj->registered->$handle->ver,
-					'enabled' => false,
+					'enabled' => $compile_all,
 					'disable_reason' => 'Conditional stylesheet. Requires conditional markup.'
 				);
 			}
-			else if ($site_styles[$handle]['enabled']) {
+			
+			if ($compile_all || $site_styles[$handle]['enabled']) {
 				if (
 					   strtolower($compare_src) != strtolower($site_styles[$handle]['src'])
 					|| $styles_obj->registered->$handle->ver != $site_styles[$handle]['ver']
@@ -725,6 +767,15 @@ class CFAssetOptimizerStyles {
 	}
 
 	public static function getConcatenatedStyleUrl($wp_styles, &$included_styles, &$unknown_styles, &$version) {
+
+		$compile_setting = get_option('cfao_compile_setting');
+
+		if (empty($compile_setting) || $compile_setting == 'off') {
+			return;
+		}
+
+		$compile_all = $compile_setting == 'on';
+
 		$directory = self::getCacheDir();;
 		$dir_url = esc_url(self::getCacheUrl());
 
@@ -745,19 +796,39 @@ class CFAssetOptimizerStyles {
 				// This is a local script. Use the $no_protocol version for enqueuing and management.
 				$compare_src = $no_protocol;
 			}
-			if (
-				   empty($site_styles[$handle])
-				|| strtolower($site_styles[$handle]['src']) != strtolower($compare_src)
-				|| $site_styles[$handle]['ver'] != $registered[$handle]->ver
-			) {
-				// Note that we have an unknown script, and thus should actually still make the back-end request.
-				$unknown_styles[] = $registered[$handle];
+			if ( empty($site_styles[$handle]) ) {
+				if ($compile_all) {
+					// Script needs to be added.
+					$site_styles[$handle] = array(
+						'src' => $compare_src,
+						'ver' => $registered[$handle]->ver,
+						'enabled' => true,
+						'disable_reason' => 'Compile all',
+					);
+					$update_scripts = true;
+				}
+				else {
+					// Note that we have an unknown script, and thus should actually still make the back-end request.
+					$unknown_styles[] = $registered[$handle];
+					continue;
+				}
+			}
+			else if (!$compile_all && !($site_styles[$handle]['enabled'])) {
+				// We shouldn't include this style, it's not enabled.
 				continue;
 			}
 			else if (
-				   !($site_styles[$handle]['enabled'])
+				   strtolower($site_styles[$handle]['src']) != strtolower($compare_src)
+				|| $site_styles[$handle]['ver'] != $registered[$handle]->ver
 			) {
-				// We shouldn't include this style, it's not enabled.
+				// Script needs to be updated and disabled.
+				$site_styles[$handle] = array(
+					'src' => $compare_src,
+					'ver' => $registered[$handle]->ver,
+					'enabled' => $compile_all,
+					'disable_reason' => 'Script changed, automatically disabled',
+				);
+				$update_scripts = true;
 				continue;
 			}
 			else {
@@ -767,13 +838,13 @@ class CFAssetOptimizerStyles {
 					if (empty($site_styles[$dep]) || !$site_styles[$dep]['enabled']) {
 						// We've hit a disabled parent style.
 						$can_include = false;
-						$site_styles[$handle]['enabled'] = false;
+						$site_styles[$handle]['enabled'] = $compile_all;
 						$site_styles[$handle]['disable_reason'] = 'Dependent on disabled style: ' . $dep;
 						update_option('cfao_styles', $site_styles);
 						break;
 					}
 				}
-				if ($can_include) {
+				if ($compile_all || $can_include) {
 					$included_styles[$handle] = $handle;
 				}
 			}
