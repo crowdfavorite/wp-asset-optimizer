@@ -44,18 +44,20 @@ class CFAssetOptimizerAdmin {
 
 	public static function adminMenuCallback() {
 		?>
-		<?php screen_icon(); ?><h2><?php echo esc_html(__('Asset Optimizer')); ?></h2>
-		<p><a href="http://www.crowdfavorite.com">CrowdFavorite</a>'s <?php echo esc_html(__('Asset Optimizer takes all the separate CSS and JS files included in plugins and external add-ons, and compiles them into one file, helping your pages load faster.')); ?></p>
-		<form method="post" action="" id="cf-asset-optimizer-settings" class="settings">
-			<?php
-			wp_nonce_field('cfao-save-settings', 'cfao-save-settings');
-			self::_displayGeneralSettings();
-			self::_displayAdvancedSettings();
-			?>
-			<div class="save-container">
-				<button class="save" name="cfao_save_settings" value="save_<?php echo $attr_escaped_type; ?>"><?php echo esc_html(__('Save')); ?></button>
-			</div>
-		</form>
+		<div class="wrap">
+			<?php screen_icon(); ?><h2><?php echo esc_html(__('Asset Optimizer')); ?></h2>
+			<p><a href="http://www.crowdfavorite.com">CrowdFavorite</a>'s <?php echo esc_html(__('Asset Optimizer takes all the separate CSS and JS files included in plugins and external add-ons, and compiles them into one file, helping your pages load faster.')); ?></p>
+			<form method="post" action="" id="cf-asset-optimizer-settings" class="settings">
+				<?php
+				wp_nonce_field('cfao-save-settings', 'cfao-save-settings');
+				self::_displayGeneralSettings();
+				self::_displayAdvancedSettings();
+				?>
+				<div class="save-container">
+					<button class="save" name="cfao_save_settings" value="save_settings"><?php echo esc_html(__('Save')); ?></button>
+				</div>
+			</form>
+		</div>
 		<?php
 		}
 		
@@ -104,11 +106,13 @@ class CFAssetOptimizerAdmin {
 			return;
 		}
 		else {
-			$tab = 'general';
 			if (!check_admin_referer('cfao-save-settings', 'cfao-save-settings')) {
 				wp_die(__('I\'m sorry, Dave. I can\'t do that.'));
 			}
-			if ($_POST['cfao_save_settings'] == 'save_general_settings') {
+			if ($_POST['cfao_save_settings'] == 'save_settings') {
+
+				update_option('cfao_compile_setting', $_POST['compile_setting']);
+
 				if (!empty($_POST['cfao_using_cache'])) {
 					update_option('cfao_using_cache', true);
 				}
@@ -117,17 +121,14 @@ class CFAssetOptimizerAdmin {
 				}
 				update_option('cfao_security_key', md5($_SERVER['SERVER_ADDR'] . time()));
 				update_option('cfao_minify_js_level', $_POST['js-minify']);
-				do_action('cfao_save_general_settings', $_POST);
-			}
-			else if ($_POST['cfao_save_settings'] == 'save_scripts') {
+			
 				// Save the scripts data
 				update_option('cfao_scripts', $_POST['scripts']);
-				$tab = 'scripts';
-			}
-			else if ($_POST['cfao_save_settings'] == 'save_styles') {
 				update_option('cfao_styles', $_POST['styles']);
-				$tab = 'styles';
+
+				do_action('cfao_save_general_settings', $_POST);
 			}
+
 			else if ($_POST['cfao_save_settings'] == 'clear_scripts_cache') {
 				$dir = CFAssetOptimizerScripts::getCacheDir();
 				if (is_dir($dir)) {
@@ -140,7 +141,6 @@ class CFAssetOptimizerAdmin {
 						}
 					}
 				}
-				$tab = 'scripts';
 			}
 			else if ($_POST['cfao_save_settings'] == 'clear_styles_cache') {
 				$dir = CFAssetOptimizerStyles::getCacheDir();
@@ -154,9 +154,9 @@ class CFAssetOptimizerAdmin {
 						}
 					}
 				}
-				$tab = 'styles';
 			}
-			wp_redirect(add_query_arg('tab', $tab, $_SERVER['REQUEST_URI']));
+
+			wp_redirect( $_SERVER['REQUEST_URI'] );
 			exit();
 		}
 	}
