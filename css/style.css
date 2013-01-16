@@ -99,10 +99,14 @@ h3 {
 	------------------------------------------------------- */
 .compiled {
   background-color: #FCFCFC; }
+  .compiled .icon {
+    display: none; }
 
 .not {
   background-color: #D1D1D1;
   color: #555; }
+  .not .index {
+    display: none; }
 
 /* 	Content
 	------------------------------------------------------- */
