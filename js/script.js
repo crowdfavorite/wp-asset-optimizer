@@ -2,12 +2,12 @@
 	
 	$(function() {
 
-		var $ao = $('#cf-asset-optimizer');
+		var $ao = $('#cf-asset-optimizer-settings');
 
 		var AO = {
-			$ao : $('#cf-asset-optimizer'),
+			$ao : $ao,
 			$js_compile_all : $('#js-compile-all'),
-			$js_compile : $('.js-compile'),
+			$js_compile : $('.js-compile', $ao),
 			$js_min_all : $('#js-min-all'),
 			$js_min : $('.js-min', $ao),
 			$css_compile_all : $('#css-compile-all'),
@@ -21,6 +21,7 @@
 				this.obliterateHandler();
 				this.tableSorter();
 				this.toggleMinify();
+				this.toggleCompile();
 			},
 
 			// Checks for settings and establishes settings on page load
@@ -45,7 +46,6 @@
 				var $save = $('.save-container', $ao);
 
 				$settings.on('click', function() {
-
 					if ( $custom.is(':checked') ) {
 						$advanced.show();
 						$save.addClass('fix');
@@ -76,21 +76,28 @@
 
 			// Allows master boxes to check/uncheck children
 			masterCheck: function() {
-				var bind = function(check_all , check) {
-					check_all.on('click', function() {
-						if (check_all.attr('checked')) {
-							AO.massCheck(check, 'on');
-						}
-						else {
-							AO.massCheck(check, 'off');
-						}
-					});
-				};
 
-				bind(AO.$js_compile_all, [AO.$js_compile]);
-				bind(AO.$js_min_all, [AO.$js_min , AO.$js_default_min ]);
-				bind(AO.$js_min,[AO.$js_default_min ]);
-				bind(AO.$css_compile_all, [AO.$css_compile]);
+				AO.$js_compile_all.on('click', function() {
+					$(AO.$js_compile)
+						.attr('checked', $(this).prop('checked'))
+						.closest('tr')
+							.toggleClass('compiled', $(this).prop('checked'))
+							.toggleClass('not', !$(this).prop('checked'))
+						.find('.js-min').prop('disabled', !$(this).prop('checked'));
+				});
+
+				AO.$js_min_all.on('click', function() {
+					$(AO.$js_min).not(':disabled').attr('checked', $(this).prop('checked'));
+				});
+
+				AO.$css_compile_all.on('click', function() {
+					$(AO.$css_compile)
+						.attr('checked', $(this).prop('checked'))
+						.closest('tr')
+							.toggleClass('compiled', $(this).prop('checked'))
+							.toggleClass('not', !$(this).prop('checked'));
+				});
+
 			},
 
 			// Show/hide minification if a JS file is enabled, default to checked
@@ -113,6 +120,15 @@
 							'disabled': true
 						});
 					}
+				});
+			},
+
+			toggleCompile: function() {
+				AO.$js_compile.add(AO.$css_compile).on('click', function() {
+					$(this).closest('tr')
+						.toggleClass('compiled', $(this).prop('checked'))
+						.toggleClass('not', !$(this).prop('checked'))
+					.find('.js-min').prop('disabled', !$(this).prop('checked'));
 				});
 			},
 
