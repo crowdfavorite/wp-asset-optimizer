@@ -44,32 +44,39 @@ class CFAssetOptimizerAdmin {
 
 	public static function adminMenuCallback() {
 		?>
-		<?php screen_icon(); ?><h1><?php echo esc_html(__('CF Asset Optimizer')); ?></h1>
-		<p><?php echo esc_html(__('Here you can manage the settings for dynamically concatenating and serving your static files.')); ?><p>
-		<p><?php echo esc_html(__('Each file lists its handle, information about that file, and the reason it was disabled if such was required.')); ?></p>
-		<form method="post" action="" id="cf-asset-optimizer-settings">
+		<?php screen_icon(); ?><h2><?php echo esc_html(__('Asset Optimizer')); ?></h2>
+		<p><a href="http://www.crowdfavorite.com">CrowdFavorite</a>'s <?php echo esc_html(__('Asset Optimizer takes all the separate CSS and JS files included in plugins and external add-ons, and compiles them into one file, helping your pages load faster.')); ?></p>
+		<form method="post" action="" id="cf-asset-optimizer-settings" class="settings">
 			<?php
 			wp_nonce_field('cfao-save-settings', 'cfao-save-settings');
-			self::_displayGeneralSettingsTab();
-			self::_displayFileListTab('scripts');
-			self::_displayFileListTab('styles');
+			self::_displayGeneralSettings();
+			self::_displayAdvancedSettings();
 			?>
+			<div class="save-container">
+				<button class="save" name="cfao_save_settings" value="save_<?php echo $attr_escaped_type; ?>"><?php echo esc_html(__('Save')); ?></button>
+			</div>
 		</form>
 		<?php
 		}
 		
-		private static function _displayGeneralSettingsTab() {
+		private static function _displayGeneralSettings() {
+			$compile_setting = get_option('cfao_compile_setting', 'off');
+			
+			include dirname(__file__).'/views/general-settings.php';
+		}
+
+		private static function _displayAdvancedSettings() {
+			$scripts = self::_getScriptFileList('scripts');
+			$styles =  self::_getScriptFileList('styles');
+
 			$cfao_using_cache = get_option('cfao_using_cache', false);
 			$security_key = get_option('cfao_security_key', '');
 			$minify_js_level = get_option('cfao_minify_js_level', '');
 
-			include dirname(__file__).'/views/general-settings.php';
-		?>
-
-		<?php
+			include dirname(__file__).'/views/advanced-settings.php';
 		}
 		
-		private static function _displayFileListTab($tab_type) {
+		private static function _getScriptFileList($tab_type) {
 			$filetab_types = array(
 				'scripts' => 'JavaScript',
 				'styles' => 'CSS'
@@ -88,7 +95,7 @@ class CFAssetOptimizerAdmin {
 				$files = array();
 			}
 
-			include dirname(__file__).'/views/file-list.php';
+			return $files;
 		}
 		
 	public static function saveSettings() {
