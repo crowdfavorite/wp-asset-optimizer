@@ -147,24 +147,34 @@
 			tableSorter: function() {
 
 				// Disable certain columns from sorting.
-				$("#js-table").tablesorter( {
-					headers: {
-						2: {
-							sorter: false
-						},
-						3: {
-							sorter: false
+				try {
+					$("#js-table").tablesorter( {
+						headers: {
+							2: {
+								sorter: false
+							},
+							3: {
+								sorter: false
+							}
 						}
-					}
-				});
-				
-				$("#css-table").tablesorter( {
-					headers: {
-						2: {
-							sorter: false
+					});
+				}
+				catch (e) {
+
+				}
+
+				try {
+					$("#css-table").tablesorter( {
+						headers: {
+							2: {
+								sorter: false
+							}
 						}
-					}
-				});
+					});
+				}
+				catch (e) {
+
+				}
 			}
 		};
 
