@@ -10,7 +10,13 @@ class CFAssetOptimizerAdmin {
 			array(),
 			time()
 		);
-		
+
+		wp_enqueue_script('jquery.tablesorter',
+			plugins_url( basename( dirname( __FILE__ ) ) ) . '/js/plugins/jquery.tablesorter.min.js',
+			array(),
+			time()
+		);
+
 		$script_url = add_query_arg('tab', $tab, admin_url('admin-ajax.php?action=cfao-admin-js'));
 		
 		wp_enqueue_script('cfao-admin-js',
