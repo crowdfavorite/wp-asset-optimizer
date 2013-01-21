@@ -18,7 +18,7 @@ $input_class = $tab_type == 'scripts' ? 'js-compile' : 'css-compile';
 <tr class="<?php echo $row_class; ?>">
 	<td class="reason-hover">
 		<p class="index"><?php echo $index; ?></p>
-		<p class="icon">O</p>
+		<p class="icon">?</p>
 		<div class="reason">
 			<div>
 				<label for="reason-value-<?php echo $index; ?>">Reason:</label>

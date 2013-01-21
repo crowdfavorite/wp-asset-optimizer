@@ -4,7 +4,7 @@ class CFAssetOptimizerAdmin {
 
 	public static function adminInit() {
 		$tab = !empty($_GET['tab']) ? $_GET['tab'] : 'general';
-		
+
 		wp_enqueue_style('cfao-admin-css',
 			admin_url('admin-ajax.php?action=cfao-admin-css'),
 			array(),
@@ -18,14 +18,14 @@ class CFAssetOptimizerAdmin {
 		);
 
 		$script_url = add_query_arg('tab', $tab, admin_url('admin-ajax.php?action=cfao-admin-js'));
-		
+
 		wp_enqueue_script('cfao-admin-js',
 			$script_url,
 			array(),
 			time()
 		);
 	}
-	
+
 	public static function adminCSS() {
 		header('Content-type: text/css');
 		echo file_get_contents(dirname(__file__) . '/css/style.css');
@@ -60,16 +60,17 @@ class CFAssetOptimizerAdmin {
 				self::_displayAdvancedSettings();
 				?>
 				<div class="save-container">
+					<p class="warning">We had a problem. Make sure that you have a directory called 'cfao-cache' in your wp-content folder, and that the directory is writable.</p>
 					<button class="save" name="cfao_save_settings" value="save_settings"><?php echo esc_html(__('Save')); ?></button>
 				</div>
 			</form>
 		</div>
 		<?php
 		}
-		
+
 		private static function _displayGeneralSettings() {
 			$compile_setting = get_option('cfao_compile_setting', 'off');
-			
+
 			include dirname(__file__).'/views/general-settings.php';
 		}
 
@@ -83,29 +84,29 @@ class CFAssetOptimizerAdmin {
 
 			include dirname(__file__).'/views/advanced-settings.php';
 		}
-		
+
 		private static function _getScriptFileList($tab_type) {
 			$filetab_types = array(
 				'scripts' => 'JavaScript',
 				'styles' => 'CSS'
 			);
-			
+
 			if (!in_array($tab_type, array_keys($filetab_types))) {
 				return;
 			}
-			
+
 			$attr_escaped_type = esc_attr($tab_type);
 			$html_escaped_name = esc_html(__($filetab_types[$tab_type]));
-			
+
 			$files = get_option('cfao_'.$tab_type, array());
-			
+
 			if (empty($files) || !is_array($files)) {
 				$files = array();
 			}
 
 			return $files;
 		}
-		
+
 	public static function saveSettings() {
 		if (empty($_POST['cfao_save_settings'])) {
 			// Not our time to save.
@@ -127,7 +128,7 @@ class CFAssetOptimizerAdmin {
 				}
 				update_option('cfao_security_key', md5($_SERVER['SERVER_ADDR'] . time()));
 				update_option('cfao_minify_js_level', $_POST['js-minify']);
-			
+
 				// Save the scripts data
 				update_option('cfao_scripts', $_POST['scripts']);
 				update_option('cfao_styles', $_POST['styles']);
@@ -166,7 +167,7 @@ class CFAssetOptimizerAdmin {
 			exit();
 		}
 	}
-	
+
 }
 
 add_action('admin_menu', 'CFAssetOptimizerAdmin::adminMenu');

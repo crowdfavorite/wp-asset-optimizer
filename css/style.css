@@ -7,9 +7,7 @@
   font-style: normal; }
 
 .icon {
-  font-family: 'icons';
-  font-weight: normal;
-  font-style: normal;
+  margin-left: 4px;
   font-size: 16px;
   vertical-align: bottom; }
 
@@ -192,7 +190,6 @@ h3 {
   margin-top: 6px; }
 
 .save-container {
-  width: 100%;
   text-align: center;
   background-color: #fff;
   padding: 10px 0;
@@ -202,9 +199,10 @@ h3 {
     bottom: 0;
     z-index: 1;
     border-top: 1px solid #dfdfdf;
-    -webkit-box-shadow: 0px -1px 1px #dfdfdf;
-    -moz-box-shadow: 0px -1px 1px #dfdfdf;
-    box-shadow: 0px -1px 1px #dfdfdf; }
+    border-left: 1px solid #dfdfdf;
+    border-right: 1px solid #dfdfdf;
+    margin-left: -1px;
+    width: 649px; }
 
 .save {
   background-image: linear-gradient(to bottom, #6c8f97, #556e74);
@@ -229,3 +227,7 @@ h3 {
   margin-top: 12px;
   padding: 8px 0;
   width: 300px; }
+
+.warning {
+  background-color: #FFEE96;
+  padding: 0 5px; }
