@@ -49,6 +49,22 @@ class CFAssetOptimizerAdmin {
 	}
 
 	public static function adminMenuCallback() {
+
+		$styles_cache_dir = CFAssetOptimizerStyles::getCacheDir();
+		$script_cache_dir = CFAssetOptimizerScripts::getCacheDir();
+
+		if (!is_writable($styles_cache_dir) || !is_writable($script_cache_dir)) {
+			if (stripos($styles_cache_dir, 'wp-content/cfao-cache') === false) {
+				$warning_message = __('We had a problem. Make sure that directory ' . $styles_cache_dir . ' exists and is writable.');
+			}
+			if (stripos($script_cache_dir, 'wp-content/cfao-cache') === false) {
+				$warning_message = __('We had a problem. Make sure that directory ' . $script_cache_dir . ' exists and is writable.');
+			}
+			else {
+				$warning_message = __('We had a problem. Make sure that you have a directory called \'cfao-cache\' in your wp-content folder, and that the directory is writable.');
+			}
+		}
+
 		?>
 		<div class="wrap">
 			<?php screen_icon(); ?><h2><?php echo esc_html(__('Asset Optimizer')); ?></h2>
@@ -60,7 +76,9 @@ class CFAssetOptimizerAdmin {
 				self::_displayAdvancedSettings();
 				?>
 				<div class="save-container">
-					<p class="warning">We had a problem. Make sure that you have a directory called 'cfao-cache' in your wp-content folder, and that the directory is writable.</p>
+					<?php if (!empty($warning_message)) { ?>
+					<p class="warning"><?php echo esc_html($warning_message); ?></p>
+					<?php } ?>
 					<button class="save" name="cfao_save_settings" value="save_settings"><?php echo esc_html(__('Save')); ?></button>
 				</div>
 			</form>
