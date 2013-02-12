@@ -21,9 +21,11 @@ Author URI: http://crowdfavorite.com
 		<div class="main">
 			<div class="section-info">
 				<h3 class="section-header"><?php echo esc_html(__('Javascript')); ?></h3>
+				<?php if (!empty($script_latest_version)) { ?>
 				<span class="last-updated">
-					<?php echo esc_html(__('Latest version:')); ?> <time>12/12/32 at 12:41:11pm</time>
+					<?php echo esc_html(__('Latest version:')); ?> <time> <?php echo date('Y/n/j \a\t g:i:sa', $script_latest_version); ?></time>
 				</span>
+				<?php } ?>
 			</div>
 			<table id="js-table" class="files"  cellspacing="0">
 				<thead>
@@ -76,9 +78,11 @@ Author URI: http://crowdfavorite.com
 		<div class="main">
 			<div class="section-info">
 				<h3 class="section-header">CSS</h3>
+				<?php if (!empty($styles_latest_version)) { ?>
 				<span class="last-updated">
-					Latest version: <time>12/12/32 at 12:41:11pm</time>
+					<?php echo esc_html(__('Latest version:')); ?> <time> <?php echo date('Y/n/j \a\t g:i:sa', $styles_latest_version); ?></time>
 				</span>
+				<?php } ?>
 			</div>
 			<table id="css-table" class="files"  cellspacing="0">
 				<thead>

@@ -113,7 +113,13 @@ class CFAssetOptimizerAdmin {
 
 			$cfao_using_cache = get_option('cfao_using_cache', true);
 			$security_key = get_option('cfao_security_key', '');
-			$minify_js_level = get_option('cfao_minify_js_level', '');
+			$minify_js_level = get_option('cfao_minify_js_level', 'whitespace');
+
+			$styles_cache_dir = CFAssetOptimizerStyles::getCacheDir();
+			$script_cache_dir = CFAssetOptimizerScripts::getCacheDir();
+
+			$script_latest_version = CFAssetOptimizerAdmin::_getLatestFiletime($script_cache_dir);
+			$styles_latest_version = CFAssetOptimizerAdmin::_getLatestFiletime($styles_cache_dir);
 
 			include dirname(__file__).'/views/advanced-settings.php';
 		}
@@ -201,6 +207,43 @@ class CFAssetOptimizerAdmin {
 		}
 	}
 
+	private static function _getLatestFiletime($pathdir) {
+		$latest_ctime = 0;
+
+		$d = dir($pathdir);
+		while (false !== ($entry = $d->read())) {
+			$filepath = "{$pathdir}/{$entry}";
+			if (is_file($filepath) && filectime($filepath) > $latest_ctime) {
+				$latest_ctime = filectime($filepath);
+			}
+		}
+		$d->close();
+
+		if (!empty($latest_ctime)) {
+			$offset = get_option('gmt_offset') * 60 * 60;
+			$latest_ctime += $offset;
+		}
+		
+		return $latest_ctime;
+	}
+
+	/**
+	 * Standardize naming: relative paths for internal scripts/stylesheets,
+	 * and absolute paths for external ones pulled from other domains
+	 * @param string $src
+	 */
+	public static function getRelativePath($src) {
+
+		$replace_regex = '/^(?:(?:https?[:])?\/\/)' . $_SERVER['HTTP_HOST'] . '/i';
+
+		$file_src = preg_replace($replace_regex, '', $src);
+
+		return $file_src;
+	}
+
+	public static function getFieldName($script_type, $handle, $field) {
+		return $script_type . '[' . $handle . '][' . $field . ']';
+	}
 }
 
 add_action('admin_menu', 'CFAssetOptimizerAdmin::adminMenu');

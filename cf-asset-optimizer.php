@@ -454,7 +454,7 @@ class CFAssetOptimizerScripts {
 				'referer' => $_SERVER['HTTP_HOST'] . '/' . $_SERVER['REQUEST_URI']
 			);
 			$response = wp_remote_post(
-				admin_url('admin-ajax.php?XDEBUG_SESSION_START=netbeans-xdebug&action=concat-build-js'),
+				admin_url('admin-ajax.php?action=concat-build-js'),
 				array(
 					'body' => $build_args,
 					'redirection' => 0,
@@ -554,7 +554,7 @@ class CFAssetOptimizerStyles {
 				'key' => get_option('cfao_security_key')
 			);
 			$response = wp_remote_post(
-				admin_url('admin-ajax.php?XDEBUG_SESSION_START=netbeans-xdebug&action=concat-build-css'),
+				admin_url('admin-ajax.php?action=concat-build-css'),
 				array(
 					'body' => $build_args,
 					'timeout' => 1,

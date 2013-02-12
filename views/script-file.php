@@ -14,6 +14,8 @@ $input_disabled = $enabled ? '' : ' disabled="disabled"';
 $attr_escaped_type = esc_attr($tab_type);
 $input_class = $tab_type == 'scripts' ? 'js-compile' : 'css-compile';
 
+$file_src = CFAssetOptimizerAdmin::getRelativePath($details['src']);
+
 ?>
 <tr class="<?php echo $row_class; ?>">
 	<td class="reason-hover">
@@ -21,17 +23,17 @@ $input_class = $tab_type == 'scripts' ? 'js-compile' : 'css-compile';
 		<p class="icon">?</p>
 		<div class="reason">
 			<div>
-				<label for="reason-value-<?php echo $index; ?>">Reason:</label>
-				<input type="text" name="reason-value" class="reason-value" id="reason-value-<?php echo $index; ?>" value="<?php esc_html($reason_value); ?>"></input>
-				<input type="submit" />
+				<label for="reason-value-<?php echo $tab_type . '-' . $index; ?>">Reason:</label>
+				<input type="text" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][disable_reason]" class="reason-value" id="reason-value-<?php echo $tab_type . '-' . $index; ?>" value="<?php echo esc_attr($reason_value); ?>" />
+				<button class="reason-submit" name="cfao_save_settings" value="save_settings">submit</button>
 			</div>
 		</div>
 	</td>
 	<td><b><?php echo esc_html($handle); ?></b><br/>
 		<!--<?php echo esc_html(__('Version: ') . $details['ver']); ?>--><input type="hidden" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][ver]" value="<?php echo esc_attr($details['ver']); ?>" />
-		<?php echo esc_html(__('Source: ') . $details['src']); ?><input type="hidden" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][src]" value="<?php echo esc_attr($details['src']); ?>" /></td>
+		<?php echo esc_html($file_src); ?><input type="hidden" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][src]" value="<?php echo esc_attr($details['src']); ?>" /></td>
 	<td class="center">
-		<input type="checkbox" class="<?php echo $input_class; ?>" id="com-<?php echo $index; ?>" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][enabled]" value="1"<?php checked($details['enabled'], true); ?> />
+		<input type="checkbox" class="<?php echo esc_attr($input_class); ?>" id="com-<?php echo $index; ?>" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][enabled]" value="1"<?php checked($details['enabled'], true); ?> />
 	</td>
 	<?php if ($tab_type == 'scripts') { ?>
 	<td class="center">
