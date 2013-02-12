@@ -46,12 +46,27 @@ class CFAssetOptimizerAdmin {
 			'cf-asset-optimizer-options',
 			'CFAssetOptimizerAdmin::adminMenuCallback'
 		);
+
+		add_action( 'plugin_action_links_'.basename( dirname( __file__ ) ).'/cf-asset-optimizer.php', 'CFAssetOptimizerAdmin::adminPluginSettings', 10, 4 );
+	}
+
+	function adminPluginSettings( $links ) {
+		$settings_link = '<a href="options-general.php?page=cf-asset-optimizer-options">'.__( 'Settings' ).'</a>';
+		array_unshift( $links, $settings_link );
+		return $links;
 	}
 
 	public static function adminMenuCallback() {
 
 		$styles_cache_dir = CFAssetOptimizerStyles::getCacheDir();
 		$script_cache_dir = CFAssetOptimizerScripts::getCacheDir();
+
+		if (!file_exists($styles_cache_dir)) {
+			@mkdir($styles_cache_dir, 0775, true);
+		}
+		if (!file_exists($script_cache_dir)) {
+			@mkdir($script_cache_dir, 0775, true);
+		}
 
 		if (!is_writable($styles_cache_dir) || !is_writable($script_cache_dir)) {
 			if (stripos($styles_cache_dir, 'wp-content/cfao-cache') === false) {
@@ -96,7 +111,7 @@ class CFAssetOptimizerAdmin {
 			$scripts = self::_getScriptFileList('scripts');
 			$styles =  self::_getScriptFileList('styles');
 
-			$cfao_using_cache = get_option('cfao_using_cache', false);
+			$cfao_using_cache = get_option('cfao_using_cache', true);
 			$security_key = get_option('cfao_security_key', '');
 			$minify_js_level = get_option('cfao_minify_js_level', '');
 
