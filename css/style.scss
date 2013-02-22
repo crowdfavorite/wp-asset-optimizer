@@ -33,6 +33,10 @@ th,td {
 	font-weight: inherit;
 }
 
+tr {
+	min-height: 44px;
+}
+
 thead {
 	background-color: #F1F1F1;
 	background-image: -moz-linear-gradient(top,#F9F9F9,#ECECEC);
@@ -123,6 +127,10 @@ h3 {
 /* 	State
 	------------------------------------------------------- */
 
+.compiled, .not {
+	height: 44px;
+}
+
 .compiled {
 	background-color: #FCFCFC;
 
@@ -142,6 +150,10 @@ h3 {
 
 /* 	Content
 	------------------------------------------------------- */
+
+.mar-top {
+	margin-top: 10px;
+}
 
 .cachehelp-hover {
 	position: relative;

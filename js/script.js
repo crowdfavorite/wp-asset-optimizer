@@ -1,5 +1,5 @@
 (function($) {
-	
+
 	$(function() {
 
 		var $ao = $('#cf-asset-optimizer-settings');
@@ -79,7 +79,7 @@
 
 				AO.$js_compile_all.on('click', function() {
 					$(AO.$js_compile)
-						.attr('checked', $(this).prop('checked'))
+						.prop('checked', $(this).prop('checked'))
 						.closest('tr')
 							.toggleClass('compiled', $(this).prop('checked'))
 							.toggleClass('not', !$(this).prop('checked'))
@@ -87,12 +87,13 @@
 				});
 
 				AO.$js_min_all.on('click', function() {
-					$(AO.$js_min).not(':disabled').attr('checked', $(this).prop('checked'));
+					console.log($(AO.$js_min).not(':disabled'));
+					$(AO.$js_min).not(':disabled').prop('checked', $(this).prop('checked'));
 				});
 
 				AO.$css_compile_all.on('click', function() {
 					$(AO.$css_compile)
-						.attr('checked', $(this).prop('checked'))
+						.prop('checked', $(this).prop('checked'))
 						.closest('tr')
 							.toggleClass('compiled', $(this).prop('checked'))
 							.toggleClass('not', !$(this).prop('checked'));
@@ -106,16 +107,16 @@
 					var com_id = $(this).attr('id');
 					var min_id = '#' + com_id.replace('com','min');
 
-					if ($(this).attr('checked')) {
+					if ($(this).prop('checked')) {
 						window.console && console.log('checked');
 
-						$(min_id).attr({
+						$(min_id).prop({
 							'checked': true,
 							'disabled': false
 						});
 					}
 					else {
-						$(min_id).attr({
+						$(min_id).prop({
 							'checked': false,
 							'disabled': true
 						});
@@ -135,11 +136,11 @@
 			// Pop up confirm box on "Obliterate" submission
 			obliterateHandler: function() {
 				$('#js-obliterate').on('click', function() {
-					return window.confirm("ALERT, OBLITERATING YOUR JAVASCRIPT IS THE MOST EXTREME THING YOU COULD EVER DO! ARE YOU SURE?");
+					return window.confirm("This will remove all optimized JS files for every page on your site, and I'll have to rebuild them all again, which could mean that users JS might not load for certain pages that are cached (and looking for the now-obliterated file). ARE YOU SURE THIS IS WHAT YOU WANT?");
 				});
 
 				$('#css-obliterate').on('click', function() {
-					return window.confirm("ALERT, OBLITERATING YOUR CSS IS THE MOST EXTREME THING YOU COULD EVER DO! ARE YOU SURE?");
+					return window.confirm("This will remove all optimized CSS files for every page on your site, and I'll have to rebuild them all again, which could mean that users CSS might not load for certain pages that are cached (and looking for the now-obliterated file). ARE YOU SURE THIS IS WHAT YOU WANT?");
 				});
 			},
 
@@ -180,5 +181,5 @@
 
 		AO.init();
 	});
-	
+
 })(jQuery);

@@ -20,6 +20,9 @@ th, td {
   padding: 4px;
   font-weight: inherit; }
 
+tr {
+  min-height: 44px; }
+
 thead {
   background-color: #F1F1F1;
   background-image: -moz-linear-gradient(top, #f9f9f9, #ececec);
@@ -29,7 +32,7 @@ thead {
   background-image: -webkit-linear-gradient(top, #f9f9f9, #ececec);
   background-image: linear-gradient(top, #f9f9f9, #ececec);
   border-bottom: 1px solid #dfdfdf;
-  font-family: Georgia, 'Times New Roman', 'Bitstream Charter', Times, serif;
+  font-family: Georgia, "Times New Roman", "Bitstream Charter", Times, serif;
   font-size: 14px;
   font-weight: normal;
   text-align: left;
@@ -54,7 +57,7 @@ thead {
 
 h2, h3 {
   color: #464646;
-  font-family: HelveticaNeue-Light, 'Helvetica Neue Light', 'Helvetica Neue', sans-serif;
+  font-family: HelveticaNeue-Light, "Helvetica Neue Light", "Helvetica Neue", sans-serif;
   font-size: 23px;
   font-weight: normal;
   line-height: 29px;
@@ -95,6 +98,9 @@ h3 {
 
 /* 	State
 	------------------------------------------------------- */
+.compiled, .not {
+  height: 44px; }
+
 .compiled {
   background-color: #FCFCFC; }
   .compiled .icon {
@@ -108,6 +114,9 @@ h3 {
 
 /* 	Content
 	------------------------------------------------------- */
+.mar-top {
+  margin-top: 10px; }
+
 .cachehelp-hover {
   position: relative; }
   .cachehelp-hover:hover {
@@ -219,7 +228,7 @@ h3 {
   -webkit-border-radius: 3px;
   background-color: #6c8f97;
   background-color: #6c8f97;
-  border: 1px #888 solid;
+  border: 1px #888888 solid;
   bottom: 0;
   color: #fff;
   cursor: pointer;
