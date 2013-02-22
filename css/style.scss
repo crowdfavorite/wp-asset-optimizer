@@ -211,6 +211,31 @@ h3 {
 	text-align: center;
 }
 
+.reason-help {
+	@extend .cachehelp;
+	visibility: visible;
+	position: absolute;
+	top: -9px;
+	padding: 4px;
+
+	&:before {
+		content: "";
+		display: block;
+		position: absolute;
+		left: -6px;
+		top: 24px;
+		border-top: 5px solid transparent;
+		border-right: 6px solid #f1f1f1;
+		border-bottom: 5px solid transparent;
+	}
+}
+
+.reason-help-close {
+	position: absolute;
+	right: 0;
+	font-size: 20px;
+}
+
 .reason {
 	background-color: $blue;
 	bottom: 0;

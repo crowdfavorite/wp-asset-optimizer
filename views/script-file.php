@@ -6,6 +6,7 @@
  */
 
 $reason_value = !empty($details['disable_reason']) ? $details['disable_reason'] : __('Enter reason for disabling this file.');
+$reason_help = "<div class='reason-help'><span class='reason-help-close'>&#x33d;</span><p>Tip: You can hover over the '?' of any disabled file to bring up the 'Disabled Reason' field, where you can save notes for why you chose to disable certain files.</p></div>";
 
 $enabled = !empty($details['enabled']);
 $row_class = $enabled ? 'compiled' : 'not';
@@ -28,6 +29,7 @@ $file_src = CFAssetOptimizerAdmin::getRelativePath($details['src']);
 				<button class="reason-submit" name="cfao_save_settings" value="save_settings">submit</button>
 			</div>
 		</div>
+		<?php echo $reason_help ?>
 	</td>
 	<td><b><?php echo esc_html($handle); ?></b><br/>
 		<!--<?php echo esc_html(__('Version: ') . $details['ver']); ?>--><input type="hidden" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][ver]" value="<?php echo esc_attr($details['ver']); ?>" />

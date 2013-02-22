@@ -121,10 +121,10 @@ h3 {
   position: relative; }
   .cachehelp-hover:hover {
     cursor: pointer; }
-    .cachehelp-hover:hover > .cachehelp {
+    .cachehelp-hover:hover > .cachehelp, .cachehelp-hover:hover > .reason-help {
       visibility: visible; }
 
-.cachehelp {
+.cachehelp, .reason-help {
   visibility: hidden;
   background-color: #F1F1F1;
   background-color: white;
@@ -160,6 +160,26 @@ h3 {
 
 .center {
   text-align: center; }
+
+.reason-help {
+  visibility: visible;
+  position: absolute;
+  top: -9px;
+  padding: 4px; }
+  .reason-help:before {
+    content: "";
+    display: block;
+    position: absolute;
+    left: -6px;
+    top: 24px;
+    border-top: 5px solid transparent;
+    border-right: 6px solid #f1f1f1;
+    border-bottom: 5px solid transparent; }
+
+.reason-help-close {
+  position: absolute;
+  right: 0;
+  font-size: 20px; }
 
 .reason {
   background-color: #6c8f97;
