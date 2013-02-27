@@ -674,13 +674,13 @@ class CFAssetOptimizerStyles {
 							
 								// Update paths that are based on web root.
 							if (count($parts) > 1) {
-								$src = preg_replace('#url\s*\(\s*(["\']?)\s*(/[^[:space:]].+?)\s*\1\s*\)#x',
+								$src = preg_replace('#url\s*\(\s*(["\']?)\s*(/[^[:space:]|data:].+?)\s*\1\s*\)#x',
 									'url('.$parts[1].'$2)', $src
 								);
 							}
 								// Update paths based on script location
 							if (count($parts) > 2) {
-								$src = preg_replace('#url\s*\(\s*(["\']?)\s*(?!(?://|https?://))(/?[^[:space:]].+?)\s*\1\s*\)#x',
+								$src = preg_replace('#url\s*\(\s*(["\']?)\s*(?!(?://|https?://))(/?[^[:space:]|data:].+?)\s*\1\s*\)#x',
 									'url('.$parts[1].$parts[2].'$2)', $src
 								);
 							}
