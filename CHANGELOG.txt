@@ -1,5 +1,8 @@
 # CHANGE LOG
 
+## 1.1.6
+- Updated to allow data: values in url in stylesheet.
+
 ## 1.1.4
 - Set up to ignore request protocol string in comparison
 
