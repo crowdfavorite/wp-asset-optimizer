@@ -16,7 +16,7 @@ class CFAssetOptimizerScripts {
 	protected static $_cfao_CACHE_DIR;
 	protected static $_cfao_CACHE_URL;
 	protected static $_LOCKFILE = '';
-	
+
 	public static function getCacheDir() {
 		if (empty(self::$_cfao_CACHE_DIR)) {
 			$cache_dir = WP_CONTENT_DIR . '/cfao-cache/' . $_SERVER['HTTP_HOST'] . '/js/';
@@ -24,7 +24,7 @@ class CFAssetOptimizerScripts {
 		}
 		return self::$_cfao_CACHE_DIR;
 	}
-	
+
 	public static function getCacheUrl() {
 		if (empty(self::$_cfao_CACHE_URL)) {
 			$cache_url = WP_CONTENT_URL . '/cfao-cache/' . $_SERVER['HTTP_HOST'] . '/js/';
@@ -32,7 +32,7 @@ class CFAssetOptimizerScripts {
 		}
 		return self::$_cfao_CACHE_URL;
 	}
-	
+
 	public static function getLockFile() {
 		if (empty(self::$_LOCKFILE)) {
 			$lockfile = '.cfaojslock';
@@ -99,7 +99,7 @@ class CFAssetOptimizerScripts {
 			);
 		}
 	}
-	
+
 	public static function buildConcatenatedScriptFile() {
 		$directory = trailingslashit(self::getCacheDir());
 		$security_key = get_option('cfao_security_key');
@@ -128,7 +128,7 @@ class CFAssetOptimizerScripts {
 		if (empty($scripts_obj) || empty($scripts_obj->to_do) || empty($scripts_obj->registered)) {
 			exit('Issue: ' . print_r($scripts_obj, true));
 		}
-		
+
 		$lock = @fopen($directory.$lockfile, 'x');
 		if (!$lock) {
 			error_log('Could not create lockfile: ' . $directory.$lockfile);
@@ -136,16 +136,16 @@ class CFAssetOptimizerScripts {
 		}
 		fwrite($lock, time());
 		fclose($lock);
-		
+
 		$site_scripts = get_option('cfao_scripts', array());
-		
+
 		if (!is_array($site_scripts)) {
 			$site_scripts = array();
 		}
-		
+
 		$included_scripts = array();
-		
-		$script_file_header = 
+
+		$script_file_header =
 			"/**\n" .
 			" * Included Files\n" .
 			" *\n";
@@ -185,14 +185,14 @@ class CFAssetOptimizerScripts {
 				else {
 					// This script is enabled and has not changed from the last approved version.
 					// Request the file
-					$request_url = $site_scripts[$handle]['src'];			
+					$request_url = $site_scripts[$handle]['src'];
 					if (strpos($request_url, '//') === 0) {
 						$request_url = 'http:'.$request_url;
 					}
 					if ( !preg_match('|^https?://|', $request_url) && ! ( $scripts_obj->content_url && 0 === strpos($request_url, $scripts_obj->content_url) ) ) {
 						$request_url = $scripts_obj->base_url . $request_url;
 					}
-					
+
 					if (!empty($site_scripts[$handle]['ver'])) {
 						if (strstr($request_url, '?')) {
 							$request_url .= '&';
@@ -202,11 +202,11 @@ class CFAssetOptimizerScripts {
 						}
 						$request_url .= urlencode($site_scripts[$handle]['ver']);
 					}
-					
+
 					$script_request = wp_remote_get(
 						$request_url
 					);
-					
+
 					// Handle the response
 					if (is_wp_error($script_request)) {
 						$site_scripts[$handle]['enabled'] = false;
@@ -220,7 +220,7 @@ class CFAssetOptimizerScripts {
 						}
 						else {
 							// We had a valid script to add to the list.
-							
+
 							// Check to see if it can be concatenated.
 							if (empty($site_scripts[$handle]['minify_script'])) {
 								// This cannot be minified. It will need to be kept as is.
@@ -258,16 +258,16 @@ class CFAssetOptimizerScripts {
 			}
 		}
 		$script_file_header .= " **/\n";
-		
+
 		update_option('cfao_scripts', $site_scripts);
-		
+
 		if (!empty($included_scripts)) {
 			// We have a file to write
 			$filename = self::_getConcatenatedScriptsFilename($included_scripts);
 			$file = @fopen($directory.$filename, 'w');
 			if (!$file === false) {
 				// We have a valid file pointer.
-				
+
 				// Minify the file as dictated by user settings with Google Closure Compiler
 				$minify_level = get_option('cfao_minify_js_level', '');
 				$compiler_levels = array(
@@ -323,21 +323,21 @@ class CFAssetOptimizerScripts {
 		unlink($directory.$lockfile);
 		exit();
 	}
-	
+
 	private static function _getConcatenatedScriptsFilename($included_scripts) {
 		return md5(implode(',', $included_scripts)) . '.js';
 	}
-	
+
 	public static function getConcatenatedScriptUrl($wp_scripts, &$included_scripts, &$unknown_scripts, &$version) {
 		$directory = trailingslashit(self::getCacheDir());
 		$dir_url = trailingslashit(esc_url(self::getCacheUrl()));
-		
+
 		$site_scripts = get_option('cfao_scripts', array());
-		
+
 		if (!is_array($site_scripts)) {
 			$site_scripts = array();
 		}
-		
+
 		$included_scripts = array();
 		$unknown_scripts = array();
 		$registered = $wp_scripts->registered;
@@ -400,9 +400,9 @@ class CFAssetOptimizerScripts {
 			// All scripts are disabled on this site. Go no further.
 			return;
 		}
-		
+
 		$filename = self::_getConcatenatedScriptsFilename($included_scripts);
-		
+
 		if (file_exists($directory.$filename)) {
 			$version = filemtime($directory.$filename);
 			$url = apply_filters('cfao_script_file_url', $dir_url.$filename, $directory.$filename, $filename);
@@ -447,7 +447,7 @@ class CFAssetOptimizerStyles {
 	protected static $_cfao_CACHE_DIR;
 	protected static $_cfao_CACHE_URL;
 	protected static $_LOCKFILE = '';
-	
+
 	public static function getCacheDir() {
 		if (empty(self::$_cfao_CACHE_DIR)) {
 			$cache_dir = WP_CONTENT_DIR . '/cfao-cache/' . $_SERVER['HTTP_HOST'] . '/css/';
@@ -455,7 +455,7 @@ class CFAssetOptimizerStyles {
 		}
 		return self::$_cfao_CACHE_DIR;
 	}
-	
+
 	public static function getCacheUrl() {
 		if (empty(self::$_cfao_CACHE_URL)) {
 			$cache_url = WP_CONTENT_URL . '/cfao-cache/' . $_SERVER['HTTP_HOST'] . '/css/';
@@ -463,7 +463,7 @@ class CFAssetOptimizerStyles {
 		}
 		return self::$_cfao_CACHE_URL;
 	}
-	
+
 	public static function getLockFile() {
 		if (empty(self::$_LOCKFILE)) {
 			$lockfile = '.cfaocsslock';
@@ -531,7 +531,7 @@ class CFAssetOptimizerStyles {
 			);
 		}
 	}
-	
+
 	public static function buildConcatenatedStyleFile() {
 		$directory = trailingslashit(self::getCacheDir());
 		$security_key = get_option('cfao_security_key');
@@ -562,7 +562,7 @@ class CFAssetOptimizerStyles {
 			error_log('Issue: ' . print_r($styles_obj, true));
 			exit();
 		}
-		
+
 		$lock = @fopen($directory.$lockfile, 'x');
 		if (!$lock) {
 			error_log('Could not create lockfile: ' . $directory.$lockfile);
@@ -570,16 +570,16 @@ class CFAssetOptimizerStyles {
 		}
 		fwrite($lock, time());
 		fclose($lock);
-		
+
 		$site_styles = get_option('cfao_styles', array());
-		
+
 		if (!is_array($site_styles)) {
 			$site_styles = array();
 		}
-		
+
 		$included_styles = array();
-		
-		$style_file_header = 
+
+		$style_file_header =
 			"/**\n" .
 			" * Included Files\n" .
 			" *\n";
@@ -648,7 +648,7 @@ class CFAssetOptimizerStyles {
 					$style_request = wp_remote_get(
 						$request_url
 					);
-					
+
 					// Handle the response
 					if (is_wp_error($style_request)) {
 						$site_styles[$handle]['enabled'] = false;
@@ -665,13 +665,13 @@ class CFAssetOptimizerStyles {
 							$included_styles[$handle] = $handle;
 							$style_file_header .= ' * ' . $handle . ' as ' . $request_url . "\n";
 							$src = $style_request['body'] . "\n";
-							
+
 							// Convert relative URLs to absolute URLs.
 								// Get URL parts for this script.
 							$parts = array();
 							preg_match('#(https?://[^/]*)([^?]*/)([^?]*)(\?.*)?#', $request_url, $parts);
 							$parts[1] = apply_filters('cfao_styles_relative_domain', $parts[1]);
-							
+
 								// Update paths that are based on web root.
 							if (count($parts) > 1) {
 								$src = preg_replace('#url\s*\(\s*(["\']?)\s*(/[^[:space:]|data:].+?)\s*\1\s*\)#x',
@@ -684,7 +684,7 @@ class CFAssetOptimizerStyles {
 									'url('.$parts[1].$parts[2].'$2)', $src
 								);
 							}
-							
+
 							$style_file_src .= $src . "\n";
 						}
 					}
@@ -692,22 +692,22 @@ class CFAssetOptimizerStyles {
 			}
 		}
 		$style_file_header .= " **/\n";
-		
+
 		update_option('cfao_styles', $site_styles);
-		
+
 		if (!empty($included_styles)) {
 			// We have a file to write
 			$filename = self::_getConcatenatedStylesFilename($included_styles);
 			$file = @fopen($directory.$filename, 'w');
 			if (!$file === false) {
 				// We have a valid file pointer.
-				
+
 				// Minify the contents using Minify library
 				set_include_path(dirname(__file__).'/minify/min/lib');
 				include 'Minify/CSS.php';
 				$style_file_src = Minify_CSS::minify($style_file_src, array('preserveComments' => false));
 				restore_include_path();
-				
+
 				// Write the file and close it.
 				fwrite($file, $style_file_header.$style_file_src);
 				fclose($file);
@@ -719,21 +719,21 @@ class CFAssetOptimizerStyles {
 		unlink($directory.$lockfile);
 		exit();
 	}
-	
+
 	private static function _getConcatenatedStylesFilename($included_styles) {
 		return md5(implode(',', $included_styles)) . '.css';
 	}
-	
+
 	public static function getConcatenatedStyleUrl($wp_styles, &$included_styles, &$unknown_styles, &$version) {
 		$directory = self::getCacheDir();;
 		$dir_url = esc_url(self::getCacheUrl());
-		
+
 		$site_styles = get_option('cfao_styles', array());
-		
+
 		if (!is_array($site_styles)) {
 			$site_styles = array();
 		}
-		
+
 		$included_styles = array();
 		$unknown_styles = array();
 		$registered = $wp_styles->registered;
@@ -778,13 +778,13 @@ class CFAssetOptimizerStyles {
 				}
 			}
 		}
-		
+
 		if (empty($included_styles) && empty($unknown_styles)) {
 			return false;
 		}
-		
+
 		$filename = self::_getConcatenatedStylesFilename($included_styles);
-		
+
 		if (file_exists($directory.$filename)) {
 			$version = filemtime($directory.$filename);
 			$url = apply_filters('cfao_style_file_url', $dir_url.$filename, $directory.$filename, $filename);
