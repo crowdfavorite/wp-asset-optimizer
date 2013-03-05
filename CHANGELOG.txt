@@ -1,5 +1,8 @@
 # CHANGE LOG
 
+1.1.7
+- Further updated regex around "data:" values in url in CSS. Improved documentation of these regular expressions.
+
 ## 1.1.6
 - Updated to allow data: values in url in stylesheet.
 
