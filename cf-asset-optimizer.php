@@ -693,6 +693,8 @@ class CFAssetOptimizerStyles {
 									      //               #     url starts with //
 									      |                #     or 
 									      https?://        #     url starts with http:// or https://
+									      |                #     or
+									      data:            #     url starts with data:
 									    )                  #   end noncapturing group
 									  )                    # end negative lookahead
 									  (                    # begin group 2 (relative URL)
