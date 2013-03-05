@@ -680,7 +680,33 @@ class CFAssetOptimizerStyles {
 							}
 								// Update paths based on script location
 							if (count($parts) > 2) {
-								$src = preg_replace('#url\s*\(\s*(["\']?)\s*(?!(?://|https?://))(/?[^[:space:]|data:].+?)\s*\1\s*\)#x',
+								$regex = '~
+									  url\s*\(             # url( with optional internal whitespace
+									  \s*                  # optional whitespace
+									  (                    # begin group 1 (optional delimiter)
+									    ["\']?             #   an optional single or double quote
+
+									  )                    # end group 1
+									  \s*                  # optional whitespace
+									  (?!                  # negative lookahead assertion: skip if...
+									    (?:                #   noncapturing group (not needed with lookaheads)
+									      //               #     url starts with //
+									      |                #     or 
+									      https?://        #     url starts with http:// or https://
+									    )                  #   end noncapturing group
+									  )                    # end negative lookahead
+									  (                    # begin group 2 (relative URL)
+									    /?                 #   optional root /
+									    [^[:space:]]       #   one single nonspace character
+									    .+?                #   one or more (non-greedy) any character
+
+									  )                    # end group 2
+									  \s*                  # optional whitespace
+									  \1                   # match opening delimiter
+									  \s*                  # optional whitespace
+									  \)                   # closing )
+									  ~x';
+								$src = preg_replace($regex,
 									'url('.$parts[1].$parts[2].'$2)', $src
 								);
 							}
