@@ -4,7 +4,7 @@ Plugin Name: CF Asset Optimizer
 Plugin URI: http://crowdfavorite.com
 Description: Used to serve optimized and concatenated JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 1.1.7
+Version: 1.1.8
 Author URI: http://crowdfavorite.com
 */
 
@@ -704,14 +704,16 @@ class CFAssetOptimizerStyles {
 									  )                    # end group 1
 									  \s*                  # optional whitespace
 									  (?!                  # negative lookahead assertion: skip if...
-									    (?:                #   noncapturing group (not needed with lookaheads)
-									      //               #     url starts with //
-									      |                #     or 
-									      https?://        #     url starts with http:// or https://
-									      |                #     or
-									      data:            #     url starts with data:
-									    )                  #   end noncapturing group
-									  )                    # end negative lookahead
+									     (?:                #   noncapturing group (not needed with lookaheads)
+									       [\'"]            #     keep optional quote out of url match
+									       |                #     or
+									       //               #     url starts with //
+									       |                #     or 
+									       https?://        #     url starts with http:// or https://
+									       |                #     or
+									       data:            #     url starts with data:
+									     )                  #   end noncapturing group
+									   )                    # end negative lookahead
 									  (                    # begin group 2 (relative URL)
 									    /?                 #   optional root /
 									    [^[:space:]]       #   one single nonspace character
