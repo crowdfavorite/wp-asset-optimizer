@@ -4,7 +4,7 @@ Plugin Name: CF Asset Optimizer
 Plugin URI: http://crowdfavorite.com
 Description: Used to serve optimized and concatenated JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 1.1.6
+Version: 1.1.7
 Author URI: http://crowdfavorite.com
 */
 
@@ -674,15 +674,56 @@ class CFAssetOptimizerStyles {
 							
 								// Update paths that are based on web root.
 							if (count($parts) > 1) {
-								$src = preg_replace('#url\s*\(\s*(["\']?)\s*(/[^[:space:]|data:].+?)\s*\1\s*\)#x',
-									'url('.$parts[1].'$2)', $src
-								);
+								$regex = '~
+										url\s*\(             # url( with optional internal whitespace
+										\s*                  # optional whitespace
+										(                    # begin group 1
+										  ["\']?             #   an optional single or double quote
+										)                    # end option group 1
+										\s*                  # optional whitespace
+										(                    # begin option group 2
+										  /                  #     url starts with / for web root url
+										  [^[:space:]]       #     one single non-space character
+										  .+?                #     one or more (non-greedy) any character
+										)                    # end option group 2
+										\s*                  # optional whitespace
+										\1                   # match opening delimiter
+										\s*                  # optional whitespace
+										\)                   # closing )
+									~x';
+								$src = preg_replace($regex,'url('.$parts[1].'$2)', $src);
 							}
 								// Update paths based on script location
 							if (count($parts) > 2) {
-								$src = preg_replace('#url\s*\(\s*(["\']?)\s*(?!(?://|https?://))(/?[^[:space:]|data:].+?)\s*\1\s*\)#x',
-									'url('.$parts[1].$parts[2].'$2)', $src
-								);
+								$regex = '~
+									  url\s*\(             # url( with optional internal whitespace
+									  \s*                  # optional whitespace
+									  (                    # begin group 1 (optional delimiter)
+									    ["\']?             #   an optional single or double quote
+
+									  )                    # end group 1
+									  \s*                  # optional whitespace
+									  (?!                  # negative lookahead assertion: skip if...
+									    (?:                #   noncapturing group (not needed with lookaheads)
+									      //               #     url starts with //
+									      |                #     or 
+									      https?://        #     url starts with http:// or https://
+									      |                #     or
+									      data:            #     url starts with data:
+									    )                  #   end noncapturing group
+									  )                    # end negative lookahead
+									  (                    # begin group 2 (relative URL)
+									    /?                 #   optional root /
+									    [^[:space:]]       #   one single nonspace character
+									    .+?                #   one or more (non-greedy) any character
+
+									  )                    # end group 2
+									  \s*                  # optional whitespace
+									  \1                   # match opening delimiter
+									  \s*                  # optional whitespace
+									  \)                   # closing )
+									  ~x';
+								$src = preg_replace($regex, 'url('.$parts[1].$parts[2].'$2)', $src);
 							}
 							
 							$style_file_src .= $src . "\n";
