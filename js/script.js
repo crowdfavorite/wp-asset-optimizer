@@ -29,9 +29,11 @@
 				var $custom = $('#custom');
 				var $save = $('.save-container', $ao);
 				var $advanced = $('.advanced', $ao);
+				var $list = $('.basic-list');
 
 				if ( $custom.is(':checked') ) {
 					$save.addClass('fix');
+					$list.hide();
 					$advanced.show();
 				}
 			},
@@ -41,24 +43,36 @@
 				var $advanced = $('.advanced', $ao);
 				var $settings = $('.settings', $ao);
 				var $custom = $('#custom');
+				var $list = $('.basic-list');
 				var $on = $('#on');
 				var $off = $('#off');
-				var $save = $('.save-container', $ao);
+				var $labels = $('.button-select');
+				var $btn_on = $('#btn-on');
+				var $btn_off = $('#btn-off');
+				var $btn_custom = $('#btn-custom');
 
-				$settings.on('click', function() {
+
+
+				$settings.on('click', function(e) {
 					if ( $custom.is(':checked') ) {
+						$labels.removeClass("btn-active");
+						$btn_custom.addClass("btn-active");
+						$list.hide();
 						$advanced.show();
-						$save.addClass('fix');
 					}
 					else if ( $on.is(':checked') ) {
+						$labels.removeClass("btn-active");
+						$btn_on.addClass("btn-active");
 						// AO.massCheck([ AO.$js_compile_all, AO.$js_compile, AO.$js_min_all, AO.$js_min, AO.$css_compile_all, AO.$css_compile, AO.$js_default_min ] , 'on');
 						$advanced.hide();
-						$save.removeClass('fix');
+						$list.show();
 					}
 					else if ( $off.is(':checked') ) {
+						$labels.removeClass("btn-active");
+						$btn_off.addClass("btn-active");
 						// AO.massCheck([ AO.$js_compile_all, AO.$js_compile, AO.$js_min_all, AO.$js_min, AO.$css_compile_all, AO.$css_compile, AO.$js_default_min ] , 'off');
 						$advanced.hide();
-						$save.removeClass('fix');
+						$list.show();
 					}
 				});
 			},

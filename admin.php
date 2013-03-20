@@ -81,7 +81,7 @@ class CFAssetOptimizerAdmin {
 		}
 
 		?>
-		<div class="custom wrap">
+		<div class="wrap">
 			<div class="col-left">
 				<?php screen_icon(); ?><h2><?php echo esc_html(__('Asset Optimizer')); ?></h2>
 				<p class="mar-top"><a href="http://www.crowdfavorite.com">CrowdFavorite</a>'s <?php echo esc_html(__('Asset Optimizer takes all the separate CSS and JS files included in plugins and external add-ons, and compiles them into one file, helping your pages load faster.')); ?></p>
