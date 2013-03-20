@@ -51,9 +51,25 @@ thead {
   font-family: sans-serif;
   font-size: 12px;
   line-height: 18px;
-  width: 645px;
+  width: 825px;
   position: relative;
-  padding-bottom: 70px; }
+  padding-bottom: 20px; }
+
+.col-right {
+  float: left;
+  width: 155px;
+  padding-left: 12px;
+  margin-left: 12px;
+  position: absolute;
+  bottom: 0;
+  top: 0;
+  right: 0;
+  border-left: 1px solid #dfdfdf;
+  text-align: center; }
+
+.col-left {
+  float: left;
+  width: 645px; }
 
 h2, h3 {
   color: #464646;
@@ -218,21 +234,6 @@ h3 {
   float: right;
   margin-top: 6px; }
 
-.save-container {
-  text-align: center;
-  background-color: #fff;
-  padding: 10px 0;
-  width: 645px; }
-  .save-container.fix {
-    position: fixed;
-    bottom: 0;
-    z-index: 1;
-    border-top: 1px solid #dfdfdf;
-    border-left: 1px solid #dfdfdf;
-    border-right: 1px solid #dfdfdf;
-    margin-left: -1px;
-    width: 649px; }
-
 .save {
   background-image: linear-gradient(to bottom, #6c8f97, #556e74);
   background-image: -o-linear-gradient(top, #6c8f97, #556e74);
@@ -255,7 +256,16 @@ h3 {
   font-size: 20px;
   margin-top: 12px;
   padding: 8px 0;
-  width: 300px; }
+  width: 155px; }
+
+.custom .save {
+  position: fixed;
+  top: 247px;
+  bottom: auto;
+  left: 722px; }
+  @media screen and (min-width: 898px) {
+    .custom .save {
+      left: 835px; } }
 
 .warning {
   background-color: #FFEE96;

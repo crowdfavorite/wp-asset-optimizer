@@ -1,7 +1,8 @@
 // Variables
 
 $v-margin: 12px;
-$fullwidth: 645px;
+$fullwidth: 800px;
+$mainwidth: 645px;
 $border-color: #DFDFDF;
 $blue: #6C8F97;
 
@@ -71,9 +72,27 @@ thead {
 	font-family: sans-serif;
 	font-size: 12px;
 	line-height: 18px;
-	width: $fullwidth;
+	width: $fullwidth + 2*$v-margin + 1;
 	position: relative;
-	padding-bottom: 70px;
+	padding-bottom: 20px;
+}
+
+.col-right {
+	float: left;
+	width: ($fullwidth - $mainwidth);
+	padding-left: $v-margin;
+	margin-left: $v-margin;
+	position: absolute;
+	bottom: 0;
+	top: 0;
+	right: 0;
+	border-left: 1px solid $border-color;
+	text-align: center;
+}
+
+.col-left {
+	float: left;
+	width: $mainwidth;
 }
 
 h2 {
@@ -104,7 +123,7 @@ h3 {
 }
 
 .main {
-	display: inline-block
+	display: inline-block;
 }
 
 .files {
@@ -117,7 +136,7 @@ h3 {
 	border-collapse: collapse;
 	border: 1px $border-color solid;
 	border: 1px solid $border-color;
-	width: $fullwidth;
+	width: $mainwidth;
 }
 
 .filename {
@@ -259,13 +278,13 @@ h3 {
 
 	.not &:hover {
 		&>.reason {
-			width: $fullwidth - 90px;
+			width: $mainwidth - 90px;
 			visibility: visible;
 		}
 	}
 }
 .reason-value {
-	width: $fullwidth - 240px;
+	width: $mainwidth - 240px;
 }
 
 .js-minset {
@@ -278,25 +297,6 @@ h3 {
 #js-obliterate, #css-obliterate {
 	float: right;
 	margin-top: 6px;
-}
-
-.save-container {
-	text-align: center;
-	background-color: #fff;
-	padding: 10px 0;
-	width: $fullwidth;
-
-	&.fix {
-		position: fixed;
-		bottom: 0;
-		z-index: 1;
-		border-top: 1px solid $border-color;
-		border-left: 1px solid $border-color;
-		border-right: 1px solid $border-color;
-		margin-left: -1px;
-		width: $fullwidth + 4px;
-
-	}
 }
 
 .save {
@@ -319,7 +319,19 @@ h3 {
 	font-size: 20px;
 	margin-top: $v-margin;
 	padding: 8px 0;
-	width: 300px;
+	width: 155px;
+}
+
+.custom .save {
+	position: fixed;
+	top: 247px;
+	bottom: auto;
+	left: 722px; // Calculated based off mainwidth + sidebar width + margins + padding
+
+	@media screen and (min-width:898px) {
+		left: 835px;
+	}
+
 }
 
 .warning {
