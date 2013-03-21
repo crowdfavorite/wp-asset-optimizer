@@ -140,7 +140,7 @@
 			},
 
 			toggleCompile: function() {
-				AO.$js_compile.add(AO.$css_compile).on('click', function() {
+				AO.$js_compile.add(AO.$css_compile).change(function() {
 					$(this).closest('tr')
 						.toggleClass('compiled', $(this).prop('checked'))
 						.toggleClass('not', !$(this).prop('checked'))
