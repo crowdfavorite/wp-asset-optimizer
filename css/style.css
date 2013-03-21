@@ -327,6 +327,8 @@ input[type="text"].reason-value {
   text-overflow: ellipsis;
   cursor: pointer;
   text-decoration: underline; }
+  input[type="text"].reason-value:hover {
+    background-color: #fff; }
   input[type="text"].reason-value:focus {
     background-color: #fff;
     box-shadow: none;

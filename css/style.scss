@@ -413,6 +413,10 @@ input[type="text"].reason-value {
 	cursor: pointer;
 	text-decoration: underline;
 
+	&:hover {
+		background-color: #fff;
+	}
+
 	&:focus {
 		background-color: #fff;
 		box-shadow: none;
