@@ -25,8 +25,7 @@ Author URI: http://crowdfavorite.com
 			<table id="js-table" class="files"  cellspacing="0">
 				<thead>
 					<tr>
-						<th><a href="#"><?php echo esc_html(__('Order')); ?><span class="icon">&#8691;
-						</span></a></th>
+						<th><a href="#"><?php echo esc_html(__('Order')); ?></a></th>
 						<th class="filename"><a href="#"><?php echo esc_html(__('Name')); ?><span class="icon">&#8691;
 						</span></a></th>
 						<th class="center"><?php echo esc_html(__('Compile')); ?>
@@ -84,8 +83,7 @@ Author URI: http://crowdfavorite.com
 			<table id="css-table" class="files"  cellspacing="0">
 				<thead>
 					<tr>
-						<th><a href="#">Order<span class="icon">&#8691;
-						</span></a></th>
+						<th><a href="#">Order</a></th>
 						<th class="filename"><a href="#">Name<span class="icon">&#8691;
 						</span></a></th>
 						<th class="center">Compile

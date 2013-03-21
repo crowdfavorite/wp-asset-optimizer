@@ -133,14 +133,10 @@ h3 {
 
 .compiled {
   background-color: #FCFCFC; }
-  .compiled .icon {
-    display: none; }
 
 .not {
   background-color: #D1D1D1;
   color: #555; }
-  .not .index {
-    display: none; }
 
 /* 	Utility
 	------------------------------------------------------- */
@@ -184,7 +180,10 @@ html[xmlns] .clearfix {
   padding: 12px 0;
   margin-bottom: 6px;
   color: #fff;
-  font-size: 18px; }
+  font-size: 18px;
+  text-shadow: 0px 0px 1px white, 0px -1px -3px #01252e; }
+  .button-select:active {
+    cursor: pointer; }
 
 #btn-on {
   border: 1px solid #26814a;
@@ -195,6 +194,7 @@ html[xmlns] .clearfix {
   background-image: -webkit-gradient(linear, left top, left bottom, from(#3dc975), to(#26814a));
   background-image: -webkit-linear-gradient(top, #3dc975, #26814a); }
   #btn-on.btn-active, #btn-on:active {
+    text-shadow: none;
     border: 1px solid #056029;
     color: #023C19;
     background-image: linear-gradient(to bottom, #003f08, #06923e);
@@ -213,6 +213,7 @@ html[xmlns] .clearfix {
   background-image: -webkit-gradient(linear, left top, left bottom, from(#ff3d3d), to(#c43030));
   background-image: -webkit-linear-gradient(top, #ff3d3d, #c43030); }
   #btn-off.btn-active, #btn-off:active {
+    text-shadow: none;
     border: 1px solid #a30f0f;
     color: #520000;
     background-image: linear-gradient(to bottom, #6c0000, #c80606);
@@ -223,6 +224,7 @@ html[xmlns] .clearfix {
     background-image: -webkit-linear-gradient(top, #6c0000, #c80606); }
 
 #btn-custom {
+  text-shadow: 0px 0px 1px #031f2b, 0px -1px -3px #01252e;
   border: 1px solid #556e74;
   background-image: linear-gradient(to bottom, #6c8f97, #556e74);
   background-image: -o-linear-gradient(top, #6c8f97, #556e74);
@@ -231,6 +233,7 @@ html[xmlns] .clearfix {
   background-image: -webkit-gradient(linear, left top, left bottom, from(#6c8f97), to(#556e74));
   background-image: -webkit-linear-gradient(top, #6c8f97, #556e74); }
   #btn-custom.btn-active, #btn-custom:active {
+    text-shadow: none;
     border: 1px solid #344d53;
     color: #031F2B;
     background-image: linear-gradient(to bottom, #294248, #355860);
@@ -304,32 +307,32 @@ html[xmlns] .clearfix {
   right: 0;
   font-size: 20px; }
 
-.reason {
-  background-color: #6c8f97;
-  bottom: 0;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -ms-box-sizing: border-box;
-  box-sizing: border-box;
-  color: #fff;
-  overflow: hidden;
-  padding: 4px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  visibility: hidden;
-  width: 100%;
-  z-index: 1; }
+.reason label {
+  display: none; }
 
-.reason-hover {
+.reason-submit {
+  display: none; }
+
+.compiled .reason-value, .compiled .separator {
+  display: none; }
+
+input[type="text"].reason-value {
+  background-color: #D1D1D1;
+  border-color: #d1d1d1;
+  font-size: 11px;
+  color: inherit;
+  padding: 0 1px;
+  margin: 0;
+  width: 300px;
+  text-overflow: ellipsis;
   cursor: pointer;
-  position: relative; }
-  .not .reason-hover:hover > .reason {
-    width: 555px;
-    visibility: visible; }
-
-.reason-value {
-  width: 405px; }
+  text-decoration: underline; }
+  input[type="text"].reason-value:focus {
+    background-color: #fff;
+    box-shadow: none;
+    cursor: text; }
+    input[type="text"].reason-value:focus + .reason-submit {
+      display: inline-block; }
 
 .js-minset {
   list-style-type: none;
@@ -370,7 +373,8 @@ html[xmlns] .clearfix {
   color: #fff;
   cursor: pointer;
   font-size: 20px;
-  padding: 8px 0;
+  font-weight: bold;
+  padding: 9px 0;
   width: 155px; }
   .save:active {
     border: 1px solid #344d53;

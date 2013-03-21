@@ -36,6 +36,10 @@
 					$list.hide();
 					$advanced.show();
 				}
+
+				// Enable shiftclicking up checkboxes (cache=false allows shiftclicking with reordered tables)
+				$("input[type='checkbox']").shiftClick({'cache': false});
+
 			},
 
 			// Toggles advanced preferences
@@ -101,7 +105,6 @@
 				});
 
 				AO.$js_min_all.on('click', function() {
-					console.log($(AO.$js_min).not(':disabled'));
 					$(AO.$js_min).not(':disabled').prop('checked', $(this).prop('checked'));
 				});
 
@@ -122,8 +125,6 @@
 					var min_id = '#' + com_id.replace('com','min');
 
 					if ($(this).prop('checked')) {
-						window.console && console.log('checked');
-
 						$(min_id).prop({
 							'checked': true,
 							'disabled': false

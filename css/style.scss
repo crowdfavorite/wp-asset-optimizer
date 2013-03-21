@@ -170,19 +170,11 @@ h3 {
 
 .compiled {
 	background-color: #FCFCFC;
-
-	.icon {
-		display: none;
-	}
 }
 
 .not {
 	background-color: #D1D1D1;
 	color: #555;
-
-	.index {
-		display: none;
-	}
 }
 
 /* 	Utility
@@ -238,6 +230,11 @@ html[xmlns] .clearfix {
 	margin-bottom: $v-margin/2;
 	color: #fff;
 	font-size: 18px;
+	text-shadow: 0px 0px 1px #FFF, 0px -1px -3px #01252E;
+
+	&:active {
+		cursor: pointer;
+	}
 }
 
 #btn-on {
@@ -250,6 +247,7 @@ html[xmlns] .clearfix {
 	background-image: -webkit-linear-gradient(top, #3DC975, #26814A);
 
 	&.btn-active, &:active {
+		text-shadow: none;
 		border: 1px solid #26814A - 33;
 		color: #023C19;
 		background-image:         linear-gradient(to bottom, #26814A - 66 , #3DC975 - 55);
@@ -271,6 +269,7 @@ html[xmlns] .clearfix {
 	background-image: -webkit-linear-gradient(top, #FF3D3D, #C43030);
 
 	&.btn-active, &:active {
+		text-shadow: none;
 		border: 1px solid #C43030 - 33;
 		color: #520000;
 		background-image:         linear-gradient(to bottom, #C43030 - 88 , #FF3D3D - 55);
@@ -283,6 +282,7 @@ html[xmlns] .clearfix {
 }
 
 #btn-custom {
+	text-shadow: 0px 0px 1px #031F2B, 0px -1px -3px #01252E;
 	border: 1px solid #556E74;
 	background-image:         linear-gradient(to bottom, $blue, #556E74);
 	background-image:      -o-linear-gradient(top, $blue, #556E74);
@@ -292,6 +292,7 @@ html[xmlns] .clearfix {
 	background-image: -webkit-linear-gradient(top, $blue, #556E74);
 
 	&.btn-active, &:active {
+		text-shadow: none;
 		border: 1px solid #556E74 - 33;
 		color: #031F2B;
 		background-image:         linear-gradient(to bottom, #556E74 - 44 , $blue - 55);
@@ -385,35 +386,42 @@ html[xmlns] .clearfix {
 }
 
 .reason {
-	background-color: $blue;
-	bottom: 0;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
-	-ms-box-sizing: border-box;
-	box-sizing: border-box;
-	color: #fff;
-	overflow: hidden;
-	padding: 4px;
-	position: absolute;
-	top: 0;
-	left: 0;
-	visibility: hidden;
-	width: 100%;
-	z-index: 1;
-}
-.reason-hover {
-	cursor: pointer;
-	position: relative;
-
-	.not &:hover {
-		&>.reason {
-			width: $mainwidth - 90px;
-			visibility: visible;
-		}
+	label {
+		display: none;
 	}
 }
-.reason-value {
-	width: $mainwidth - 240px;
+
+.reason-submit {
+	display: none;
+}
+
+.compiled {
+	.reason-value, .separator {
+		display: none;
+	}
+}
+
+input[type="text"].reason-value {
+	background-color: #D1D1D1;
+	border-color: #d1d1d1;
+	font-size: 11px;
+	color: inherit;
+	padding: 0 1px;
+	margin: 0;
+	width: 300px;
+	text-overflow: ellipsis;
+	cursor: pointer;
+	text-decoration: underline;
+
+	&:focus {
+		background-color: #fff;
+		box-shadow: none;
+		cursor: text;
+
+		& + .reason-submit {
+			display: inline-block;
+		}
+	}
 }
 
 .js-minset {
@@ -470,7 +478,8 @@ html[xmlns] .clearfix {
 	color: #fff;
 	cursor: pointer;
 	font-size: 20px;
-	padding: 8px 0;
+	font-weight: bold;
+	padding: 9px 0;
 	width: 155px;
 }
 
