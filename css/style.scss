@@ -350,9 +350,9 @@ html[xmlns] .clearfix {
 }
 
 .last-updated {
-	position: absolute;
-	bottom: 0;
-	right: 0;
+	float: right;
+	clear: right;
+	font-size: 10px;
 }
 
 .center {
@@ -428,13 +428,37 @@ html[xmlns] .clearfix {
 	margin-top: 6px;
 }
 
+.obliterate-wrap {
+	float: right;
+}
+
+.css-minify {
+	display: block;
+	float: left;
+	margin-top: 4px;
+}
+
+
+
 .save {
+	border: 1px solid #556E74;
 	background-image:         linear-gradient(to bottom, $blue, #556E74);
 	background-image:      -o-linear-gradient(top, $blue, #556E74);
 	background-image:     -ms-linear-gradient(top, $blue, #556E74);
 	background-image:    -moz-linear-gradient(top, $blue, #556E74);
 	background-image: -webkit-gradient(linear, left top, left bottom, from($blue), to(#556E74));
 	background-image: -webkit-linear-gradient(top, $blue, #556E74);
+
+	&:active {
+		border: 1px solid #556E74 - 33;
+		color: #031F2B;
+		background-image:         linear-gradient(to bottom, #556E74 - 44 , $blue - 55);
+		background-image:      -o-linear-gradient(top, #556E74 - 44, $blue - 55);
+		background-image:     -ms-linear-gradient(top, #556E74 - 44, $blue - 55);
+		background-image:    -moz-linear-gradient(top, #556E74 - 44, $blue - 55);
+		background-image: -webkit-gradient(linear, left top, left bottom, from(#556E74 - 44), to($blue - 55));
+		background-image: -webkit-linear-gradient(top, #556E74 - 44 , $blue - 22);
+	}
 	        border-radius: 3px;
 	   -moz-border-radius: 3px;
     -moz-background-clip: padding; -webkit-background-clip: padding-box; background-clip: padding-box;
