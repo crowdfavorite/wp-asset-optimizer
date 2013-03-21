@@ -11,8 +11,8 @@ Author URI: http://crowdfavorite.com
 		<?php echo esc_html(__('This site is using a site-caching solution.')); ?>
 	</label>
 	<span class="cachehelp-hover">
-		<span class="icon"> ?
-		</span>
+		<?php screen_icon('edit-comments') ?>
+
 		<p class="cachehelp">
 			<?php echo esc_html(__('Select this option if your site is using a plugin like WP Super Cache, or another static caching solution, to ensure that the concatenated files are generated and served before the cache occurs.')); ?>
 		</p>
@@ -25,7 +25,8 @@ Author URI: http://crowdfavorite.com
 			<table id="js-table" class="files"  cellspacing="0">
 				<thead>
 					<tr>
-						<th><a href="#"><?php echo esc_html(__('Order')); ?></a></th>
+						<th><a href="#"><?php echo esc_html(__('Order')); ?><span class="icon">&#8691;
+						</span></a></th>
 						<th class="filename"><a href="#"><?php echo esc_html(__('Name')); ?><span class="icon">&#8691;
 						</span></a></th>
 						<th class="center"><?php echo esc_html(__('Compile')); ?>
@@ -83,7 +84,8 @@ Author URI: http://crowdfavorite.com
 			<table id="css-table" class="files"  cellspacing="0">
 				<thead>
 					<tr>
-						<th><a href="#">Order</a></th>
+						<th><a href="#">Order<span class="icon">&#8691;
+						</span></a></th>
 						<th class="filename"><a href="#">Name<span class="icon">&#8691;
 						</span></a></th>
 						<th class="center">Compile

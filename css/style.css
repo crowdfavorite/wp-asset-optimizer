@@ -244,7 +244,9 @@ html[xmlns] .clearfix {
     background-image: -webkit-linear-gradient(top, #294248, #567981); }
 
 .cachehelp-hover {
-  position: relative; }
+  position: relative;
+  display: inline-block;
+  height: 15px; }
   .cachehelp-hover:hover {
     cursor: pointer; }
     .cachehelp-hover:hover > .cachehelp, .cachehelp-hover:hover > .reason-help {
@@ -268,6 +270,14 @@ html[xmlns] .clearfix {
   top: -32px;
   width: 300px;
   z-index: 1; }
+
+#icon-edit-comments {
+  background-position: -37px -2px;
+  background-size: 400px;
+  float: left;
+  height: 18px;
+  margin: 0;
+  width: 31px; }
 
 .section-info {
   width: 100%;
@@ -332,7 +342,8 @@ input[type="text"].reason-value {
   input[type="text"].reason-value:focus {
     background-color: #fff;
     box-shadow: none;
-    cursor: text; }
+    cursor: text;
+    text-decoration: none; }
     input[type="text"].reason-value:focus + .reason-submit {
       display: inline-block; }
 
