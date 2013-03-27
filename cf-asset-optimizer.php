@@ -312,6 +312,9 @@ class CFAssetOptimizerScripts {
 						$script_file_src .= $block['src'];
 					}
 				}
+
+				$script_file_header = apply_filters('cfao_script_file_header', $script_file_header);
+
 				fwrite($file, $script_file_header.$script_file_src);
 				fclose($file);
 			}
@@ -750,7 +753,9 @@ class CFAssetOptimizerStyles {
 				include 'Minify/CSS.php';
 				$style_file_src = Minify_CSS::minify($style_file_src, array('preserveComments' => false));
 				restore_include_path();
-				
+
+				$style_file_header = apply_filters('cfao_style_file_header', $style_file_header);
+
 				// Write the file and close it.
 				fwrite($file, $style_file_header.$style_file_src);
 				fclose($file);
