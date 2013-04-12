@@ -79,6 +79,8 @@
 						$list.show();
 					}
 				});
+
+				$settings.triggerHandler('click');
 			},
 
 			// Checks or unchecks boxes depending on on_or_off, utility to other methods
