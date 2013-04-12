@@ -47,6 +47,7 @@ Author URI: http://crowdfavorite.com
 				<?php
 					$index = 1;
 					$tab_type = 'scripts';
+					$read_only = true;
 					foreach ($scripts as $handle => $details) {
 						include('script-file.php');
 						$index++;

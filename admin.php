@@ -112,6 +112,9 @@ class CFAssetOptimizerAdmin {
 		private static function _displayGeneralSettings() {
 			$compile_setting = get_option('cfao_compile_setting', 'off');
 
+			$scripts = self::_getScriptFileList('scripts');
+			$styles =  self::_getScriptFileList('styles');
+
 			include dirname(__file__).'/views/general-settings.php';
 		}
 
