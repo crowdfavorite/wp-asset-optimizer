@@ -88,23 +88,23 @@ class CFAssetOptimizerAdmin {
 
 		?>
 		<div class="wrap">
-			<div class="col-left">
-				<?php screen_icon(); ?><h2><?php echo esc_html(__('Asset Optimizer')); ?></h2>
-				<p class="mar-top"><a href="http://www.crowdfavorite.com">CrowdFavorite</a>'s <?php echo esc_html(__('Asset Optimizer takes all the separate CSS and JS files included in plugins and external add-ons, and compiles them into one file, helping your pages load faster.')); ?></p>
-				<form method="post" action="" id="cf-asset-optimizer-settings" class="settings">
+			<form method="post" action="" id="cf-asset-optimizer-settings" class="settings">
+				<div class="col-left">
+					<?php screen_icon(); ?><h2><?php echo esc_html(__('Asset Optimizer')); ?></h2>
+					<p class="mar-top"><a href="http://www.crowdfavorite.com">CrowdFavorite</a>'s <?php echo esc_html(__('Asset Optimizer takes all the separate CSS and JS files included in plugins and external add-ons, and compiles them into one file, helping your pages load faster.')); ?></p>
 					<?php
-					wp_nonce_field('cfao-save-settings', 'cfao-save-settings');
-					self::_displayGeneralSettings();
-					self::_displayAdvancedSettings();
+						wp_nonce_field('cfao-save-settings', 'cfao-save-settings');
+						self::_displayGeneralSettings();
+						self::_displayAdvancedSettings();
 					?>
-				</form>
-			</div>
-			<div class="col-right">
-				<?php if (!empty($warning_message)) { ?>
-				<p class="warning"><?php echo esc_html($warning_message); ?></p>
-				<?php } ?>
-				<button class="save" name="cfao_save_settings" value="save_settings"><?php echo esc_html(__('Save')); ?></button>
-			</div>
+				</div>
+				<div class="col-right">
+					<?php if (!empty($warning_message)) { ?>
+					<p class="warning"><?php echo esc_html($warning_message); ?></p>
+					<?php } ?>
+					<button class="save" name="cfao_save_settings" value="save_settings"><?php echo esc_html(__('Save')); ?></button>
+				</div>
+			</form>
 		</div>
 		<?php
 		}
