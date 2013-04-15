@@ -54,6 +54,8 @@
 				var $btn_on = $('#btn-on');
 				var $btn_off = $('#btn-off');
 				var $btn_custom = $('#btn-custom');
+				var $all_rows = $('.file-row');
+				console.log($all_rows);
 
 
 
@@ -61,20 +63,21 @@
 					if ( $custom.is(':checked') ) {
 						$labels.removeClass("btn-active");
 						$btn_custom.addClass("btn-active");
+						$all_rows.removeClass("dumb-not").removeClass("dumb-compiled");
 						$list.hide();
 						$advanced.show();
 					}
 					else if ( $on.is(':checked') ) {
 						$labels.removeClass("btn-active");
 						$btn_on.addClass("btn-active");
-						// AO.massCheck([ AO.$js_compile_all, AO.$js_compile, AO.$js_min_all, AO.$js_min, AO.$css_compile_all, AO.$css_compile, AO.$js_default_min ] , 'on');
+						$all_rows.removeClass("dumb-not").addClass("dumb-compiled");
 						$advanced.hide();
 						$list.show();
 					}
 					else if ( $off.is(':checked') ) {
 						$labels.removeClass("btn-active");
 						$btn_off.addClass("btn-active");
-						// AO.massCheck([ AO.$js_compile_all, AO.$js_compile, AO.$js_min_all, AO.$js_min, AO.$css_compile_all, AO.$css_compile, AO.$js_default_min ] , 'off');
+						$all_rows.removeClass("dumb-compiled").addClass("dumb-not");
 						$advanced.hide();
 						$list.show();
 					}

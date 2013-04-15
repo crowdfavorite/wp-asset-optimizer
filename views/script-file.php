@@ -17,7 +17,7 @@ $input_class = $tab_type == 'scripts' ? 'js-compile' : 'css-compile';
 $file_src = CFAssetOptimizerAdmin::getRelativePath($details['src']);
 
 ?>
-<tr class="<?php echo $row_class; ?>">
+<tr class="file-row <?php echo $row_class; ?>">
 	<td class="reason-hover">
 		<p class="index"><?php echo $index; ?></p>
 	</td>
@@ -41,7 +41,7 @@ $file_src = CFAssetOptimizerAdmin::getRelativePath($details['src']);
 	<td class="center">
 		<input type="checkbox" class="js-min" id="min-<?php echo $index; ?>" name="<?php echo $attr_escaped_type; ?>[<?php echo esc_attr($handle); ?>][minify_script]" value="true"<?php checked(!empty($details['minify_script'])); ?> <?php echo $input_disabled; ?> />
 	</td>
-	<?php 
+	<?php
 		}
 	}
 	?>

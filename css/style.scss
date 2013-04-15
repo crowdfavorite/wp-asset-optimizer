@@ -113,6 +113,10 @@ thead {
 	width: $mainwidth;
 }
 
+.main-head, .main-descr {
+	text-align: left;
+}
+
 h2 {
 	color: #464646;
 	font-family: HelveticaNeue-Light, 'Helvetica Neue Light', 'Helvetica Neue', sans-serif;
@@ -157,6 +161,7 @@ h3 {
 	border: 1px $border-color solid;
 	border: 1px solid $border-color;
 	width: $mainwidth;
+	text-align: left;
 }
 
 .filename {
@@ -166,15 +171,15 @@ h3 {
 /* 	State
 	------------------------------------------------------- */
 
-.compiled, .not {
+.compiled, .not, .dumb-compiled, .dumb-not {
 	height: 44px;
 }
 
-.compiled {
+.compiled, .dumb-compiled {
 	background-color: #FCFCFC;
 }
 
-.not {
+.not, .dumb-not {
 	background-color: #D1D1D1;
 	color: #555;
 }
@@ -341,7 +346,7 @@ html[xmlns] .clearfix {
 	z-index: 1;
 }
 #icon-edit-comments {
-	background-position: -37px -2px;
+	background-position: -37px -2px !important; //override cf colors
 	background-size: 400px;
 	float: left;
 	height: 18px;

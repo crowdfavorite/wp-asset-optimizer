@@ -83,6 +83,9 @@ thead {
   float: left;
   width: 645px; }
 
+.main-head, .main-descr {
+  text-align: left; }
+
 h2, h3 {
   color: #464646;
   font-family: HelveticaNeue-Light, "Helvetica Neue Light", "Helvetica Neue", sans-serif;
@@ -121,20 +124,21 @@ h3 {
   border-collapse: collapse;
   border: 1px #dfdfdf solid;
   border: 1px solid #dfdfdf;
-  width: 645px; }
+  width: 645px;
+  text-align: left; }
 
 .filename {
   width: 100%; }
 
 /* 	State
 	------------------------------------------------------- */
-.compiled, .not {
+.compiled, .not, .dumb-compiled, .dumb-not {
   height: 44px; }
 
-.compiled {
+.compiled, .dumb-compiled {
   background-color: #FCFCFC; }
 
-.not {
+.not, .dumb-not {
   background-color: #D1D1D1;
   color: #555; }
 
@@ -272,7 +276,7 @@ html[xmlns] .clearfix {
   z-index: 1; }
 
 #icon-edit-comments {
-  background-position: -37px -2px;
+  background-position: -37px -2px !important;
   background-size: 400px;
   float: left;
   height: 18px;
