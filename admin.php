@@ -91,6 +91,9 @@ class CFAssetOptimizerAdmin {
 			<form method="post" action="" id="cf-asset-optimizer-settings" class="settings">
 				<div class="col-left">
 					<?php screen_icon(); ?><h2 class="main-head"><?php echo esc_html(__('Asset Optimizer')); ?></h2>
+					<ul class="messages">
+						<li>Congratulations, your site is faster now.</li>
+					</ul>
 					<p class="mar-top main-descr"><a href="http://www.crowdfavorite.com">CrowdFavorite</a>'s <?php echo esc_html(__('Asset Optimizer takes all the separate CSS and JS files included in plugins and external add-ons, and compiles them into one file, helping your pages load faster.')); ?></p>
 					<?php
 						wp_nonce_field('cfao-save-settings', 'cfao-save-settings');

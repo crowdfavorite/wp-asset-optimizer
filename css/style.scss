@@ -113,6 +113,15 @@ thead {
 	width: $mainwidth;
 }
 
+.messages {
+	        border-radius: 3px;
+	   -moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	background-color: #A8E9C2;
+	padding: 8px 0 2px;
+	display: block;
+}
+
 .main-head, .main-descr {
 	text-align: left;
 }
