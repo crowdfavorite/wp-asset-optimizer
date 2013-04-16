@@ -8,17 +8,17 @@ Author URI: http://crowdfavorite.com
 <div class="settings clearfix">
 	<div class="button-pref">
 		<input type="radio" name="compile_setting" id="on" value="on"<?php checked($compile_setting, 'on'); ?> />
-		<label id="btn-on" class="button-select btn-active option" for="on">On</label>
+		<label id="btn-on" class="option button-select<?php if ($compile_setting == 'on') { echo " btn-active"; } ?>" for="on">On</label>
 		<span><?php echo esc_html(__('This will automatically recompile all CSS and JS files whenever they change.')); ?></span>
 	</div>
 	<div class="button-pref">
 		<input type="radio" name="compile_setting" id="off" value="off"<?php checked($compile_setting, 'off'); ?> />
-		<label id="btn-off" class="option button-select" for="off">Off</label>
+		<label id="btn-off" class="option button-select<?php if ($compile_setting == 'off') { echo " btn-active"; }?>" for="off">Off</label>
 		<span><?php echo esc_html(__('This will stop any files from being compiled.')); ?></span>
 	</div>
 	<div class="button-pref">
 		<input type="radio" name="compile_setting" id="custom" value="custom"<?php checked($compile_setting, 'custom'); ?> />
-		<label id="btn-custom" class="option button-select" for="custom">Custom</label>
+		<label id="btn-custom" class="option button-select<?php if ($compile_setting == 'custom') { echo " btn-active"; }?>" for="custom">Custom</label>
 		<span><?php echo esc_html(__('This lets you choose what you want compiled and what you want to exclude.')); ?></span>
 	</div>
 </div>
