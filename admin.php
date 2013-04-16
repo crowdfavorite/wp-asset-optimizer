@@ -86,14 +86,49 @@ class CFAssetOptimizerAdmin {
 			}
 		}
 
+		$compile_setting = self::getCompileSetting();
+		$optimizations_enabled = false;
+
+		// Check compile setting to determine if optimizations are being applied
+		if (!empty($compile_setting)) {
+			if ($compile_setting == 'on') {
+				$optimizations_enabled = true;
+			}
+			else if ($compile_setting == 'custom') {
+				// If set to custom, check that at least 1 file is being processed
+				$scripts = self::_getScriptFileList('scripts');
+				if (!empty($scripts)) {
+					foreach ((array)$scripts as $file) {
+						if (!empty($file['enabled'])) {
+							$optimizations_enabled = true;
+							break;
+						}
+					}
+				}
+				if (!$optimizations_enabled) {
+					$styles =  self::_getScriptFileList('styles');
+					if (!empty($styles)) {
+						foreach ((array)$styles as $file) {
+							if (!empty($file['enabled'])) {
+								$optimizations_enabled = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
 		?>
 		<div class="wrap">
 			<form method="post" action="" id="cf-asset-optimizer-settings" class="settings">
 				<div class="col-left">
 					<?php screen_icon(); ?><h2 class="main-head"><?php echo esc_html(__('Asset Optimizer')); ?></h2>
+					<?php if (!empty($optimizations_enabled)) {  ?>
 					<ul class="messages">
 						<li>Congratulations, your site is faster now.</li>
 					</ul>
+					<?php } ?>
 					<p class="mar-top main-descr"><a href="http://www.crowdfavorite.com">CrowdFavorite</a>'s <?php echo esc_html(__('Asset Optimizer takes all the separate CSS and JS files included in plugins and external add-ons, and compiles them into one file, helping your pages load faster.')); ?></p>
 					<?php
 						wp_nonce_field('cfao-save-settings', 'cfao-save-settings');
@@ -112,8 +147,12 @@ class CFAssetOptimizerAdmin {
 		<?php
 		}
 
+		public static function getCompileSetting() {
+			return get_option('cfao_compile_setting', 'off');
+		}
+
 		private static function _displayGeneralSettings() {
-			$compile_setting = get_option('cfao_compile_setting', 'off');
+			$compile_setting = self::getCompileSetting();
 
 			$scripts = self::_getScriptFileList('scripts');
 			$styles =  self::_getScriptFileList('styles');
@@ -139,6 +178,8 @@ class CFAssetOptimizerAdmin {
 		}
 
 		private static function _getScriptFileList($tab_type) {
+			static $filetab_files = array();
+
 			$filetab_types = array(
 				'scripts' => 'JavaScript',
 				'styles' => 'CSS'
@@ -146,6 +187,10 @@ class CFAssetOptimizerAdmin {
 
 			if (!in_array($tab_type, array_keys($filetab_types))) {
 				return;
+			}
+
+			if (isset($filetab_files[$tab_type])) {
+				return $filetab_files[$tab_type];
 			}
 
 			$attr_escaped_type = esc_attr($tab_type);
@@ -156,6 +201,8 @@ class CFAssetOptimizerAdmin {
 			if (empty($files) || !is_array($files)) {
 				$files = array();
 			}
+
+			$filetab_files[$tab_type] = $files;
 
 			return $files;
 		}
