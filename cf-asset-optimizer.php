@@ -850,6 +850,10 @@ class CFAssetOptimizerStyles {
 			}
 		}
 
+		if ($update_scripts) {
+			update_option('cfao_styles', $site_styles);
+		}
+
 		if (empty($included_styles) && empty($unknown_styles)) {
 			return false;
 		}
