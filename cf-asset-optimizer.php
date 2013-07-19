@@ -62,7 +62,14 @@ class CFAssetOptimizerScripts {
 </script>
 					<?php
 					}
+					
+					$deps = $wp_scripts->registered[$handle]->deps;
+					$ver = $wp_scripts->registered[$handle]->ver;
+					$in_footer = $wp_scripts->registered[$handle]->in_footer;
+					
 					wp_dequeue_script($handle);
+					wp_deregister_script($handle);
+					wp_register_script($handle, false, $deps, $ver, $in_footer);
 				}
 				else {
 					// Double-check what I depend on and update it as needed to the new script.
