@@ -1,5 +1,13 @@
 # CHANGE LOG
 
+## feature/3.6-upgrades
+- Updated to split header/footer scripts into separate files.
+- Now supports scripts enqueued after head (will concatenate into footer file)
+- Integrates better with native WordPress enqueuing system so that script dependencies are no longer rewritten.
+- Handles "bookmark" scripts with an enqueued handle, but no source.
+- Automatically concatenates "changed" and new scripts into files, concatenation filenames are unique to both handle and request URL.
+- Required for WordPress 3.6
+
 ## 1.1.9
 - Add filters to script file headers
 

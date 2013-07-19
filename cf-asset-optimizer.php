@@ -4,7 +4,7 @@ Plugin Name: CF Asset Optimizer
 Plugin URI: http://crowdfavorite.com
 Description: Used to serve optimized and concatenated JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 1.1.9
+Version: 1.2
 Author URI: http://crowdfavorite.com
 */
 
@@ -40,20 +40,20 @@ class CFAssetOptimizerScripts {
 		}
 		return self::$_LOCKFILE;
 	}
-
-	public static function onWPPrintScripts() {
+	
+	public static function enqueueConcatenatedFile($footer = false) {
 		global $wp_scripts;
 		if (!is_object($wp_scripts)) {
 			return;
 		}
 		$wp_scripts->all_deps($wp_scripts->queue);
 		$included_scripts = array();
-		$url = self::getConcatenatedScriptUrl($wp_scripts, $included_scripts, $unknown_scripts, $version);
+		$url = self::getConcatenatedScriptUrl($wp_scripts, $footer, $included_scripts, $unknown_scripts, $version);
 		if ($url) {
 			// We have a concatenated file matching this. Output each script's localizations,
 			// dequeue the script, then enqueue our concatenated file.
 			foreach ($wp_scripts->to_do as $handle) {
-				if (in_array($handle, $included_scripts)) {
+				if (isset($included_scripts[$handle])) {
 					// We need to output the localization and deregister this script.
 					if (!empty($wp_scripts->registered[$handle]->extra['data'])) {
 					?>
@@ -63,48 +63,56 @@ class CFAssetOptimizerScripts {
 					<?php
 					}
 					
-					$deps = $wp_scripts->registered[$handle]->deps;
-					$ver = $wp_scripts->registered[$handle]->ver;
-					$in_footer = $wp_scripts->registered[$handle]->in_footer;
-					
-					wp_dequeue_script($handle);
-					wp_deregister_script($handle);
-					wp_register_script($handle, false, $deps, $ver, $in_footer);
-				}
-				else {
-					// Double-check what I depend on and update it as needed to the new script.
-					$my_deps = $wp_scripts->registered[$handle]->deps;
-					$new_deps = array_diff($my_deps, $included_scripts);
-					if (count($my_deps) > count($new_deps)) {
-						// We need to add the concatenated script as a dependency
-						$new_deps[] = 'cfao-script';
-					}
-					$wp_scripts->registered[$handle]->deps = $new_deps;
+					$wp_scripts->done[] = $handle;
 				}
 			}
-			wp_enqueue_script('cfao-script', $url, array(), $version);
+			$script_name = 'cfao-script';
+			if ($footer) {
+				$script_name .= '-footer';
+			}
+			else {
+				$script_name .= '-header';
+			}
+			wp_enqueue_script($script_name, $url, array(), $version);
 			$wp_scripts->to_do = array();
 		}
 		else if (!get_option('cfao_using_cache') && (!empty($included_scripts) || !empty($unknown_scripts)) ) {
-			if (file_exists(trailingslashit(self::getCacheDir()).self::getLockFile())) {
-				// Currently building. Don't overload the system.
-				return;
+			$directory = self::getCacheDir();
+			if (file_exists($directory.self::getLockFile())) {
+				// We're currently building. Don't overload the system.
+				$included_scripts = $unknown_scripts = array();
+				return false;
 			}
-			// We don't have the file built yet. Fire off an asynchronous request to build it
-			// and serve the scripts normally.
+			$scripts = array();
+			foreach ($included_scripts as $script) {
+				$scripts[$script] = $wp_scripts->registered[$script]->src;
+				if (!empty($scripts[$script]) && isset($wp_scripts->registered[$script]->ver) && !empty($wp_scripts->registered[$script]->ver)) {
+					$scripts[$script] .= '?ver='.rawurlencode($wp_scripts->registered[$script]->ver);
+				}
+			}
+			// Not a cached environment, trigger rebuild asynchronously.
 			$build_args = array(
-				'wp_scripts_obj' => json_encode($wp_scripts),
 				'key' => get_option('cfao_security_key'),
+				'referer' => $_SERVER['HTTP_HOST'] . '/' . $_SERVER['REQUEST_URI'],
+				'scripts' => $scripts,
 			);
-			wp_remote_post(
+			$response = wp_remote_post(
 				admin_url('admin-ajax.php?action=concat-build-js'),
 				array(
 					'body' => $build_args,
-					'timeout' => 1,
 					'redirection' => 0,
+					'timeout' => 1,
 				)
 			);
 		}
+	}
+
+	public static function onWPPrintScripts() {
+		self::enqueueConcatenatedFile(false);
+	}
+	
+	public static function onWPPrintFooterScripts() {
+		self::enqueueConcatenatedFile(true);
 	}
 	
 	public static function buildConcatenatedScriptFile() {
@@ -125,16 +133,10 @@ class CFAssetOptimizerScripts {
 			// We're currently running a build. Throttle it to avoid DDOS Attacks.
 			exit();
 		}
-		if (empty($_POST['wp_scripts_obj'])) {
+		if (empty($_POST['scripts'])) {
 			exit('No scripts object received');
 		}
-		$scripts_obj = json_decode(stripcslashes($_POST['wp_scripts_obj']));
-		if (!$scripts_obj) {
-			$scripts_obj = json_decode($_POST['wp_scripts_obj']);
-		}
-		if (empty($scripts_obj) || empty($scripts_obj->to_do) || empty($scripts_obj->registered)) {
-			exit('Issue: ' . print_r($scripts_obj, true));
-		}
+		$scripts = $_POST['scripts'];
 		
 		$lock = @fopen($directory.$lockfile, 'x');
 		if (!$lock) {
@@ -160,115 +162,94 @@ class CFAssetOptimizerScripts {
 		$script_blocks = array();
 		$current_block = 0;
 		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:#', '', site_url())));
-		foreach ($scripts_obj->to_do as $handle) {
-			$compare_src = $scripts_obj->registered->$handle->src;
-			$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
-			if (strpos($no_protocol, $my_domain) === 0) {
-				// This is a local script. Use the $no_protocol version for enqueuing and management.
-				$compare_src = $no_protocol;
+		$scripts_changed = false;
+		foreach ($scripts as $handle => $src) {
+			// We're going to be blind on this end, and let the front-end handle things except when a request can't happen.
+			if (empty($src)) {
+				$script_file_header .= ' * ' . $handle . " as empty script handle.\n";
+				continue;
 			}
-			if (empty($site_scripts[$handle])) {
-				// We need to register this script in our list
-				$site_scripts[$handle] = array(
-					'src' => $compare_src,
-					'ver' => $scripts_obj->registered->$handle->ver,
-					'enabled' => false,
-					'disable_reason' => 'Disabled by default.'
-				);
+			else {
+				$request_url = $src;
+				if (strpos($request_url, '//') === 0) {
+					$request_url = 'http:'.$request_url;
+				}
+				if (!preg_match('|^https?://|', $request_url) && true) {
+					$request_url = 'http://'.$_SERVER['SERVER_NAME'].$request_url;
+				}
 			}
-			else if ($site_scripts[$handle]['enabled']) {
-				if (
-					   strtolower($compare_src) != strtolower($site_scripts[$handle]['src'])
-					|| $scripts_obj->registered->$handle->ver != $site_scripts[$handle]['ver']
-				) {
-					// This may not be the same script. Update site_scripts array and disable.
-					$site_scripts[$handle] = array(
-						'src' => $compare_src,
-						'ver' => $scripts_obj->registered->$handle->ver,
-						'enabled' => false,
-						'disable_reason' => 'Script changed, automatically disabled.'
-					);
+			
+			// This script is enabled and has not changed from the last approved version.
+			// Request the file
+			$request_url = $src;			
+			if (strpos($request_url, '//') === 0) {
+				$request_url = 'http:'.$request_url;
+			}
+			if ( !preg_match('|^https?://|', $request_url) && ! ( $scripts_obj->content_url && 0 === strpos($request_url, $scripts_obj->content_url) ) ) {
+				$request_url = home_url($request_url);
+			}
+				
+			$script_request = wp_remote_get(
+				$request_url
+			);
+				
+			// Handle the response
+			if (is_wp_error($script_request)) {
+				$site_scripts[$handle]['enabled'] = false;
+				$site_scripts[$handle]['disable_reason'] = 'WP Error: ' . $script_request->get_error_message();
+				$scripts_changed = true;
+			}
+			else {
+				if ($script_request['response']['code'] < 200 || $script_request['response']['code'] >= 400) {
+					// There was an error requesting the file
+					$site_scripts[$handle]['enabled'] = false;
+					$site_scripts[$handle]['disable_reason'] = 'HTTP Error ' . $script_request['response']['code'] . ' - ' . $script_request['response']['message'];
+					$scripts_changed = true;
 				}
 				else {
-					// This script is enabled and has not changed from the last approved version.
-					// Request the file
-					$request_url = $site_scripts[$handle]['src'];			
-					if (strpos($request_url, '//') === 0) {
-						$request_url = 'http:'.$request_url;
-					}
-					if ( !preg_match('|^https?://|', $request_url) && ! ( $scripts_obj->content_url && 0 === strpos($request_url, $scripts_obj->content_url) ) ) {
-						$request_url = $scripts_obj->base_url . $request_url;
-					}
+					// We had a valid script to add to the list.
 					
-					if (!empty($site_scripts[$handle]['ver'])) {
-						if (strstr($request_url, '?')) {
-							$request_url .= '&';
+					// Check to see if it can be concatenated.
+					if (empty($site_scripts[$handle]['minify_script'])) {
+						// This cannot be minified. It will need to be kept as is.
+						if (!empty($script_blocks[$current_block])) {
+							// We need to increment the script block first.
+							++$current_block;
 						}
-						else {
-							$request_url .= '?';
-						}
-						$request_url .= urlencode($site_scripts[$handle]['ver']);
-					}
-					
-					$script_request = wp_remote_get(
-						$request_url
-					);
-					
-					// Handle the response
-					if (is_wp_error($script_request)) {
-						$site_scripts[$handle]['enabled'] = false;
-						$site_scripts[$handle]['disable_reason'] = 'WP Error: ' . $script_request->get_error_message();
+						$script_blocks[$current_block] = array(
+							'minify' => false,
+							'src' => $script_request['body'].";\n",
+						);
 					}
 					else {
-						if ($script_request['response']['code'] < 200 || $script_request['response']['code'] >= 400) {
-							// There was an error requesting the file
-							$site_scripts[$handle]['enabled'] = false;
-							$site_scripts[$handle]['disable_reason'] = 'HTTP Error ' . $script_request['response']['code'] . ' - ' . $script_request['response']['message'];
+						// This can be minified. Allow it to be sent in a bundled minify request.
+						if (
+							   !empty($script_blocks[$current_block])
+							&& !($script_blocks[$current_block]['minify'])
+						) {
+							// Increment current block first.
+							++$current_block;
 						}
-						else {
-							// We had a valid script to add to the list.
-							
-							// Check to see if it can be concatenated.
-							if (empty($site_scripts[$handle]['minify_script'])) {
-								// This cannot be minified. It will need to be kept as is.
-								if (!empty($script_blocks[$current_block])) {
-									// We need to increment the script block first.
-									++$current_block;
-								}
-								$script_blocks[$current_block] = array(
-									'minify' => false,
-									'src' => $script_request['body'].";\n",
-								);
-							}
-							else {
-								// This can be minified. Allow it to be sent in a bundled minify request.
-								if (
-									   !empty($script_blocks[$current_block])
-									&& !($script_blocks[$current_block]['minify'])
-								) {
-									// Increment current block first.
-									++$current_block;
-								}
-								if (empty($script_blocks[$current_block])) {
-									$script_blocks[$current_block] = array(
-										'minify' => true,
-										'src' => ''
-									);
-								}
-								$script_blocks[$current_block]['src'] .= $script_request['body'].";\n";
-							}
-							$included_scripts[$handle] = $handle;
-							$script_file_header .= ' * ' . $handle . ' as ' . $request_url . "\n";
+						if (empty($script_blocks[$current_block])) {
+							$script_blocks[$current_block] = array(
+								'minify' => true,
+								'src' => ''
+							);
 						}
+						$script_blocks[$current_block]['src'] .= $script_request['body'].";\n";
 					}
+					$included_scripts[$handle] = $src;
+					$script_file_header .= ' * ' . $handle . ' as ' . $request_url . "\n";
 				}
 			}
 		}
 		$script_file_header .= " **/\n";
 		
-		update_option('cfao_scripts', $site_scripts);
-		
-		if (!empty($included_scripts)) {
+		if ($scripts_changed) {
+			// We'll be out of sync at this point, so just update and let it try again later.
+			update_option('cfao_scripts', $site_scripts);
+		}
+		else if (!empty($included_scripts)) {
 			// We have a file to write
 			$filename = self::_getConcatenatedScriptsFilename($included_scripts);
 			$file = @fopen($directory.$filename, 'w');
@@ -335,10 +316,15 @@ class CFAssetOptimizerScripts {
 	}
 	
 	private static function _getConcatenatedScriptsFilename($included_scripts) {
-		return md5(implode(',', $included_scripts)) . '.js';
+		// Custom name is pairing of handles and URL with MD5.
+		$parts = array();
+		foreach ($included_scripts as $key => $val) {
+			$parts[] = "$key $val";
+		}
+		return md5(implode(',', $parts)) . '.js';
 	}
 	
-	public static function getConcatenatedScriptUrl($wp_scripts, &$included_scripts, &$unknown_scripts, &$version) {
+	public static function getConcatenatedScriptUrl($wp_scripts, $footer, &$included_scripts, &$unknown_scripts, &$version) {
 		$directory = trailingslashit(self::getCacheDir());
 		$dir_url = trailingslashit(esc_url(self::getCacheUrl()));
 		
@@ -354,6 +340,18 @@ class CFAssetOptimizerScripts {
 		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:#', '', site_url())));
 		$update_scripts = false;
 		foreach ($wp_scripts->to_do as $handle) {
+			if ($wp_scripts->groups[$handle] == 1 && !$footer) {
+				// These are scripts to put together in the footer, not in the header.
+				continue;
+			}
+			if (!($site_scripts[$handle]['enabled'])) {
+				// We shouldn't include this script, it's not enabled.
+				continue;
+			}
+			if (empty($registered[$handle]->src)) {
+				// This is a convenience wrapper. No need to worry about it.
+				continue;
+			}
 			$compare_src = $registered[$handle]->src;
 			$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
 			if (strpos($no_protocol, $my_domain) === 0) {
@@ -362,42 +360,30 @@ class CFAssetOptimizerScripts {
 			}
 			if (empty($site_scripts[$handle])) {
 				// Note that we have an unknown script, and thus should actually still make the back-end request.
-				$unknown_scripts[] = $registered[$handle];
-				continue;
-			}
-			else if (!($site_scripts[$handle]['enabled'])) {
-				// We shouldn't include this script, it's not enabled or recognized.
-				continue;
-			}
-			else if (
-				   strtolower($site_scripts[$handle]['src']) != strtolower($compare_src)
-				|| $site_scripts[$handle]['ver'] != $registered[$handle]->ver
-			) {
-				// Script needs to be updated and disabled.
-				$site_scripts[$handle] = array(
-					'src' => $compare_src,
-					'ver' => $registered[$handle]->ver,
-					'enabled' => false,
-					'disable_reason' => 'Script changed, automatically disabled',
-				);
+				// No longer true. We should do all registration from the front end now.
 				$update_scripts = true;
-				continue;
+				$site_scripts[$handle] = array(
+					'src' => $registered[$handle]->src,
+					'ver' => $registered[$handle]->ver,
+					'enabled' => true,
+				);
 			}
-			else {
-				$can_include = true;
-				foreach ($wp_scripts->registered[$handle]->deps as $dep) {
-					// Ensure that it is not dependent on any disabled scripts
-					if (empty($site_scripts[$dep]) || !$site_scripts[$dep]['enabled']) {
-						// We've hit a disabled parent script.
-						$can_include = false;
-						$site_scripts[$handle]['enabled'] = false;
-						$site_scripts[$handle]['disable_reason'] = 'Dependent on disabled script: ' . $dep;
-						$update_scripts = true;
-						break;
-					}
+			$can_include = true;
+			foreach ($wp_scripts->registered[$handle]->deps as $dep) {
+				// Ensure that it is not dependent on any disabled scripts
+				if (empty($site_scripts[$dep]) || !$site_scripts[$dep]['enabled']) {
+					// We've hit a disabled parent script.
+					$can_include = false;
+					$site_scripts[$handle]['enabled'] = false;
+					$site_scripts[$handle]['disable_reason'] = 'Dependent on disabled script: ' . $dep;
+					$update_scripts = true;
+					break;
 				}
-				if ($can_include) {
-					$included_scripts[$handle] = $handle;
+			}
+			if ($can_include) {
+				$included_scripts[$handle] = $registered[$handle]->src;
+				if (!empty($registered[$handle]->ver) && !empty($registered[$handle]->src)) {
+					$included_scripts[$handle] = add_query_arg('ver', $registered[$handle]->ver, $included_scripts[$handle]);
 				}
 			}
 		}
@@ -414,7 +400,6 @@ class CFAssetOptimizerScripts {
 		$filename = self::_getConcatenatedScriptsFilename($included_scripts);
 		
 		if (file_exists($directory.$filename)) {
-			$version = filemtime($directory.$filename);
 			$url = apply_filters('cfao_script_file_url', $dir_url.$filename, $directory.$filename, $filename);
 			return esc_url($url);
 		}
@@ -424,12 +409,12 @@ class CFAssetOptimizerScripts {
 				$included_scripts = $unknown_scripts = array();
 				return false;
 			}
-			// We're in a cached environment, so run a synchronous request to build the concatenated
+			// We're in a cached environmentent, so run a synchronous request to build the concatenated
 			// file so that it gets cached properly without needing to do multiple invalidations.
 			$build_args = array(
-				'wp_scripts_obj' => json_encode($wp_scripts),
 				'key' => get_option('cfao_security_key'),
-				'referer' => $_SERVER['HTTP_HOST'] . '/' . $_SERVER['REQUEST_URI']
+				'referer' => $_SERVER['HTTP_HOST'] . '/' . $_SERVER['REQUEST_URI'],
+				'scripts' => $included_scripts,
 			);
 			$response = wp_remote_post(
 				admin_url('admin-ajax.php?action=concat-build-js'),
@@ -451,6 +436,7 @@ add_action('wp_ajax_concat-build-js', 'CFAssetOptimizerScripts::buildConcatenate
 add_action('wp_ajax_nopriv_concat-build-js', 'CFAssetOptimizerScripts::buildConcatenatedScriptFile');
 if (!is_admin()) {
 	add_action('wp_print_scripts', 'CFAssetOptimizerScripts::onWPPrintScripts', 100);
+	add_action('wp_print_footer_scripts', 'CFAssetOptimizerScripts::onWPPrintFooterScripts', 9);
 }
 
 class CFAssetOptimizerStyles {
