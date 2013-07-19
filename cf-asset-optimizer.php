@@ -83,18 +83,11 @@ class CFAssetOptimizerScripts {
 				$included_scripts = $unknown_scripts = array();
 				return false;
 			}
-			$scripts = array();
-			foreach ($included_scripts as $script) {
-				$scripts[$script] = $wp_scripts->registered[$script]->src;
-				if (!empty($scripts[$script]) && isset($wp_scripts->registered[$script]->ver) && !empty($wp_scripts->registered[$script]->ver)) {
-					$scripts[$script] .= '?ver='.rawurlencode($wp_scripts->registered[$script]->ver);
-				}
-			}
 			// Not a cached environment, trigger rebuild asynchronously.
 			$build_args = array(
 				'key' => get_option('cfao_security_key'),
 				'referer' => $_SERVER['HTTP_HOST'] . '/' . $_SERVER['REQUEST_URI'],
-				'scripts' => $scripts,
+				'scripts' => $included_scripts,
 			);
 			$response = wp_remote_post(
 				admin_url('admin-ajax.php?action=concat-build-js'),
@@ -203,7 +196,7 @@ class CFAssetOptimizerScripts {
 				if ($script_request['response']['code'] < 200 || $script_request['response']['code'] >= 400) {
 					// There was an error requesting the file
 					$site_scripts[$handle]['enabled'] = false;
-					$site_scripts[$handle]['disable_reason'] = 'HTTP Error ' . $script_request['response']['code'] . ' - ' . $script_request['response']['message'];
+					$site_scripts[$handle]['disable_reason'] = 'HTTP Error ' . $script_request['response']['code'] . '  requested as ' . $request_url . ' - ' . $script_request['response']['message'];
 					$scripts_changed = true;
 				}
 				else {
@@ -344,8 +337,8 @@ class CFAssetOptimizerScripts {
 				// These are scripts to put together in the footer, not in the header.
 				continue;
 			}
-			if (!($site_scripts[$handle]['enabled'])) {
-				// We shouldn't include this script, it's not enabled.
+			if (!empty($site_scripts[$handle]) && !$site_scripts[$handle]['enabled']) {
+				// Script is explicitly disabled
 				continue;
 			}
 			if (empty($registered[$handle]->src)) {
@@ -368,7 +361,7 @@ class CFAssetOptimizerScripts {
 					'enabled' => true,
 				);
 			}
-			$can_include = true;
+			$can_include = !empty($wp_scripts->registered[$handle]->src);
 			foreach ($wp_scripts->registered[$handle]->deps as $dep) {
 				// Ensure that it is not dependent on any disabled scripts
 				if (empty($site_scripts[$dep]) || !$site_scripts[$dep]['enabled']) {
@@ -382,9 +375,13 @@ class CFAssetOptimizerScripts {
 			}
 			if ($can_include) {
 				$included_scripts[$handle] = $registered[$handle]->src;
-				if (!empty($registered[$handle]->ver) && !empty($registered[$handle]->src)) {
-					$included_scripts[$handle] = add_query_arg('ver', $registered[$handle]->ver, $included_scripts[$handle]);
+				if ( !preg_match('|^(https?:)?//|', $registered[$handle]->src) && ! ( $wp_scripts->content_url && 0 === strpos($registered[$handle]->src, $wp_scripts->content_url) ) ) {
+		   			$included_scripts[$handle] = $wp_scripts->base_url . $included_scripts[$handle];
+		  		}
+				if (!empty($registered[$handle]->ver)) {
+					$included_scripts[$handle] = add_query_arg('ver', $ver, $included_scripts[$handle]);
 				}
+				$included_scripts[$handle] = esc_url(apply_filters('script_loader_src', $included_scripts[$handle], $handle));
 			}
 		}
 
