@@ -380,7 +380,7 @@ class CFAssetOptimizerScripts {
 		   			$included_scripts[$handle] = $wp_scripts->base_url . $included_scripts[$handle];
 		  		}
 				if (!empty($registered[$handle]->ver)) {
-					$included_scripts[$handle] = add_query_arg('ver', $ver, $included_scripts[$handle]);
+					$included_scripts[$handle] = add_query_arg('ver', $registered[$handle]->ver, $included_scripts[$handle]);
 				}
 				$included_scripts[$handle] = esc_url(apply_filters('script_loader_src', $included_scripts[$handle], $handle));
 			}
@@ -740,7 +740,7 @@ class CFAssetOptimizerStyles {
 		   			$included_scripts[$handle] = $wp_styles->base_url . $included_styles[$handle];
 		  		}
 				if (!empty($registered[$handle]->ver)) {
-					$included_styles[$handle] = add_query_arg('ver', $ver, $included_styles[$handle]);
+					$included_styles[$handle] = add_query_arg('ver', $registered[$handle]->ver, $included_styles[$handle]);
 				}
 				$included_styles[$handle] = esc_url(apply_filters('script_loader_src', $included_styles[$handle], $handle));
 			}
