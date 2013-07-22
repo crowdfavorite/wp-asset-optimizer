@@ -9,7 +9,10 @@
 class cf_css_optimizer extends cf_asset_optimizer {
 	
 	public static function setHooks() {
-		add_action('wp_print_styles', 'cf_css_optimizer::_enqueueAssets', 100);
+		if (!is_admin()) {
+			// Never presume to handle admin requests
+			add_action('wp_print_styles', 'cf_css_optimizer::_enqueueAssets', 100);
+		}
 	}
 	
 	public static function _buildAsset(&$styles) {
@@ -136,6 +139,9 @@ class cf_css_optimizer extends cf_asset_optimizer {
 	public static function _enqueueAssets() {
 		// Determine the files to build and do so.
 		global $wp_styles;
+		if (empty($wp_styles)) {
+			return;
+		}
 		$option_name = self::_getOptionName();
 		$wp_styles->all_deps($wp_styles->queue);
 		$styles_blocks = array('all'=>array()); // Ensure all runs first.

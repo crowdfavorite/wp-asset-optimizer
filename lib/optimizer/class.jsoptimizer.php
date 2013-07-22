@@ -9,8 +9,11 @@
 class cf_js_optimizer extends cf_asset_optimizer {
 	
 	public static function setHooks() {
-		add_action('wp_print_scripts', 'cf_js_optimizer::_enqueueAsset', 100);
-		add_action('wp_print_footer_scripts', 'cf_js_optimizer::_enqueueFooter', 9);
+		if (!is_admin()) {
+			// Never presume to handle admin requests.
+			add_action('wp_print_scripts', 'cf_js_optimizer::_enqueueAsset', 100);
+			add_action('wp_print_footer_scripts', 'cf_js_optimizer::_enqueueFooter', 9);
+		}
 	}
 		
 	public static function _buildAsset(&$scripts) {
@@ -79,6 +82,9 @@ class cf_js_optimizer extends cf_asset_optimizer {
 		
 	public static function _enqueueAsset($footer = false) {
 		global $wp_scripts;
+		if (empty($wp_scripts)) {
+			return;
+		}
 		$wp_scripts->all_deps($wp_scripts->queue);
 		$option_name = self::_getOptionName();
 		$option = get_option($option_name, array());
