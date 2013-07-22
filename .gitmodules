@@ -1,3 +1,3 @@
-[submodule "minify"]
-	path = minify
+[submodule "lib/minify"]
+	path = lib/minify
 	url = https://github.com/mrclay/minify
