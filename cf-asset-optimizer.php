@@ -161,6 +161,7 @@ class CFAssetOptimizerScripts {
 			// We're going to be blind on this end, and let the front-end handle things except when a request can't happen.
 			if (empty($src)) {
 				$script_file_header .= ' * ' . $handle . " as empty script handle.\n";
+				$included_scripts[$handle] = $src;
 				continue;
 			}
 			else {
@@ -342,10 +343,6 @@ class CFAssetOptimizerScripts {
 				// Script is explicitly disabled
 				continue;
 			}
-			if (empty($registered[$handle]->src)) {
-				// This is a convenience wrapper. No need to worry about it.
-				continue;
-			}
 			$compare_src = $registered[$handle]->src;
 			$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
 			if (strpos($no_protocol, $my_domain) === 0) {
@@ -356,13 +353,17 @@ class CFAssetOptimizerScripts {
 				// Note that we have an unknown script, and thus should actually still make the back-end request.
 				// No longer true. We should do all registration from the front end now.
 				$update_scripts = true;
+				$src = $registered[$handle]->src;
+				if (empty($src) || $src === 1) {
+					$src = 'Placeholder script registration';
+				}
 				$site_scripts[$handle] = array(
-					'src' => $registered[$handle]->src,
+					'src' => $src,
 					'ver' => $registered[$handle]->ver,
 					'enabled' => true,
 				);
 			}
-			$can_include = !empty($wp_scripts->registered[$handle]->src);
+			$can_include = true;
 			foreach ($wp_scripts->registered[$handle]->deps as $dep) {
 				// Ensure that it is not dependent on any disabled scripts
 				if (empty($site_scripts[$dep]) || !$site_scripts[$dep]['enabled']) {
@@ -376,13 +377,19 @@ class CFAssetOptimizerScripts {
 			}
 			if ($can_include) {
 				$included_scripts[$handle] = $registered[$handle]->src;
-				if ( !preg_match('|^(https?:)?//|', $registered[$handle]->src) && ! ( $wp_scripts->content_url && 0 === strpos($registered[$handle]->src, $wp_scripts->content_url) ) ) {
-		   			$included_scripts[$handle] = $wp_scripts->base_url . $included_scripts[$handle];
-		  		}
-				if (!empty($registered[$handle]->ver)) {
-					$included_scripts[$handle] = add_query_arg('ver', $registered[$handle]->ver, $included_scripts[$handle]);
+				if (empty($registered[$handle]->src) || $registered[$handle]->src === 1) {
+					$included_scripts[$handle] = '';
 				}
-				$included_scripts[$handle] = esc_url(apply_filters('script_loader_src', $included_scripts[$handle], $handle));
+				if (!empty($included_scripts[$handle])) {
+					if ( !preg_match('|^(https?:)?//|', $registered[$handle]->src) && ! ( $wp_scripts->content_url && 0 === strpos($registered[$handle]->src, $wp_scripts->content_url) ) ) {
+		   				$included_scripts[$handle] = $wp_scripts->base_url . $included_scripts[$handle];
+		  			}
+					if (!empty($registered[$handle]->ver)) {
+						$included_scripts[$handle] = add_query_arg('ver', $registered[$handle]->ver, $included_scripts[$handle]);
+					}
+				
+					$included_scripts[$handle] = esc_url(apply_filters('script_loader_src', $included_scripts[$handle], $handle));
+				}
 			}
 		}
 
@@ -563,8 +570,21 @@ class CFAssetOptimizerStyles {
 		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:#', '', site_url())));
 		$styles_updated = false;
 		foreach ($included_styles as $handle => $url) {
+			if (empty($url) || $url === 1) {
+				$style_file_header .= ' * ' . $handle . " as empty script handle.\n";
+				continue;
+			}
+			else {
+				$request_url = $url;
+				if (strpos($request_url, '//') === 0) {
+					$request_url = 'http:'.$request_url;
+				}
+				if (!preg_match('|^https?://|', $request_url) && true) {
+					$request_url = 'http://'.$_SERVER['SERVER_NAME'].$request_url;
+				}
+			}
 			$style_request = wp_remote_get(
-				$url
+				$request_url
 			);
 					
 			// Handle the response
@@ -587,7 +607,7 @@ class CFAssetOptimizerStyles {
 				// Convert relative URLs to absolute URLs.
 				// Get URL parts for this script.
 				$parts = array();
-				preg_match('#(https?://[^/]*)([^?]*/)([^?]*)(\?.*)?#', $url, $parts);
+				preg_match('#(https?://[^/]*)([^?]*/)([^?]*)(\?.*)?#', $request_url, $parts);
 				$parts[1] = apply_filters('cfao_styles_relative_domain', $parts[1]);
 							
 				// Update paths that are based on web root.
@@ -723,6 +743,7 @@ class CFAssetOptimizerStyles {
 				continue;
 			}
 			$can_include = true;
+			$style_update = false;
 			foreach ($wp_styles->registered[$handle]->deps as $dep) {
 				// Ensure that it is not dependent on any disabled styles
 				if (empty($site_styles[$dep]) || !$site_styles[$dep]['enabled']) {
@@ -730,13 +751,13 @@ class CFAssetOptimizerStyles {
 					$can_include = false;
 					$site_styles[$handle]['enabled'] = false;
 					$site_styles[$handle]['disable_reason'] = 'Dependent on disabled style: ' . $dep;
-					update_option('cfao_styles', $site_styles);
+					$update_styles = true;
 					break;
 				}
 			}
 			if ($can_include) {
 				$included_styles[$handle] = $registered[$handle]->src;
-				if ( !preg_match('|^(https?:)?//|', $registered[$handle]->src) && ! ( $wp_scripts->content_url && 0 === strpos($registered[$handle]->src, $wp_scripts->content_url) ) ) {
+				if ( !preg_match('|^(https?:)?//|', $registered[$handle]->src) && ! ( $wp_styles->content_url && 0 === strpos($registered[$handle]->src, $wp_styles->content_url) ) ) {
 		   			$included_scripts[$handle] = $wp_styles->base_url . $included_styles[$handle];
 		  		}
 				if (!empty($registered[$handle]->ver)) {
@@ -744,6 +765,10 @@ class CFAssetOptimizerStyles {
 				}
 				$included_styles[$handle] = esc_url(apply_filters('script_loader_src', $included_styles[$handle], $handle));
 			}
+		}
+		
+		if ($update_styles) {
+			update_option('cfao_styles', $site_styles);
 		}
 		
 		if (empty($included_styles) && empty($unknown_styles)) {
