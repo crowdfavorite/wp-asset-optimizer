@@ -4,7 +4,7 @@ Plugin Name: CF Asset Optimizer
 Plugin URI: http://crowdfavorite.com
 Description: Used to serve optimized and concatenated JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 1.1.9
+Version: 1.2
 Author URI: http://crowdfavorite.com
 */
 
@@ -13,24 +13,24 @@ if (is_admin()) {
 }
 
 class CFAssetOptimizerScripts {
-	protected static $_cfao_CACHE_DIR;
-	protected static $_cfao_CACHE_URL;
+	protected static $_CFAO_CACHE_DIR;
+	protected static $_CFAO_CACHE_URL;
 	protected static $_LOCKFILE = '';
 	
 	public static function getCacheDir() {
-		if (empty(self::$_cfao_CACHE_DIR)) {
+		if (empty(self::$_CFAO_CACHE_DIR)) {
 			$cache_dir = WP_CONTENT_DIR . '/cfao-cache/' . $_SERVER['HTTP_HOST'] . '/js/';
-			self::$_cfao_CACHE_DIR = trailingslashit(apply_filters('cfao_script_cache_dir', $cache_dir));
+			self::$_CFAO_CACHE_DIR = trailingslashit(apply_filters('cfao_script_cache_dir', $cache_dir));
 		}
-		return self::$_cfao_CACHE_DIR;
+		return self::$_CFAO_CACHE_DIR;
 	}
 	
 	public static function getCacheUrl() {
-		if (empty(self::$_cfao_CACHE_URL)) {
+		if (empty(self::$_CFAO_CACHE_URL)) {
 			$cache_url = WP_CONTENT_URL . '/cfao-cache/' . $_SERVER['HTTP_HOST'] . '/js/';
-			self::$_cfao_CACHE_URL = trailingslashit(apply_filters('cfao_script_cache_url', $cache_url));
+			self::$_CFAO_CACHE_URL = trailingslashit(apply_filters('cfao_script_cache_url', $cache_url));
 		}
-		return self::$_cfao_CACHE_URL;
+		return self::$_CFAO_CACHE_URL;
 	}
 	
 	public static function getLockFile() {
@@ -40,20 +40,20 @@ class CFAssetOptimizerScripts {
 		}
 		return self::$_LOCKFILE;
 	}
-
-	public static function onWPPrintScripts() {
+	
+	public static function enqueueConcatenatedFile($footer = false) {
 		global $wp_scripts;
 		if (!is_object($wp_scripts)) {
 			return;
 		}
 		$wp_scripts->all_deps($wp_scripts->queue);
 		$included_scripts = array();
-		$url = self::getConcatenatedScriptUrl($wp_scripts, $included_scripts, $unknown_scripts, $version);
+		$url = self::getConcatenatedScriptUrl($wp_scripts, $footer, $included_scripts);
 		if ($url) {
 			// We have a concatenated file matching this. Output each script's localizations,
 			// dequeue the script, then enqueue our concatenated file.
 			foreach ($wp_scripts->to_do as $handle) {
-				if (in_array($handle, $included_scripts)) {
+				if (isset($included_scripts[$handle])) {
 					// We need to output the localization and deregister this script.
 					if (!empty($wp_scripts->registered[$handle]->extra['data'])) {
 					?>
@@ -62,42 +62,50 @@ class CFAssetOptimizerScripts {
 </script>
 					<?php
 					}
-					wp_dequeue_script($handle);
-				}
-				else {
-					// Double-check what I depend on and update it as needed to the new script.
-					$my_deps = $wp_scripts->registered[$handle]->deps;
-					$new_deps = array_diff($my_deps, $included_scripts);
-					if (count($my_deps) > count($new_deps)) {
-						// We need to add the concatenated script as a dependency
-						$new_deps[] = 'cfao-script';
-					}
-					$wp_scripts->registered[$handle]->deps = $new_deps;
+					
+					$wp_scripts->done[] = $handle;
 				}
 			}
-			wp_enqueue_script('cfao-script', $url, array(), $version);
+			$script_name = 'cfao-script';
+			if ($footer) {
+				$script_name .= '-footer';
+			}
+			else {
+				$script_name .= '-header';
+			}
+			wp_enqueue_script($script_name, $url);
 			$wp_scripts->to_do = array();
 		}
-		else if (!get_option('cfao_using_cache') && (!empty($included_scripts) || !empty($unknown_scripts)) ) {
-			if (file_exists(trailingslashit(self::getCacheDir()).self::getLockFile())) {
-				// Currently building. Don't overload the system.
-				return;
+		else if (!get_option('cfao_using_cache') && !empty($included_scripts)) {
+			$directory = self::getCacheDir();
+			if (file_exists($directory.self::getLockFile())) {
+				// We're currently building. Don't overload the system.
+				$included_scripts = array();
+				return false;
 			}
-			// We don't have the file built yet. Fire off an asynchronous request to build it
-			// and serve the scripts normally.
+			// Not a cached environment, trigger rebuild asynchronously.
 			$build_args = array(
-				'wp_scripts_obj' => json_encode($wp_scripts),
 				'key' => get_option('cfao_security_key'),
+				'referer' => $_SERVER['HTTP_HOST'] . '/' . $_SERVER['REQUEST_URI'],
+				'scripts' => $included_scripts,
 			);
-			wp_remote_post(
+			$response = wp_remote_post(
 				admin_url('admin-ajax.php?action=concat-build-js'),
 				array(
 					'body' => $build_args,
-					'timeout' => 1,
 					'redirection' => 0,
+					'timeout' => 1,
 				)
 			);
 		}
+	}
+
+	public static function onWPPrintScripts() {
+		self::enqueueConcatenatedFile(false);
+	}
+	
+	public static function onWPPrintFooterScripts() {
+		self::enqueueConcatenatedFile(true);
 	}
 	
 	public static function buildConcatenatedScriptFile() {
@@ -118,16 +126,10 @@ class CFAssetOptimizerScripts {
 			// We're currently running a build. Throttle it to avoid DDOS Attacks.
 			exit();
 		}
-		if (empty($_POST['wp_scripts_obj'])) {
+		if (empty($_POST['scripts'])) {
 			exit('No scripts object received');
 		}
-		$scripts_obj = json_decode(stripcslashes($_POST['wp_scripts_obj']));
-		if (!$scripts_obj) {
-			$scripts_obj = json_decode($_POST['wp_scripts_obj']);
-		}
-		if (empty($scripts_obj) || empty($scripts_obj->to_do) || empty($scripts_obj->registered)) {
-			exit('Issue: ' . print_r($scripts_obj, true));
-		}
+		$scripts = $_POST['scripts'];
 		
 		$lock = @fopen($directory.$lockfile, 'x');
 		if (!$lock) {
@@ -153,115 +155,95 @@ class CFAssetOptimizerScripts {
 		$script_blocks = array();
 		$current_block = 0;
 		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:#', '', site_url())));
-		foreach ($scripts_obj->to_do as $handle) {
-			$compare_src = $scripts_obj->registered->$handle->src;
-			$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
-			if (strpos($no_protocol, $my_domain) === 0) {
-				// This is a local script. Use the $no_protocol version for enqueuing and management.
-				$compare_src = $no_protocol;
+		$scripts_changed = false;
+		foreach ($scripts as $handle => $src) {
+			// We're going to be blind on this end, and let the front-end handle things except when a request can't happen.
+			if (empty($src)) {
+				$script_file_header .= ' * ' . $handle . " as empty script handle.\n";
+				$included_scripts[$handle] = $src;
+				continue;
 			}
-			if (empty($site_scripts[$handle])) {
-				// We need to register this script in our list
-				$site_scripts[$handle] = array(
-					'src' => $compare_src,
-					'ver' => $scripts_obj->registered->$handle->ver,
-					'enabled' => false,
-					'disable_reason' => 'Disabled by default.'
-				);
+			else {
+				$request_url = $src;
+				if (strpos($request_url, '//') === 0) {
+					$request_url = 'http:'.$request_url;
+				}
+				if (!preg_match('|^https?://|', $request_url) && true) {
+					$request_url = 'http://'.$_SERVER['SERVER_NAME'].$request_url;
+				}
 			}
-			else if ($site_scripts[$handle]['enabled']) {
-				if (
-					   strtolower($compare_src) != strtolower($site_scripts[$handle]['src'])
-					|| $scripts_obj->registered->$handle->ver != $site_scripts[$handle]['ver']
-				) {
-					// This may not be the same script. Update site_scripts array and disable.
-					$site_scripts[$handle] = array(
-						'src' => $compare_src,
-						'ver' => $scripts_obj->registered->$handle->ver,
-						'enabled' => false,
-						'disable_reason' => 'Script changed, automatically disabled.'
-					);
+			
+			// This script is enabled and has not changed from the last approved version.
+			// Request the file
+			$request_url = $src;			
+			if (strpos($request_url, '//') === 0) {
+				$request_url = 'http:'.$request_url;
+			}
+			if ( !preg_match('|^https?://|', $request_url) && ! ( $scripts_obj->content_url && 0 === strpos($request_url, $scripts_obj->content_url) ) ) {
+				$request_url = home_url($request_url);
+			}
+				
+			$script_request = wp_remote_get(
+				$request_url
+			);
+				
+			// Handle the response
+			if (is_wp_error($script_request)) {
+				$site_scripts[$handle]['enabled'] = false;
+				$site_scripts[$handle]['disable_reason'] = 'WP Error: ' . $script_request->get_error_message();
+				$scripts_changed = true;
+			}
+			else {
+				if ($script_request['response']['code'] < 200 || $script_request['response']['code'] >= 400) {
+					// There was an error requesting the file
+					$site_scripts[$handle]['enabled'] = false;
+					$site_scripts[$handle]['disable_reason'] = 'HTTP Error ' . $script_request['response']['code'] . '  requested as ' . $request_url . ' - ' . $script_request['response']['message'];
+					$scripts_changed = true;
 				}
 				else {
-					// This script is enabled and has not changed from the last approved version.
-					// Request the file
-					$request_url = $site_scripts[$handle]['src'];			
-					if (strpos($request_url, '//') === 0) {
-						$request_url = 'http:'.$request_url;
-					}
-					if ( !preg_match('|^https?://|', $request_url) && ! ( $scripts_obj->content_url && 0 === strpos($request_url, $scripts_obj->content_url) ) ) {
-						$request_url = $scripts_obj->base_url . $request_url;
-					}
+					// We had a valid script to add to the list.
 					
-					if (!empty($site_scripts[$handle]['ver'])) {
-						if (strstr($request_url, '?')) {
-							$request_url .= '&';
+					// Check to see if it can be concatenated.
+					if (empty($site_scripts[$handle]['minify_script'])) {
+						// This cannot be minified. It will need to be kept as is.
+						if (!empty($script_blocks[$current_block])) {
+							// We need to increment the script block first.
+							++$current_block;
 						}
-						else {
-							$request_url .= '?';
-						}
-						$request_url .= urlencode($site_scripts[$handle]['ver']);
-					}
-					
-					$script_request = wp_remote_get(
-						$request_url
-					);
-					
-					// Handle the response
-					if (is_wp_error($script_request)) {
-						$site_scripts[$handle]['enabled'] = false;
-						$site_scripts[$handle]['disable_reason'] = 'WP Error: ' . $script_request->get_error_message();
+						$script_blocks[$current_block] = array(
+							'minify' => false,
+							'src' => $script_request['body'].";\n",
+						);
 					}
 					else {
-						if ($script_request['response']['code'] < 200 || $script_request['response']['code'] >= 400) {
-							// There was an error requesting the file
-							$site_scripts[$handle]['enabled'] = false;
-							$site_scripts[$handle]['disable_reason'] = 'HTTP Error ' . $script_request['response']['code'] . ' - ' . $script_request['response']['message'];
+						// This can be minified. Allow it to be sent in a bundled minify request.
+						if (
+							   !empty($script_blocks[$current_block])
+							&& !($script_blocks[$current_block]['minify'])
+						) {
+							// Increment current block first.
+							++$current_block;
 						}
-						else {
-							// We had a valid script to add to the list.
-							
-							// Check to see if it can be concatenated.
-							if (empty($site_scripts[$handle]['minify_script'])) {
-								// This cannot be minified. It will need to be kept as is.
-								if (!empty($script_blocks[$current_block])) {
-									// We need to increment the script block first.
-									++$current_block;
-								}
-								$script_blocks[$current_block] = array(
-									'minify' => false,
-									'src' => $script_request['body'].";\n",
-								);
-							}
-							else {
-								// This can be minified. Allow it to be sent in a bundled minify request.
-								if (
-									   !empty($script_blocks[$current_block])
-									&& !($script_blocks[$current_block]['minify'])
-								) {
-									// Increment current block first.
-									++$current_block;
-								}
-								if (empty($script_blocks[$current_block])) {
-									$script_blocks[$current_block] = array(
-										'minify' => true,
-										'src' => ''
-									);
-								}
-								$script_blocks[$current_block]['src'] .= $script_request['body'].";\n";
-							}
-							$included_scripts[$handle] = $handle;
-							$script_file_header .= ' * ' . $handle . ' as ' . $request_url . "\n";
+						if (empty($script_blocks[$current_block])) {
+							$script_blocks[$current_block] = array(
+								'minify' => true,
+								'src' => ''
+							);
 						}
+						$script_blocks[$current_block]['src'] .= $script_request['body'].";\n";
 					}
+					$included_scripts[$handle] = $src;
+					$script_file_header .= ' * ' . $handle . ' as ' . $request_url . "\n";
 				}
 			}
 		}
 		$script_file_header .= " **/\n";
 		
-		update_option('cfao_scripts', $site_scripts);
-		
-		if (!empty($included_scripts)) {
+		if ($scripts_changed) {
+			// We'll be out of sync at this point, so just update and let it try again later.
+			update_option('cfao_scripts', $site_scripts);
+		}
+		else if (!empty($included_scripts)) {
 			// We have a file to write
 			$filename = self::_getConcatenatedScriptsFilename($included_scripts);
 			$file = @fopen($directory.$filename, 'w');
@@ -328,10 +310,15 @@ class CFAssetOptimizerScripts {
 	}
 	
 	private static function _getConcatenatedScriptsFilename($included_scripts) {
-		return md5(implode(',', $included_scripts)) . '.js';
+		// Custom name is pairing of handles and URL with MD5.
+		$parts = array();
+		foreach ($included_scripts as $key => $val) {
+			$parts[] = "$key $val";
+		}
+		return md5(implode(',', $parts)) . '.js';
 	}
 	
-	public static function getConcatenatedScriptUrl($wp_scripts, &$included_scripts, &$unknown_scripts, &$version) {
+	public static function getConcatenatedScriptUrl($wp_scripts, $footer, &$included_scripts) {
 		$directory = trailingslashit(self::getCacheDir());
 		$dir_url = trailingslashit(esc_url(self::getCacheUrl()));
 		
@@ -347,6 +334,14 @@ class CFAssetOptimizerScripts {
 		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:#', '', site_url())));
 		$update_scripts = false;
 		foreach ($wp_scripts->to_do as $handle) {
+			if ($wp_scripts->groups[$handle] == 1 && !$footer) {
+				// These are scripts to put together in the footer, not in the header.
+				continue;
+			}
+			if (!empty($site_scripts[$handle]) && !$site_scripts[$handle]['enabled']) {
+				// Script is explicitly disabled
+				continue;
+			}
 			$compare_src = $registered[$handle]->src;
 			$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
 			if (strpos($no_protocol, $my_domain) === 0) {
@@ -355,42 +350,44 @@ class CFAssetOptimizerScripts {
 			}
 			if (empty($site_scripts[$handle])) {
 				// Note that we have an unknown script, and thus should actually still make the back-end request.
-				$unknown_scripts[] = $registered[$handle];
-				continue;
-			}
-			else if (!($site_scripts[$handle]['enabled'])) {
-				// We shouldn't include this script, it's not enabled or recognized.
-				continue;
-			}
-			else if (
-				   strtolower($site_scripts[$handle]['src']) != strtolower($compare_src)
-				|| $site_scripts[$handle]['ver'] != $registered[$handle]->ver
-			) {
-				// Script needs to be updated and disabled.
-				$site_scripts[$handle] = array(
-					'src' => $compare_src,
-					'ver' => $registered[$handle]->ver,
-					'enabled' => false,
-					'disable_reason' => 'Script changed, automatically disabled',
-				);
+				// No longer true. We should do all registration from the front end now.
 				$update_scripts = true;
-				continue;
-			}
-			else {
-				$can_include = true;
-				foreach ($wp_scripts->registered[$handle]->deps as $dep) {
-					// Ensure that it is not dependent on any disabled scripts
-					if (empty($site_scripts[$dep]) || !$site_scripts[$dep]['enabled']) {
-						// We've hit a disabled parent script.
-						$can_include = false;
-						$site_scripts[$handle]['enabled'] = false;
-						$site_scripts[$handle]['disable_reason'] = 'Dependent on disabled script: ' . $dep;
-						$update_scripts = true;
-						break;
-					}
+				$src = $registered[$handle]->src;
+				if (empty($src) || $src === 1) {
+					$src = 'Placeholder script registration';
 				}
-				if ($can_include) {
-					$included_scripts[$handle] = $handle;
+				$site_scripts[$handle] = array(
+					'src' => $src,
+					'ver' => $registered[$handle]->ver,
+					'enabled' => true,
+				);
+			}
+			$can_include = true;
+			foreach ($wp_scripts->registered[$handle]->deps as $dep) {
+				// Ensure that it is not dependent on any disabled scripts
+				if (empty($site_scripts[$dep]) || !$site_scripts[$dep]['enabled']) {
+					// We've hit a disabled parent script.
+					$can_include = false;
+					$site_scripts[$handle]['enabled'] = false;
+					$site_scripts[$handle]['disable_reason'] = 'Dependent on disabled script: ' . $dep;
+					$update_scripts = true;
+					break;
+				}
+			}
+			if ($can_include) {
+				$included_scripts[$handle] = $registered[$handle]->src;
+				if (empty($registered[$handle]->src) || $registered[$handle]->src === 1) {
+					$included_scripts[$handle] = '';
+				}
+				if (!empty($included_scripts[$handle])) {
+					if ( !preg_match('|^(https?:)?//|', $registered[$handle]->src) && ! ( $wp_scripts->content_url && 0 === strpos($registered[$handle]->src, $wp_scripts->content_url) ) ) {
+		   				$included_scripts[$handle] = $wp_scripts->base_url . $included_scripts[$handle];
+		  			}
+					if (!empty($registered[$handle]->ver)) {
+						$included_scripts[$handle] = add_query_arg('ver', $registered[$handle]->ver, $included_scripts[$handle]);
+					}
+				
+					$included_scripts[$handle] = esc_url(apply_filters('script_loader_src', $included_scripts[$handle], $handle));
 				}
 			}
 		}
@@ -407,7 +404,6 @@ class CFAssetOptimizerScripts {
 		$filename = self::_getConcatenatedScriptsFilename($included_scripts);
 		
 		if (file_exists($directory.$filename)) {
-			$version = filemtime($directory.$filename);
 			$url = apply_filters('cfao_script_file_url', $dir_url.$filename, $directory.$filename, $filename);
 			return esc_url($url);
 		}
@@ -417,12 +413,12 @@ class CFAssetOptimizerScripts {
 				$included_scripts = $unknown_scripts = array();
 				return false;
 			}
-			// We're in a cached environment, so run a synchronous request to build the concatenated
+			// We're in a cached environmentent, so run a synchronous request to build the concatenated
 			// file so that it gets cached properly without needing to do multiple invalidations.
 			$build_args = array(
-				'wp_scripts_obj' => json_encode($wp_scripts),
 				'key' => get_option('cfao_security_key'),
-				'referer' => $_SERVER['HTTP_HOST'] . '/' . $_SERVER['REQUEST_URI']
+				'referer' => $_SERVER['HTTP_HOST'] . '/' . $_SERVER['REQUEST_URI'],
+				'scripts' => $included_scripts,
 			);
 			$response = wp_remote_post(
 				admin_url('admin-ajax.php?action=concat-build-js'),
@@ -444,27 +440,28 @@ add_action('wp_ajax_concat-build-js', 'CFAssetOptimizerScripts::buildConcatenate
 add_action('wp_ajax_nopriv_concat-build-js', 'CFAssetOptimizerScripts::buildConcatenatedScriptFile');
 if (!is_admin()) {
 	add_action('wp_print_scripts', 'CFAssetOptimizerScripts::onWPPrintScripts', 100);
+	add_action('wp_print_footer_scripts', 'CFAssetOptimizerScripts::onWPPrintFooterScripts', 9);
 }
 
 class CFAssetOptimizerStyles {
-	protected static $_cfao_CACHE_DIR;
-	protected static $_cfao_CACHE_URL;
+	protected static $_CFAO_CACHE_DIR;
+	protected static $_CFAO_CACHE_URL;
 	protected static $_LOCKFILE = '';
 	
 	public static function getCacheDir() {
-		if (empty(self::$_cfao_CACHE_DIR)) {
+		if (empty(self::$_CFAO_CACHE_DIR)) {
 			$cache_dir = WP_CONTENT_DIR . '/cfao-cache/' . $_SERVER['HTTP_HOST'] . '/css/';
-			self::$_cfao_CACHE_DIR = trailingslashit(apply_filters('cfao_style_cache_dir', $cache_dir));
+			self::$_CFAO_CACHE_DIR = trailingslashit(apply_filters('cfao_style_cache_dir', $cache_dir));
 		}
-		return self::$_cfao_CACHE_DIR;
+		return self::$_CFAO_CACHE_DIR;
 	}
 	
 	public static function getCacheUrl() {
-		if (empty(self::$_cfao_CACHE_URL)) {
+		if (empty(self::$_CFAO_CACHE_URL)) {
 			$cache_url = WP_CONTENT_URL . '/cfao-cache/' . $_SERVER['HTTP_HOST'] . '/css/';
-			self::$_cfao_CACHE_URL = trailingslashit(apply_filters('cfao_style_cache_url', $cache_url));
+			self::$_CFAO_CACHE_URL = trailingslashit(apply_filters('cfao_style_cache_url', $cache_url));
 		}
-		return self::$_cfao_CACHE_URL;
+		return self::$_CFAO_CACHE_URL;
 	}
 	
 	public static function getLockFile() {
@@ -482,35 +479,25 @@ class CFAssetOptimizerStyles {
 		}
 		$wp_styles->all_deps($wp_styles->queue);
 		$included_styles = array();
-		$url = self::getConcatenatedStyleUrl($wp_styles, $included_styles, $unknown_styles, $version);
+		$url = self::getConcatenatedStyleUrl($wp_styles, $included_styles);
 		if ($url) {
 			// We have a concatenated file matching this. Output each style's localizations,
 			// dequeue the style, then enqueue our concatenated file.
 			foreach ($wp_styles->to_do as $handle) {
-				if (in_array($handle, $included_styles)) {
+				if (in_array($handle, array_keys($included_styles))) {
 					// We need to output the localization and deregister this style.
-					wp_dequeue_style($handle);
-				}
-				else {
-					// Double-check what I depend on and update it as needed to the new style.
-					$my_deps = $wp_styles->registered[$handle]->deps;
-					$new_deps = array_diff($my_deps, $included_styles);
-					if (count($my_deps) > count($new_deps)) {
-						// We need to add the concatenated style as a dependency
-						$new_deps[] = 'cfao-style';
-					}
-					$wp_styles->registered[$handle]->deps = $new_deps;
+					$wp_styles->done[] = $handle;
 				}
 			}
 			$my_deps = array();
-			foreach ($included_styles as $handle) {
+			foreach ($included_styles as $handle => $src) {
 				$inc_deps = $wp_styles->registered[$handle]->deps;
 				$new_deps = array_diff($inc_deps, $included_styles, $my_deps);
 				foreach ($new_deps as $dep) {
 					$my_deps[] = $dep;
 				}
 			}
-			wp_enqueue_style('cfao-style', $url, $my_deps, $version);
+			wp_enqueue_style('cfao-style', $url, $my_deps);
 			$wp_styles->to_do = array();
 		}
 		else if (!get_option('cfao_using_cache') && (!empty($included_styles) || !empty($unknown_styles)) ) {
@@ -521,7 +508,7 @@ class CFAssetOptimizerStyles {
 			// We don't have the file built yet. Fire off an asynchronous request to build it
 			// and serve the styles normally.
 			$build_args = array(
-				'wp_styles_obj' => json_encode($wp_styles),
+				'styles' => $included_styles,
 				'key' => get_option('cfao_security_key')
 			);
 			$response = wp_remote_post(
@@ -553,16 +540,8 @@ class CFAssetOptimizerStyles {
 			// We're currently running a build. Throttle it to avoid DDOS Attacks.
 			exit();
 		}
-		if (empty($_POST['wp_styles_obj'])) {
-			error_log('No styles object received');
-			exit();
-		}
-		$styles_obj = json_decode(stripcslashes($_POST['wp_styles_obj']));
-		if (!$styles_obj) {
-			$styles_obj = json_decode($_POST['wp_styles_obj']);
-		}
-		if (empty($styles_obj) || empty($styles_obj->to_do) || empty($styles_obj->registered)) {
-			error_log('Issue: ' . print_r($styles_obj, true));
+		if (empty($_POST['styles'])) {
+			error_log('No styles received');
 			exit();
 		}
 		
@@ -580,7 +559,7 @@ class CFAssetOptimizerStyles {
 			$site_styles = array();
 		}
 		
-		$included_styles = array();
+		$included_styles = $_POST['styles'];
 		
 		$style_file_header = 
 			"/**\n" .
@@ -588,174 +567,127 @@ class CFAssetOptimizerStyles {
 			" *\n";
 		$style_file_src = '';
 		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:#', '', site_url())));
-		foreach ($styles_obj->to_do as $handle) {
-			$compare_src = $styles_obj->registered->$handle->src;
-			$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
-			if (strpos($no_protocol, $my_domain) === 0) {
-				// This is a local script. Use the $no_protocol version for enqueuing and management.
-				$compare_src = $no_protocol;
+		$styles_updated = false;
+		foreach ($included_styles as $handle => $url) {
+			if (empty($url) || $url === 1) {
+				$style_file_header .= ' * ' . $handle . " as empty script handle.\n";
+				continue;
 			}
-			if (empty($site_styles[$handle])) {
-				// We need to register this style in our list
-				$site_styles[$handle] = array(
-					'src' => $compare_src,
-					'ver' => $styles_obj->registered->$handle->ver,
-					'enabled' => false,
-					'disable_reason' => 'Disabled by default.'
-				);
-			}
-			else if (
-				   !empty($styles_obj->registered->$handle->extra)
-				|| ( !empty($styles_obj->args) && $styles_obj->args != 'all')
-			) {
-				// Don't include conditional stylesheets, they need additional markup.
-				$site_styles[$handle] = array(
-					'src' => $styles_obj->registered->$handle->src,
-					'ver' => $styles_obj->registered->$handle->ver,
-					'enabled' => false,
-					'disable_reason' => 'Conditional stylesheet. Requires conditional markup.'
-				);
-			}
-			else if ($site_styles[$handle]['enabled']) {
-				if (
-					   strtolower($compare_src) != strtolower($site_styles[$handle]['src'])
-					|| $styles_obj->registered->$handle->ver != $site_styles[$handle]['ver']
-				) {
-					// This may not be the same style. Update site_styles array and disable.
-					$site_styles[$handle] = array(
-						'src' => $compare_src,
-						'ver' => $styles_obj->registered->$handle->ver,
-						'enabled' => false,
-						'disable_reason' => 'Style changed, automatically disabled.'
-					);
+			else {
+				$request_url = $url;
+				if (strpos($request_url, '//') === 0) {
+					$request_url = 'http:'.$request_url;
 				}
-				else {
-					// This style is enabled and has not changed from the last approved version.
-					// Request the file
-					$request_url = $site_styles[$handle]['src'];
-					if (strpos($request_url, '//') === 0) {
-						$request_url = 'http:'.$request_url;
-					}
-					if (!preg_match('|^https?://|', $request_url) && ! ( $styles_obj->content_url && 0 === strpos($request_url, $styles_obj->content_url) ) ) {
-						$request_url = $styles_obj->base_url . $request_url;
-					}
-					if (!empty($site_styles[$handle]['ver'])) {
-						if (strstr($request_url, '?')) {
-							$request_url .= '&';
-						}
-						else {
-							$request_url .= '?';
-						}
-						$request_url .= urlencode($site_styles[$handle]['ver']);
-					}
-					$style_request = wp_remote_get(
-						$request_url
-					);
+				if (!preg_match('|^https?://|', $request_url) && true) {
+					$request_url = 'http://'.$_SERVER['SERVER_NAME'].$request_url;
+				}
+			}
+			$style_request = wp_remote_get(
+				$request_url
+			);
 					
-					// Handle the response
-					if (is_wp_error($style_request)) {
-						$site_styles[$handle]['enabled'] = false;
-						$site_styles[$handle]['disable_reason'] = 'WP Error: ' . $style_request->get_error_message();
-					}
-					else {
-						if ($style_request['response']['code'] < 200 || $style_request['response']['code'] >= 400) {
-							// There was an error requesting the file
-							$site_styles[$handle]['enabled'] = false;
-							$site_styles[$handle]['disable_reason'] = 'HTTP Error ' . $style_request['response']['code'] . ' - ' . $style_request['response']['message'];
-						}
-						else {
-							// We had a valid style to add to the list.
-							$included_styles[$handle] = $handle;
-							$style_file_header .= ' * ' . $handle . ' as ' . $request_url . "\n";
-							$src = $style_request['body'] . "\n";
+			// Handle the response
+			if (is_wp_error($style_request)) {
+				$site_styles[$handle]['enabled'] = false;
+				$site_styles[$handle]['disable_reason'] = 'WP Error: ' . $style_request->get_error_message();
+				$styles_updated = true;
+			}
+			else if ($style_request['response']['code'] < 200 || $style_request['response']['code'] >= 400) {
+				// There was an error requesting the file
+				$site_styles[$handle]['enabled'] = false;
+				$site_styles[$handle]['disable_reason'] = 'HTTP Error ' . $style_request['response']['code'] . ' - ' . $style_request['response']['message'];
+				$styles_updated = true;
+			}
+			else {
+				// We had a valid style to add to the list.
+				$style_file_header .= ' * ' . $handle . ' as ' . $url . "\n";
+				$src = $style_request['body'] . "\n";
 							
-							// Convert relative URLs to absolute URLs.
-								// Get URL parts for this script.
-							$parts = array();
-							preg_match('#(https?://[^/]*)([^?]*/)([^?]*)(\?.*)?#', $request_url, $parts);
-							$parts[1] = apply_filters('cfao_styles_relative_domain', $parts[1]);
+				// Convert relative URLs to absolute URLs.
+				// Get URL parts for this script.
+				$parts = array();
+				preg_match('#(https?://[^/]*)([^?]*/)([^?]*)(\?.*)?#', $request_url, $parts);
+				$parts[1] = apply_filters('cfao_styles_relative_domain', $parts[1]);
 							
-								// Update paths that are based on web root.
-							if (count($parts) > 1) {
-								$regex = '~
-										url\s*\(             # url( with optional internal whitespace
-										\s*                  # optional whitespace
-										(                    # begin group 1
-										  ["\']?             #   an optional single or double quote
-										)                    # end option group 1
-										\s*                  # optional whitespace
-										(                    # begin option group 2
-										  /                  #     url starts with / for web root url
-										  [^[:space:]]       #     one single non-space character
-										  .+?                #     one or more (non-greedy) any character
-										)                    # end option group 2
-										\s*                  # optional whitespace
-										\1                   # match opening delimiter
-										\s*                  # optional whitespace
-										\)                   # closing )
-									~x';
-								$src = preg_replace($regex,'url('.$parts[1].'$2)', $src);
-							}
-								// Update paths based on script location
-							if (count($parts) > 2) {
-								$regex = '~
-									  url\s*\(             # url( with optional internal whitespace
-									  \s*                  # optional whitespace
-									  (                    # begin group 1 (optional delimiter)
-									    ["\']?             #   an optional single or double quote
-
-									  )                    # end group 1
-									  \s*                  # optional whitespace
-									  (?!                  # negative lookahead assertion: skip if...
-									     (?:                #   noncapturing group (not needed with lookaheads)
-									       [\'"]            #     keep optional quote out of url match
-									       |                #     or
-									       //               #     url starts with //
-									       |                #     or 
-									       https?://        #     url starts with http:// or https://
-									       |                #     or
-									       data:            #     url starts with data:
-									     )                  #   end noncapturing group
-									   )                    # end negative lookahead
-									  (                    # begin group 2 (relative URL)
-									    /?                 #   optional root /
-									    [^[:space:]]       #   one single nonspace character
-									    .+?                #   one or more (non-greedy) any character
-
-									  )                    # end group 2
-									  \s*                  # optional whitespace
-									  \1                   # match opening delimiter
-									  \s*                  # optional whitespace
-									  \)                   # closing )
-									  ~x';
-								$src = preg_replace($regex, 'url('.$parts[1].$parts[2].'$2)', $src);
-							}
-							
-							$style_file_src .= $src . "\n";
-						}
-					}
+				// Update paths that are based on web root.
+				if (count($parts) > 1) {
+					$regex = '~
+							url\s*\(             # url( with optional internal whitespace
+							\s*                  # optional whitespace
+							(                    # begin group 1
+							  ["\']?             #   an optional single or double quote
+							)                    # end option group 1
+							\s*                  # optional whitespace
+							(                    # begin option group 2
+							  /                  #     url starts with / for web root url
+							  [^[:space:]]       #     one single non-space character
+							  .+?                #     one or more (non-greedy) any character
+							)                    # end option group 2
+							\s*                  # optional whitespace
+							\1                   # match opening delimiter
+							\s*                  # optional whitespace
+							\)                   # closing )
+							~x';
+					$src = preg_replace($regex,'url('.$parts[1].'$2)', $src);
 				}
+								
+				// Update paths based on style location
+				if (count($parts) > 2) {
+					$regex = '~
+						  url\s*\(             # url( with optional internal whitespace
+						  \s*                  # optional whitespace
+						  (                    # begin group 1 (optional delimiter)
+						    ["\']?             #   an optional single or double quote
+						  )                    # end group 1
+						  \s*                  # optional whitespace
+						  (?!                  # negative lookahead assertion: skip if...
+						     (?:                #   noncapturing group (not needed with lookaheads)
+						       [\'"]            #     keep optional quote out of url match
+						       |                #     or
+						       //               #     url starts with //
+						       |                #     or 
+						       https?://        #     url starts with http:// or https://
+						       |                #     or
+						       data:            #     url starts with data:
+						     )                  #   end noncapturing group
+						   )                    # end negative lookahead
+						  (                    # begin group 2 (relative URL)
+						    /?                 #   optional root /
+						    [^[:space:]]       #   one single nonspace character
+						    .+?                #   one or more (non-greedy) any character
+
+						  )                    # end group 2
+						  \s*                  # optional whitespace
+						  \1                   # match opening delimiter
+						  \s*                  # optional whitespace
+						  \)                   # closing )
+						  ~x';
+					$src = preg_replace($regex, 'url('.$parts[1].$parts[2].'$2)', $src);
+				}
+							
+				$style_file_src .= $src . "\n";
 			}
 		}
+
 		$style_file_header .= " **/\n";
 		
-		update_option('cfao_styles', $site_styles);
-		
-		if (!empty($included_styles)) {
+		if ($styles_updated) {
+			// We're going to be out of sync, so don't serve up a file, just update the options.
+			update_option('cfao_styles', $site_styles);
+		}
+		else {
 			// We have a file to write
 			$filename = self::_getConcatenatedStylesFilename($included_styles);
 			$file = @fopen($directory.$filename, 'w');
 			if (!$file === false) {
 				// We have a valid file pointer.
-				
+			
 				// Minify the contents using Minify library
 				set_include_path(dirname(__file__).'/minify/min/lib');
 				include 'Minify/CSS.php';
 				$style_file_src = Minify_CSS::minify($style_file_src, array('preserveComments' => false));
 				restore_include_path();
-
 				$style_file_header = apply_filters('cfao_style_file_header', $style_file_header);
-
 				// Write the file and close it.
 				fwrite($file, $style_file_header.$style_file_src);
 				fclose($file);
@@ -769,10 +701,15 @@ class CFAssetOptimizerStyles {
 	}
 	
 	private static function _getConcatenatedStylesFilename($included_styles) {
+		// Custom name is pairing of handles and URL with MD5.
+		$parts = array();
+		foreach ($included_styles as $key => $val) {
+			$parts[] = "$key $val";
+		}
 		return md5(implode(',', $included_styles)) . '.css';
 	}
 	
-	public static function getConcatenatedStyleUrl($wp_styles, &$included_styles, &$unknown_styles, &$version) {
+	public static function getConcatenatedStyleUrl($wp_styles, &$included_styles) {
 		$directory = self::getCacheDir();;
 		$dir_url = esc_url(self::getCacheUrl());
 		
@@ -783,48 +720,54 @@ class CFAssetOptimizerStyles {
 		}
 		
 		$included_styles = array();
-		$unknown_styles = array();
 		$registered = $wp_styles->registered;
 		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:#', '', site_url())));
+		$update_styles = false;
 		foreach ($wp_styles->to_do as $handle) {
-			$compare_src = $registered[$handle]->src;
-			$no_protocol = preg_replace('#^http(s)?:#', '', $compare_src);
-			if (strpos($no_protocol, $my_domain) === 0) {
-				// This is a local script. Use the $no_protocol version for enqueuing and management.
-				$compare_src = $no_protocol;
-			}
-			if (
-				   empty($site_styles[$handle])
-				|| strtolower($site_styles[$handle]['src']) != strtolower($compare_src)
-				|| $site_styles[$handle]['ver'] != $registered[$handle]->ver
-			) {
-				// Note that we have an unknown script, and thus should actually still make the back-end request.
-				$unknown_styles[] = $registered[$handle];
+			if (empty($registered[$handle]->src)) {
+				// This is a convenience wrapper enqueued style. Ignore it.
 				continue;
 			}
-			else if (
-				   !($site_styles[$handle]['enabled'])
-			) {
+			if (empty($site_styles[$handle])) {
+				// Let's register it now.
+				$update_styles = true;
+				$site_styles[$handle] = array(
+					'src' => $registered[$handle]->src,
+					'ver' => $registered[$handle]->ver,
+					'enabled' => true,
+				);
+			}
+			else if (!($site_styles[$handle]['enabled'])) {
 				// We shouldn't include this style, it's not enabled.
 				continue;
 			}
-			else {
-				$can_include = true;
-				foreach ($wp_styles->registered[$handle]->deps as $dep) {
-					// Ensure that it is not dependent on any disabled styles
-					if (empty($site_styles[$dep]) || !$site_styles[$dep]['enabled']) {
-						// We've hit a disabled parent style.
-						$can_include = false;
-						$site_styles[$handle]['enabled'] = false;
-						$site_styles[$handle]['disable_reason'] = 'Dependent on disabled style: ' . $dep;
-						update_option('cfao_styles', $site_styles);
-						break;
-					}
-				}
-				if ($can_include) {
-					$included_styles[$handle] = $handle;
+			$can_include = true;
+			$style_update = false;
+			foreach ($wp_styles->registered[$handle]->deps as $dep) {
+				// Ensure that it is not dependent on any disabled styles
+				if (empty($site_styles[$dep]) || !$site_styles[$dep]['enabled']) {
+					// We've hit a disabled parent style.
+					$can_include = false;
+					$site_styles[$handle]['enabled'] = false;
+					$site_styles[$handle]['disable_reason'] = 'Dependent on disabled style: ' . $dep;
+					$update_styles = true;
+					break;
 				}
 			}
+			if ($can_include) {
+				$included_styles[$handle] = $registered[$handle]->src;
+				if ( !preg_match('|^(https?:)?//|', $registered[$handle]->src) && ! ( $wp_styles->content_url && 0 === strpos($registered[$handle]->src, $wp_styles->content_url) ) ) {
+		   			$included_scripts[$handle] = $wp_styles->base_url . $included_styles[$handle];
+		  		}
+				if (!empty($registered[$handle]->ver)) {
+					$included_styles[$handle] = add_query_arg('ver', $registered[$handle]->ver, $included_styles[$handle]);
+				}
+				$included_styles[$handle] = esc_url(apply_filters('script_loader_src', $included_styles[$handle], $handle));
+			}
+		}
+		
+		if ($update_styles) {
+			update_option('cfao_styles', $site_styles);
 		}
 		
 		if (empty($included_styles) && empty($unknown_styles)) {
@@ -840,13 +783,13 @@ class CFAssetOptimizerStyles {
 		}
 		else if (get_option('cfao_using_cache', false)) {
 			if (file_exists($directory.self::getLockFile())) {
-				$included_styles = $unknown_styles = array();
+				$included_styles = array();
 				return false;
 			}
 			// We're in a cached environment, so run a synchronous request to build the concatenated
 			// file so that it gets cached properly without needing to do multiple invalidations.
 			$build_args = array(
-				'wp_styles_obj' => json_encode($wp_styles),
+				'styles' => $included_styles,
 				'key' => get_option('cfao_security_key')
 			);
 			$response = wp_remote_post(
