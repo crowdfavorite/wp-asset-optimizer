@@ -10,6 +10,25 @@ class cf_asset_optimizer {
 	protected static $_MY_DOMAINS;
 	protected static $_MY_CACHE_MGR;
 	
+	public static function class_name() {
+		return '';
+	}
+
+	public static function listItem() {
+		return array(
+			'title' => __('CF Asset Optimizer Interface'),
+			'description' => __('This is the generic interface class for asset optimizers and should not be activated.'),
+		);
+	}
+	
+	public static function register($handles) {
+		$class_name = self::class_name();
+		if (!empty($class_name)) {
+			$handles = array_merge($handles, array($class_name));
+		}
+		return $handles;
+	}
+	
 	public static function setHooks() {
 	}
 	
@@ -67,3 +86,4 @@ class cf_asset_optimizer {
 	}
 
 }
+add_action('cfao_optimizers', 'cf_asset_optimizer::register');

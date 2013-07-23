@@ -5,6 +5,25 @@
 
 class cfao_css_minifier extends cfao_minifier {
 	
+	public static function class_name() {
+		return 'cfao_css_minifier';
+	}
+	
+	public static function register($handles) {
+		$class_name = self::class_name();
+		if (!empty($class_name)) {
+			$handles = array_merge($handles, array($class_name));
+		}
+		return $handles;
+	}
+
+	public static function listItem() {
+		return array(
+			'title' => __('CF CSS Minfier'),
+			'description' => __('This plugin minifies the output of the CF CSS Optimizer prior to caching using the PHP Minify library.'),
+		);
+	}
+	
 	public static function setHooks() {
 		add_action('cfao_concat_contents', 'cfao_css_minifier::minify', 10, 2);
 	}
@@ -24,4 +43,4 @@ class cfao_css_minifier extends cfao_minifier {
 	}
 	
 }
-cfao_css_minifier::setHooks();
+add_action('cfao_minifiers', 'cfao_css_minifier::register');

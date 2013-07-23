@@ -5,6 +5,25 @@
 
 class cfao_js_minifier {
 	
+	public static function class_name() {
+		return 'cfao_js_minifier';
+	}
+
+	public static function register($handles) {
+		$class_name = self::class_name();
+		if (!empty($class_name)) {
+			$handles = array_merge($handles, array($class_name));
+		}
+		return $handles;
+	}
+
+	public static function listItem() {
+		return array(
+			'title' => __('CF JavaScript Minfier'),
+			'description' => __('This plugin minifies the output of the CF JavaScript Optimizer prior to caching using the PHP Minify library.'),
+		);
+	}
+	
 	public static function setHooks() {
 		// We want to minify based on single hook contents here
 		add_action('cfao_single_contents', 'cfao_js_minifier::minify', 10, 3);
@@ -27,4 +46,4 @@ class cfao_js_minifier {
 	}
 	
 }
-cfao_js_minifier::setHooks();
+add_action('cfao_minifiers', 'cfao_js_minifier::register');

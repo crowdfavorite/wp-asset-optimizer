@@ -13,7 +13,7 @@ define('CFAO_PLUGIN_DIR', dirname(__file__).'/');
 
 if (is_admin()) {
 	// Not yet implemented admin interface
-	//include_once CFAO_PLUGIN_DIR . 'admin/admin.php';
+	include_once CFAO_PLUGIN_DIR . 'admin/admin.php';
 }
 
 include_once CFAO_PLUGIN_DIR . 'lib/cache-manager/class.cache.php';

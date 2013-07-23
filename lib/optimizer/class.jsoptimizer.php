@@ -15,6 +15,25 @@ class cf_js_optimizer extends cf_asset_optimizer {
 			add_action('wp_print_footer_scripts', 'cf_js_optimizer::_enqueueFooter', 9);
 		}
 	}
+	
+	public static function class_name() {
+		return 'cf_js_optimizer';
+	}
+
+	public static function listItem() {
+		return array(
+			'title' => __('CF JavaScript Optimizer'),
+			'description' => __('This plugin modifies the output of enqueued scripts to reduce the number of requests, and has hooks to serve minified content with asset minifiers. It respects dependencies and outputs localization properly.'),
+		);
+	}
+
+	public static function register($handles) {
+		$class_name = self::class_name();
+		if (!empty($class_name)) {
+			$handles = array_merge($handles, array($class_name));
+		}
+		return $handles;
+	}
 		
 	public static function _buildAsset(&$scripts) {
 		$option_name = self::_getOptionName();
@@ -227,4 +246,4 @@ class cf_js_optimizer extends cf_asset_optimizer {
 		return parent::_isLocal($url, 'js');
 	}
 }
-cf_js_optimizer::setHooks();
+add_action('cfao_optimizers', 'cf_js_optimizer::register');

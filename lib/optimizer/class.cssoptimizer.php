@@ -15,6 +15,25 @@ class cf_css_optimizer extends cf_asset_optimizer {
 		}
 	}
 	
+	public static function class_name() {
+		return 'cf_css_optimizer';
+	}
+
+	public static function listItem() {
+		return array(
+			'title' => __('CF CSS Optimizer'),
+			'description' => __('This plugin modifies the output of enqueued styles to reduce the number of requests, and has hooks to serve minified content with asset minifiers. It respects media types, dependencies, and after blocks on scripts.'),
+		);
+	}
+
+	public static function register($handles) {
+		$class_name = self::class_name();
+		if (!empty($class_name)) {
+			$handles = array_merge($handles, array($class_name));
+		}
+		return $handles;
+	}
+	
 	public static function _buildAsset(&$styles) {
 		$option_name = self::_getOptionName();
 		if (!empty($styles)) {
@@ -264,4 +283,4 @@ class cf_css_optimizer extends cf_asset_optimizer {
 	}
 	
 }
-cf_css_optimizer::setHooks();
+add_action('cfao_optimizers', 'cf_css_optimizer::register');

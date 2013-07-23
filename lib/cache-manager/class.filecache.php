@@ -15,6 +15,21 @@ class cfao_file_cache extends cfao_cache {
 		return 'cfao_file_cache';
 	}
 	
+	public static function register($handles) {
+		$class_name = self::class_name();
+		if (!empty($class_name)) {
+			$handles = array_merge($handles, array($class_name));
+		}
+		return $handles;
+	}
+
+	public static function listItem() {
+		return array(
+			'title' => __('CF Asset Optimizer Filesystem Cache'),
+			'description' => __('This plugin caches to a directory in the local file system. It is the fastest cache storage and retrieval method, but requires write access to the filesystem to use.'),
+		);
+	}
+	
 	public static function get($reference, $type = '') {
 		// Find out if we have the output requested cached.
 		$key = self::_getKey($reference, $type);
@@ -133,4 +148,4 @@ class cfao_file_cache extends cfao_cache {
 		}
 	}
 }
-cfao_file_cache::_configure();
+add_filter('cfao_cachers', 'cfao_file_cache::register');
