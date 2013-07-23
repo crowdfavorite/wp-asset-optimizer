@@ -105,7 +105,6 @@ class CFAssetOptimizerScripts {
 	}
 	
 	public static function onWPPrintFooterScripts() {
-		global $wp_scripts;
 		self::enqueueConcatenatedFile(true);
 	}
 	
