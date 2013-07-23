@@ -1,6 +1,6 @@
 # CHANGE LOG
 
-## feature/3.6-upgrades
+## develop
 - Updated to split header/footer scripts into separate files.
 - Now supports scripts enqueued after head (will concatenate into footer file)
 - Integrates better with native WordPress enqueuing system so that script dependencies are no longer rewritten.
