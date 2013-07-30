@@ -8,11 +8,15 @@
 
 class cf_js_optimizer extends cf_asset_optimizer {
 	
-	public static function setHooks() {
+	public static function activate() {
 		if (!is_admin()) {
 			// Never presume to handle admin requests.
 			add_action('wp_print_scripts', 'cf_js_optimizer::_enqueueAsset', 100);
 			add_action('wp_print_footer_scripts', 'cf_js_optimizer::_enqueueFooter', 9);
+		}
+		else {
+			add_action('admin_init', 'cf_js_optimizer::_adminInit');
+			add_action('admin_menu', 'cf_js_optimizer::_adminMenu');
 		}
 	}
 	
@@ -121,7 +125,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 				// This is a placeholder. Treat it as always concatenated.
 				if (empty($option[$handle])) {
 					$option[$handle] = array(
-						'src' => sprintf(__('Placeholder registration for script combination: (%s)'), $registered->deps),
+						'src' => sprintf(__('Placeholder registration for script combination: (%s)'), implode(', ', $registered->deps)),
 						'enabled' => true,
 					);
 					$update_settings = true;
@@ -224,6 +228,73 @@ class cf_js_optimizer extends cf_asset_optimizer {
 	
 	public static function _enqueueFooter() {
 		self::_enqueueAsset(true);
+	}
+
+	public static function _adminInit() {
+		// Save our settings, if needed.
+		if (
+			!empty($_GET['page']) && $_GET['page'] == 'cf-js-optimizer-settings'
+			&& !empty($_GET['action']) && in_array($_GET['action'], array('js_activate', 'js_deactivate', 'js_forget'))
+			&& !empty($_GET['js']) && is_array($_GET['js'])
+		) {
+			$setting = get_option(self::_getOptionName(), array());
+			$update_setting = false;
+			foreach ($_GET['js'] as $handle) {
+				if (isset($setting[$handle])) {
+					if (in_array($_GET['action'], array('js_activate', 'js_deactivate'))) {
+						$setting[$handle]['enabled'] = ($_GET['action'] == 'js_activate');
+						if ($_GET['action'] == 'js_activate') {
+							unset($setting[$handle]['disable_reason']);
+						}
+						$update_setting = true;
+					}
+					else if ($_GET['action'] == 'js_forget') {
+						if (isset($setting[$handle])) {
+							unset($setting[$handle]);
+							$update_setting = true;
+						}
+					}
+				}
+			}
+			if ($update_setting) {
+				update_option(self::_getOptionName(), $setting);
+			}
+			wp_safe_redirect(remove_query_arg(array('action', 'js')));
+			exit();
+		}
+	}
+	
+	public static function _adminMenu() {
+		add_submenu_page(
+			'cf-asset-optimizer-settings',
+			__('CF JavaScript Optimizer'),
+			__('JavaScript Optimizer'),
+			'activate_plugins',
+			'cf-js-optimizer-settings',
+			'cf_js_optimizer::_adminPage'
+		);
+	}
+	
+	public static function _adminPage() {
+		$settings = get_option(self::_getOptionName(), array());
+		?>
+		<h1><?php screen_icon(); echo esc_html(get_admin_page_title()); ?></h1>
+		<div class="cf_js_optimizer_settings" style="clear:both;margin:15px;">
+		<p><?php esc_html_e('The JavaScript Asset Optimizer will concatenate all enabled scripts below into a single request (or two if you\'ve got separate header and footer scripts) to reduce the number of requests used to generate a page, improving page load time and reducing server load.'); ?></p>
+		<?php
+		include_once CFAO_PLUGIN_DIR . 'admin/list-tables/class.cfao-request-list-table.php';
+		$list_table = new CFAO_Requests_List_Table(array(
+			'singular' => __('script'),
+			'plural' => __('scripts'),
+			'items' => $settings,
+			'type' => 'js',
+			'item_header' => 'Script',
+		));
+		$list_table->prepare_items();
+		$list_table->display();
+		?>
+		</div>
+		<?php
 	}
 	
 	protected static function _getOptionName() {

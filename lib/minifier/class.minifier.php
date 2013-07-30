@@ -16,7 +16,7 @@ class cfao_minifier {
 		);
 	}
 	
-	public static function setHooks() {
+	public static function activate() {
 		
 	}
 	

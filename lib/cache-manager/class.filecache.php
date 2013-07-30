@@ -22,6 +22,19 @@ class cfao_file_cache extends cfao_cache {
 		}
 		return $handles;
 	}
+	
+	public static function activate() {
+		$wp_content_dir = trailingslashit(WP_CONTENT_DIR);
+		$wp_content_url = trailingslashit(WP_CONTENT_URL);
+		$server_folder = $_SERVER['SERVER_NAME'];
+		self::$_CACHE_BASE_DIR = trailingslashit(apply_filters('cfao_file_cache_basedir', trailingslashit($wp_content_dir.'cfao-cache/'.$server_folder), $wp_content_dir, $server_folder));
+		self::$_CACHE_BASE_URL = trailingslashit(apply_filters('cfao_file_cache_baseurl', preg_replace('~^https?://[^/]*~', '', trailingslashit($wp_content_url.'cfao-cache/'.$server_folder)), $wp_content_url, $server_folder));
+		
+		add_filter('cfao_cache_manager', 'cfao_file_cache::class_name');
+		if (is_admin()) {
+			add_action('admin_menu', 'cfao_file_cache::_adminMenu');
+		}
+	}
 
 	public static function listItem() {
 		return array(
@@ -76,14 +89,21 @@ class cfao_file_cache extends cfao_cache {
 		return $succeeded;
 	}
 	
-	public static function _configure() {
-		$wp_content_dir = trailingslashit(WP_CONTENT_DIR);
-		$wp_content_url = trailingslashit(WP_CONTENT_URL);
-		$server_folder = $_SERVER['SERVER_NAME'];
-		self::$_CACHE_BASE_DIR = trailingslashit(apply_filters('cfao_file_cache_basedir', trailingslashit($wp_content_dir.'cfao-cache/'.$server_folder), $wp_content_dir, $server_folder));
-		self::$_CACHE_BASE_URL = trailingslashit(apply_filters('cfao_file_cache_baseurl', preg_replace('~^https?://[^/]*~', '', trailingslashit($wp_content_url.'cfao-cache/'.$server_folder)), $wp_content_url, $server_folder));
-		add_filter('cfao_cache_manager', 'cfao_file_cache::class_name');
-		add_filter('cfao_cache_manager', 'cfao_file_cache::class_name');
+	public static function _adminMenu() {
+		add_submenu_page(
+			'cf-asset-optimizer-settings',
+			__('CF Filesystem Cacher'),
+			__('Filesystem Cacher'),
+			'activate_plugins',
+			'cf-file-cacher-settings',
+			'cfao_file_cache::_adminPage'
+		);
+	}
+	
+	public static function _adminPage() {
+		?>
+		<h1><?php screen_icon(); echo esc_html(get_admin_page_title()); ?></h1>
+		<?php
 	}
 
 	protected static function _getKey($components, $cache_type = '') {

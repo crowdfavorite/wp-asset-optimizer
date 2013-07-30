@@ -8,10 +8,15 @@
 
 class cf_css_optimizer extends cf_asset_optimizer {
 	
-	public static function setHooks() {
+	public static function activate() {
 		if (!is_admin()) {
 			// Never presume to handle admin requests
 			add_action('wp_print_styles', 'cf_css_optimizer::_enqueueAssets', 100);
+		}
+		else {
+			// Set up my admin interface
+			add_action('admin_init', 'cf_css_optimizer::_adminInit');
+			add_action('admin_menu', 'cf_css_optimizer::_adminMenu');
 		}
 	}
 	
@@ -233,7 +238,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 		$cachemgr = self::_getMyCacheMgr();
 		if (!$cachemgr) {
 			// We are currently mandating at least some kind of cache and response.
-			throw new Exception('Could not find cache manager');
+			return;
 		}
 		foreach ($styles_blocks as $type=>$styles) {
 			if (!($asset = $cachemgr::get($styles, 'css'))) {
@@ -260,6 +265,65 @@ class cf_css_optimizer extends cf_asset_optimizer {
 				wp_enqueue_style('cfao-css-'.$type, $asset['url'], $deps, $asset['ver'], $type);
 			}
 		}
+	}
+	
+	public static function _adminInit() {
+		// Save our settings, if needed.
+		if (
+			!empty($_GET['page']) && $_GET['page'] == 'cf-css-optimizer-settings'
+			&& !empty($_GET['action']) && in_array($_GET['action'], array('css_activate', 'css_deactivate'))
+			&& !empty($_GET['css']) && is_array($_GET['css'])
+		) {
+			$setting = get_option(self::_getOptionName(), array());
+			$update_setting = false;
+			foreach ($_GET['css'] as $handle) {
+				if (isset($setting[$handle])) {
+					$setting[$handle]['enabled'] = ($_GET['action'] == 'css_activate');
+					if ($_GET['action'] == 'css_activate') {
+						unset($setting['disable_reason']);
+					}
+					$update_setting = true;
+				}
+			}
+			if ($update_setting) {
+				update_option(self::_getOptionName(), $setting);
+			}
+			wp_safe_redirect(remove_query_arg(array('action', 'css')));
+			exit();
+		}
+	}
+	
+	public static function _adminMenu() {
+		add_submenu_page(
+			'cf-asset-optimizer-settings',
+			__('CF CSS Optimizer'),
+			__('CSS Optimizer'),
+			'activate_plugins',
+			'cf-css-optimizer-settings',
+			'cf_css_optimizer::_adminPage'
+		);
+	}
+	
+	public static function _adminPage() {
+		$settings = get_option(self::_getOptionName(), array());
+		?>
+		<h1><?php screen_icon(); echo esc_html(get_admin_page_title()); ?></h1>
+		<div class="cf_css_optimizer_settings" style="clear:both;margin:15px;">
+		<p><?php esc_html_e('The CSS Asset Optimizer will concatenate all enabled styles below into a single request to reduce the number of requests used to generate a page, improving page load time and reducing server load.'); ?></p>
+		<?php
+		include_once CFAO_PLUGIN_DIR . 'admin/list-tables/class.cfao-request-list-table.php';
+		$list_table = new CFAO_Requests_List_Table(array(
+			'singular' => __('stylesheet'),
+			'plural' => __('stylesheets'),
+			'items' => $settings,
+			'type' => 'css',
+			'item_header' => __('Stylesheet'),
+		));
+		$list_table->prepare_items();
+		$list_table->display();
+		?>
+		</div>
+		<?php
 	}
 	
 	protected static function _getOptionName() {

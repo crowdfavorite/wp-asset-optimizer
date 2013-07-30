@@ -24,7 +24,7 @@ class cfao_js_minifier {
 		);
 	}
 	
-	public static function setHooks() {
+	public static function activate() {
 		// We want to minify based on single hook contents here
 		add_action('cfao_single_contents', 'cfao_js_minifier::minify', 10, 3);
 	}

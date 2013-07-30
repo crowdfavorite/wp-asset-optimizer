@@ -22,6 +22,10 @@ class cfao_database_cache extends cfao_cache {
 		}
 		return $handles;
 	}
+	
+	public static function activate() {
+		
+	}
 
 	public static function listItem() {
 		return array(
@@ -42,10 +46,6 @@ class cfao_database_cache extends cfao_cache {
 	
 	public static function clear($key = null) {
 		// TODO Implement an interface for clearing just one record, or all of them.
-	}
-	
-	public static function _configure() {
-		// TODO set up post type and options.
 	}
 	
 	protected static function _getKey($components, $type = '') {

@@ -8,6 +8,7 @@ class CFAO_Plugins_List_Table extends WP_List_Table {
 	private $_component_type;
 	
 	function __construct($args = array()) {
+		$args = array_merge(array('screen' => get_current_screen()), $args);
 		parent::__construct($args);
 		if (!empty($args['items']) && is_array($args['items'])) {
 			$this->items = $args['items']; // Expected to be class names
@@ -87,14 +88,22 @@ class CFAO_Plugins_List_Table extends WP_List_Table {
 		$id = sanitize_title($item['class_name']);
 		$class = ($item['active']) ? 'active': 'inactive';
 		echo "<tr id=\"$id\" class=\"$class\">";
+		$actions = array();
+		if (!$item['active']) {
+			$actions['enable'] = '<a href="'.esc_url(add_query_arg('activate_'.$this->_component_type, $item['class_name'])).'">Enable</a>';
+		}
+		else {
+			$actions['disable'] = '<a href="'.esc_url(add_query_arg('deactivate_'.$this->_component_type, $item['class_name'])).'">Disable</a>';
+		}
 		foreach ($this->get_columns() as $key => $text) {
-			echo '<th scope="row">';
+			echo '<td>';
 			echo '<div class="plugin-title">' . esc_html($item['title']) . '</div>';
 			echo '<p class="plugin-description">' . esc_html($item['description']) . '</p>';
-			echo '</th>';
+			echo $this->row_actions($actions, true);
+			echo '</td>';
 		}
 		echo '</tr>';
-		do_action('after_' . $this->_component_type . '_row', $item);
+		do_action('cfao_plugins_list_table_after_' . $this->_component_type . '_row', $item);
 	}
 	
 }

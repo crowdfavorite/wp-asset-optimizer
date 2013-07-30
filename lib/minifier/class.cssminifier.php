@@ -24,7 +24,7 @@ class cfao_css_minifier extends cfao_minifier {
 		);
 	}
 	
-	public static function setHooks() {
+	public static function activate() {
 		add_action('cfao_concat_contents', 'cfao_css_minifier::minify', 10, 2);
 	}
 	

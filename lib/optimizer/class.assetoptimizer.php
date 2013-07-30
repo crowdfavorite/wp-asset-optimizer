@@ -29,7 +29,7 @@ class cf_asset_optimizer {
 		return $handles;
 	}
 	
-	public static function setHooks() {
+	public static function activate() {
 	}
 	
 	protected static function _getOptionName($type = '') {
