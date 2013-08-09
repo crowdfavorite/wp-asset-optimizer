@@ -316,6 +316,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 		include_once CFAO_PLUGIN_DIR . 'admin/list-tables/class.cfao-request-list-table.php';
 		?>
 		<form action="" method="POST">
+		<?php
 		$list_table = new CFAO_Requests_List_Table(array(
 			'singular' => __('stylesheet'),
 			'plural' => __('stylesheets'),
