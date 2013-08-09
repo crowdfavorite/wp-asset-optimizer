@@ -37,6 +37,32 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 		return current_user_can('activate_plugins');
 	}
 	
+	function bulk_actions() {
+		// Defines the bulk actions for this table.
+		$section = '-header';
+		if (!isset($this->_actions)) {
+			$actions = array(
+				$this->_component_type.'_activate' => __('Enable'),
+				$this->_component_type.'_deactivate' => __('Disable'),
+				$this->_component_type.'_forget' => __('Forget'),
+			);
+			$this->_actions = apply_filters('cfao_'.$this->_component_type.'_list_bulk_actions', $actions);
+		}
+		else {
+			$section = '-footer';
+		}
+		if (empty($this->_actions)) {
+			return;
+		}
+		echo '<select name="action' . $section .'">';
+		foreach ($this->_actions as $action => $text) {
+			echo '<option value="' . esc_attr($action) . '">' . esc_html($text) . '</option>';
+		}
+		echo '</select>';
+		submit_button( __( 'Apply' ), 'action', 'submit'.$section, false, array( 'id' => "submit$section" ));
+		echo "\n";
+	}
+	
 	function prepare_items() {
 		$new_items = array();
 		if (empty($this->items)) {
@@ -76,10 +102,8 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 		if ($this->_support_bulk) {
 			$columns['cb'] = '<input type="checkbox" name="" class="select-all" />';
 		}
-		return array(
-			'cb' => '',
-			'item_details' => esc_html($this->_item_header),
-		);
+		$columns['item_details'] = esc_html($this->_item_header);
+		return $columns;
 	}
 	
 	function get_column_info() {
@@ -92,10 +116,6 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 	
 	function get_table_classes() {
 		return array('widefat', 'fixed', strtolower($this->_component_type . '_list_table'));
-	}
-	
-	function display_tablenav() {
-		return;
 	}
 	
 	function single_row($item) {
@@ -119,17 +139,17 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 		foreach ($this->get_columns() as $key => $text) {
 			switch ($key) {
 				case 'cb':
-					echo '<td class="' . esc_attr($key.'-col') . '">';
-					echo '<input type="checkbox" name="' . esc_attr($this->_component_type) . '[]" value="' . $item['handle'] . '" />';
-					echo '</td>';
+					echo '<th scope="row" class="column-cb check-column">';
+					echo '<input type="checkbox" name="' . esc_attr($this->_component_type) . '[]" value="' . esc_attr($item['handle']) . '"/>';
+					echo '</th>';
 					break;
 				case 'item_details':
 					echo '<td class="' . esc_attr($key.'-col') . '">';
+					if (!$item['enabled'] && !empty($item['disable_reason'])) {
+						echo '<div class="updated disabled-reason">' . esc_html($item['disable_reason']) . '</div>';
+					}
 					echo '<div class="item-title">' . esc_html($item['handle']) . '</div>';
 					echo '<p class="item-description">' . esc_html($item['src']) . '</p>';
-					if (!$item['enabled'] && !empty($item['disable_reason'])) {
-						echo '<p class="disabled-reason">' . esc_html($item['disable_reason']) . '</p>';
-					}
 					echo $this->row_actions($actions, true);
 					echo '</td>';
 					break;

@@ -76,6 +76,7 @@ class cfao_admin {
 		}
 		
 		add_action('admin_menu', 'cfao_admin::_adminMenu', 1);
+		add_action('admin_enqueue_scripts', 'cfao_admin::_adminEnqueueScripts', 1);
 		add_action('admin_init', 'cfao_admin::_adminInit');
 	}
 	
@@ -193,6 +194,14 @@ class cfao_admin {
 		?>
 		</div>
 		<?php
+	}
+	
+	public static function _adminEnqueueScripts() {
+		global $pagenow;
+		wp_register_style('cfao-list-table', plugins_url(basename(dirname(dirname(__FILE__))).'/admin/css/cfao-list-table.css'), array(), CFAO_VERSION);
+		if ($pagenow == 'admin.php' && isset($_GET['page']) && $_GET['page'] == 'cf-asset-optimizer-settings') {
+			wp_enqueue_style('cfao-list-table');
+		}
 	}
 	
 }

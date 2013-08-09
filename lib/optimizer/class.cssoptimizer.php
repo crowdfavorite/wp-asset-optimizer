@@ -17,6 +17,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 			// Set up my admin interface
 			add_action('admin_init', 'cf_css_optimizer::_adminInit');
 			add_action('admin_menu', 'cf_css_optimizer::_adminMenu');
+			add_action('admin_enqueue_scripts', 'cf_css_optimizer::_adminEnqueueScripts');
 		}
 	}
 	
@@ -50,6 +51,9 @@ class cf_css_optimizer extends cf_asset_optimizer {
 				" * Included Styles\n" .
 				" *\n";
 			foreach ($styles as $handle => $url) {
+				if (strpos($url, '//') === 0) {
+					$url = 'http' . (is_ssl() ? 's' : '') . ':' . $url;
+				}
 				$result = wp_remote_get(
 					$url,
 					array(
@@ -279,9 +283,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 			foreach ($_GET['css'] as $handle) {
 				if (isset($setting[$handle])) {
 					$setting[$handle]['enabled'] = ($_GET['action'] == 'css_activate');
-					if ($_GET['action'] == 'css_activate') {
-						unset($setting['disable_reason']);
-					}
+					unset($setting[$handle]['disable_reason']);
 					$update_setting = true;
 				}
 			}
@@ -309,21 +311,32 @@ class cf_css_optimizer extends cf_asset_optimizer {
 		?>
 		<h1><?php screen_icon(); echo esc_html(get_admin_page_title()); ?></h1>
 		<div class="cf_css_optimizer_settings" style="clear:both;margin:15px;">
-		<p><?php esc_html_e('The CSS Asset Optimizer will concatenate all enabled styles below into a single request to reduce the number of requests used to generate a page, improving page load time and reducing server load.'); ?></p>
+		<p><?php esc_html_e('The CSS Asset Optimizer will concatenate all enabled styles below into a single request per media type declaration to reduce the number of requests used to generate a page, improving page load time and reducing server load.'); ?></p>
 		<?php
 		include_once CFAO_PLUGIN_DIR . 'admin/list-tables/class.cfao-request-list-table.php';
+		?>
+		<form action="" method="POST">
 		$list_table = new CFAO_Requests_List_Table(array(
 			'singular' => __('stylesheet'),
 			'plural' => __('stylesheets'),
 			'items' => $settings,
 			'type' => 'css',
 			'item_header' => __('Stylesheet'),
+			'support_bulk' => true,
 		));
 		$list_table->prepare_items();
 		$list_table->display();
 		?>
+		</form>
 		</div>
 		<?php
+	}
+	
+	public static function _adminEnqueueScripts() {
+		global $pagenow;
+		if ($pagenow == 'admin.php' && !empty($_GET['page']) && $_GET['page'] == 'cf-css-optimizer-settings') {
+			wp_enqueue_style('cfao-list-table');
+		}
 	}
 	
 	protected static function _getOptionName() {

@@ -17,6 +17,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 		else {
 			add_action('admin_init', 'cf_js_optimizer::_adminInit');
 			add_action('admin_menu', 'cf_js_optimizer::_adminMenu');
+			add_action('admin_enqueue_scripts', 'cf_js_optimizer::_adminEnqueueScripts');
 		}
 	}
 	
@@ -234,33 +235,42 @@ class cf_js_optimizer extends cf_asset_optimizer {
 		// Save our settings, if needed.
 		if (
 			!empty($_GET['page']) && $_GET['page'] == 'cf-js-optimizer-settings'
-			&& !empty($_GET['action']) && in_array($_GET['action'], array('js_activate', 'js_deactivate', 'js_forget'))
-			&& !empty($_GET['js']) && is_array($_GET['js'])
+			&& (!empty($_REQUEST['action']) || !empty($_REQUEST['submit-header']) || !empty($_REQUEST['submit-footer']))
 		) {
-			$setting = get_option(self::_getOptionName(), array());
-			$update_setting = false;
-			foreach ($_GET['js'] as $handle) {
-				if (isset($setting[$handle])) {
-					if (in_array($_GET['action'], array('js_activate', 'js_deactivate'))) {
-						$setting[$handle]['enabled'] = ($_GET['action'] == 'js_activate');
-						if ($_GET['action'] == 'js_activate') {
-							unset($setting[$handle]['disable_reason']);
-						}
-						$update_setting = true;
-					}
-					else if ($_GET['action'] == 'js_forget') {
-						if (isset($setting[$handle])) {
-							unset($setting[$handle]);
+			$action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
+			$js = isset($_REQUEST['js']) ? $_REQUEST['js'] : array();
+			if (isset($_REQUEST['submit-header'])) {
+				$action = $_REQUEST['action-header'];
+			}
+			else if (isset($_REQUEST['submit-footer'])) {
+				$action = $_REQUEST['action-footer'];
+			}
+			if (!empty($action) && in_array($action, array('js_activate', 'js_deactivate', 'js_forget')) && !empty($js) && is_array($js)) {
+				$setting = get_option(self::_getOptionName(), array());
+				$update_setting = false;
+				foreach ($js as $handle) {
+					if (isset($setting[$handle])) {
+						if (in_array($action, array('js_activate', 'js_deactivate'))) {
+							$setting[$handle]['enabled'] = ($action == 'js_activate');
+							if ($action == 'js_activate') {
+								unset($setting[$handle]['disable_reason']);
+							}
 							$update_setting = true;
+						}
+						else if ($action == 'js_forget') {
+							if (isset($setting[$handle])) {
+								unset($setting[$handle]);
+								$update_setting = true;
+							}
 						}
 					}
 				}
+				if ($update_setting) {
+					update_option(self::_getOptionName(), $setting);
+				}
+				wp_safe_redirect(remove_query_arg(array('action', 'js')));
+				exit();
 			}
-			if ($update_setting) {
-				update_option(self::_getOptionName(), $setting);
-			}
-			wp_safe_redirect(remove_query_arg(array('action', 'js')));
-			exit();
 		}
 	}
 	
@@ -283,18 +293,30 @@ class cf_js_optimizer extends cf_asset_optimizer {
 		<p><?php esc_html_e('The JavaScript Asset Optimizer will concatenate all enabled scripts below into a single request (or two if you\'ve got separate header and footer scripts) to reduce the number of requests used to generate a page, improving page load time and reducing server load.'); ?></p>
 		<?php
 		include_once CFAO_PLUGIN_DIR . 'admin/list-tables/class.cfao-request-list-table.php';
+		?>
+		<form action="" method="POST">
+		<?php
 		$list_table = new CFAO_Requests_List_Table(array(
 			'singular' => __('script'),
 			'plural' => __('scripts'),
 			'items' => $settings,
 			'type' => 'js',
 			'item_header' => 'Script',
+			'support_bulk' => true,
 		));
 		$list_table->prepare_items();
 		$list_table->display();
 		?>
+		</form>
 		</div>
 		<?php
+	}
+
+	public static function _adminEnqueueScripts() {
+		global $pagenow;
+		if ($pagenow == 'admin.php' && !empty($_GET['page']) && $_GET['page'] == 'cf-js-optimizer-settings') {
+			wp_enqueue_style('cfao-list-table');
+		}
 	}
 	
 	protected static function _getOptionName() {
