@@ -5,6 +5,7 @@
 - Updated to no longer make calls out to separate server to minify javascript
 - Supports CSS with media types by breaking them into separate requests.
 - Supports more extension regarding caching / minifying / concatenating.
+- Supports bulk actions on JS and CSS optimizers
 
 ## 1.2
 - Updated to split header/footer scripts into separate files.
