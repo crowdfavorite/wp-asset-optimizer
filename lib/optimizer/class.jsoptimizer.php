@@ -87,7 +87,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 				$content_header .= ' * ' . $handle . ' => ' . $url . "\n";
 				$src = $result['body'];
 				
-				$concat .= apply_filters('cfao_single_contents', $src, 'js', $handle);
+				$concat .= apply_filters('cfao_single_contents', $src, 'js', $handle, $js_settings);
 			}
 			
 			if ($changed_settings) {
@@ -95,7 +95,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 			}
 			// Set the cache of the file.
 			$content_header .= " **/\n";
-			$concat = apply_filters('cfao_concat_contents', $concat, 'js');
+			$concat = apply_filters('cfao_concat_contents', $concat, 'js', '', $js_settings);
 			$concat = $content_header . $concat;
 			$cachemgr = self::_getMyCacheMgr();
 			$cachemgr::set($scripts, $concat, 'js');
@@ -235,42 +235,59 @@ class cf_js_optimizer extends cf_asset_optimizer {
 		// Save our settings, if needed.
 		if (
 			!empty($_GET['page']) && $_GET['page'] == 'cf-js-optimizer-settings'
-			&& (!empty($_REQUEST['action']) || !empty($_REQUEST['submit-header']) || !empty($_REQUEST['submit-footer']))
+			&& (!empty($_GET['cfao_action']) || !empty($_REQUEST['submit-header']) || !empty($_REQUEST['submit-footer']))
+			&& !empty($_REQUEST['js'])
+			&& is_array($_REQUEST['js'])
 		) {
-			$action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
-			$js = isset($_REQUEST['js']) ? $_REQUEST['js'] : array();
-			if (isset($_REQUEST['submit-header'])) {
-				$action = $_REQUEST['action-header'];
+			$setting = get_option(self::_getOptionName(), array());
+			$update_setting = false;
+			$action = isset($_GET['cfao_action']) ? $_GET['cfao_action'] : '';
+			if (!empty($_REQUEST['submit-header'])) {
+				$action = isset($_REQUEST['cfao_action-header']) ? $_REQUEST['cfao_action-header'] : '';
 			}
-			else if (isset($_REQUEST['submit-footer'])) {
-				$action = $_REQUEST['action-footer'];
+			else if (!empty($_REQUEST['submit-footer'])) {
+				$action = isset($_REQUEST['cfao_action-footer']) ? $_REQUEST['cfao_action-footer'] : '';
 			}
-			if (!empty($action) && in_array($action, array('js_activate', 'js_deactivate', 'js_forget')) && !empty($js) && is_array($js)) {
-				$setting = get_option(self::_getOptionName(), array());
-				$update_setting = false;
-				foreach ($js as $handle) {
-					if (isset($setting[$handle])) {
-						if (in_array($action, array('js_activate', 'js_deactivate'))) {
-							$setting[$handle]['enabled'] = ($action == 'js_activate');
-							if ($action == 'js_activate') {
-								unset($setting[$handle]['disable_reason']);
-							}
+			$js = $_REQUEST['js'];
+			switch ($action) {
+				case 'enable':
+					foreach ($js as $handle) {
+						if (isset($setting[$handle])) {
+							$setting[$handle]['enabled'] = true;
+							unset($setting[$handle]['disable_reason']);
 							$update_setting = true;
 						}
-						else if ($action == 'js_forget') {
-							if (isset($setting[$handle])) {
-								unset($setting[$handle]);
-								$update_setting = true;
-							}
+					}
+					break;
+				case 'disable':
+					foreach ($js as $handle) {
+						if (isset($setting[$handle])) {
+							$setting[$handle]['enabled'] = false;
+							$user = wp_get_current_user();
+							$setting[$handle]['disable_reason'] = sprintf(__('Manually disabled by %s'), $user->display_name);
+							$update_setting = true;
 						}
 					}
-				}
-				if ($update_setting) {
-					update_option(self::_getOptionName(), $setting);
-				}
-				wp_safe_redirect(remove_query_arg(array('action', 'js')));
-				exit();
+					break;
+				case 'forget':
+					foreach ($js as $handle) {
+						if (isset($setting[$handle])) {
+							unset($setting[$handle]);
+							$update_setting = true;
+						}
+					}
+					break;
+				default:
+					$setting = apply_filters('cfao_admin_js_'.$action, $setting, $js);
+					$update_setting = true;
 			}
+			
+			if ($update_setting) {
+				update_option(self::_getOptionName(), $setting);
+			}
+			
+			wp_safe_redirect(remove_query_arg(array('cfao_action', 'js')));
+			exit();
 		}
 	}
 	

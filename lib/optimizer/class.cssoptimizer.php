@@ -145,7 +145,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 						  \)                   # closing )
 						  ~x';
 					$src = preg_replace($regex, 'url('.$parts[1].$parts[2].'$2)', $src);
-					$concat .= apply_filters('cfao_single_contents', $src, 'css', $handle);
+					$concat .= apply_filters('cfao_single_contents', $src, 'css', $handle, $css_settings);
 					$concat .= $src . "\n";
 				}
 				
@@ -155,7 +155,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 			}
 			// Set the cache of the file.
 			$content_header .= " **/\n";
-			$concat = apply_filters('cfao_concat_contents', $concat, 'css');
+			$concat = apply_filters('cfao_concat_contents', $concat, 'css', '', $css_settings);
 			$concat = $content_header . $concat;
 			$cachemgr = self::_getMyCacheMgr();
 			$cachemgr::set($styles, $concat, 'css');
@@ -275,22 +275,58 @@ class cf_css_optimizer extends cf_asset_optimizer {
 		// Save our settings, if needed.
 		if (
 			!empty($_GET['page']) && $_GET['page'] == 'cf-css-optimizer-settings'
-			&& !empty($_GET['action']) && in_array($_GET['action'], array('css_activate', 'css_deactivate'))
-			&& !empty($_GET['css']) && is_array($_GET['css'])
+			&& (!empty($_GET['cfao_action']) || !empty($_REQUEST['submit-header']) || !empty($_REQUEST['submit-footer']))
+			&& !empty($_REQUEST['css'])
+			&& is_array($_REQUEST['css'])
 		) {
 			$setting = get_option(self::_getOptionName(), array());
 			$update_setting = false;
-			foreach ($_GET['css'] as $handle) {
-				if (isset($setting[$handle])) {
-					$setting[$handle]['enabled'] = ($_GET['action'] == 'css_activate');
-					unset($setting[$handle]['disable_reason']);
-					$update_setting = true;
-				}
+			$action = isset($_GET['cfao_action']) ? $_GET['cfao_action'] : '';
+			if (!empty($_REQUEST['submit-header'])) {
+				$action = isset($_REQUEST['cfao_action-header']) ? $_REQUEST['cfao_action-header'] : '';
 			}
+			else if (!empty($_REQUEST['submit-footer'])) {
+				$action = isset($_REQUEST['cfao_action-footer']) ? $_REQUEST['cfao_action-footer'] : '';
+			}
+			$css = $_REQUEST['css'];
+			switch ($action) {
+				case 'enable':
+					foreach ($css as $handle) {
+						if (isset($setting[$handle])) {
+							$setting[$handle]['enabled'] = true;
+							unset($setting[$handle]['disable_reason']);
+							$update_setting = true;
+						}
+					}
+					break;
+				case 'disable':
+					foreach ($css as $handle) {
+						if (isset($setting[$handle])) {
+							$setting[$handle]['enabled'] = false;
+							$user = wp_get_current_user();
+							$setting[$handle]['disable_reason'] = sprintf(__('Manually disabled by %s'), $user->display_name);
+							$update_setting = true;
+						}
+					}
+					break;
+				case 'forget':
+					foreach ($css as $handle) {
+						if (isset($setting[$handle])) {
+							unset($setting[$handle]);
+							$update_setting = true;
+						}
+					}
+					break;
+				default:
+					$setting = apply_filters('cfao_admin_css_'.$action, $setting, $css);
+					$update_setting = true;
+			}
+			
 			if ($update_setting) {
 				update_option(self::_getOptionName(), $setting);
 			}
-			wp_safe_redirect(remove_query_arg(array('action', 'css')));
+			
+			wp_safe_redirect(remove_query_arg(array('cfao_action', 'css')));
 			exit();
 		}
 	}

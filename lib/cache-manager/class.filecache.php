@@ -32,7 +32,7 @@ class cfao_file_cache extends cfao_cache {
 		
 		add_filter('cfao_cache_manager', 'cfao_file_cache::class_name');
 		if (is_admin()) {
-			add_action('admin_menu', 'cfao_file_cache::_adminMenu');
+			//add_action('admin_menu', 'cfao_file_cache::_adminMenu');
 		}
 	}
 

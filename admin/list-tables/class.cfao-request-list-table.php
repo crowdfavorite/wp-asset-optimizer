@@ -42,9 +42,9 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 		$section = '-header';
 		if (!isset($this->_actions)) {
 			$actions = array(
-				$this->_component_type.'_activate' => __('Enable'),
-				$this->_component_type.'_deactivate' => __('Disable'),
-				$this->_component_type.'_forget' => __('Forget'),
+				'enable' => __('Enable'),
+				'disable' => __('Disable'),
+				'forget' => __('Forget'),
 			);
 			$this->_actions = apply_filters('cfao_'.$this->_component_type.'_list_bulk_actions', $actions);
 		}
@@ -54,7 +54,7 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 		if (empty($this->_actions)) {
 			return;
 		}
-		echo '<select name="action' . $section .'">';
+		echo '<select name="cfao_action' . $section .'">';
 		foreach ($this->_actions as $action => $text) {
 			echo '<option value="' . esc_attr($action) . '">' . esc_html($text) . '</option>';
 		}
@@ -125,17 +125,18 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 		$actions = array();
 		if (!$item['enabled']) {
 			$actions['enable'] = '<a href="'.esc_url(add_query_arg(array(
-				'action' => $this->_component_type . '_activate',
+				'cfao_action' => 'enable',
 				$this->_component_type => array($item['handle']),
 			))).'">'.esc_html(__('Enable')).'</a>';
 		}
 		else {
 			$actions['disable'] = '<a href="'.esc_url(add_query_arg(array(
-				'action' => $this->_component_type . '_deactivate',
+				'cfao_action' => 'disable',
 				$this->_component_type => array($item['handle']),
 			))).'">'.esc_html(__('Disable')).'</a>';
 		}
-		$actions['reset'] = '<a href="'.esc_url(add_query_arg(array('action' => $this->_component_type.'_forget', $this->_component_type => array($item['handle'])))).'">'.esc_html(__('Forget')).'</a>';
+		$actions['reset'] = '<a href="'.esc_url(add_query_arg(array('cfao_action' => 'forget', $this->_component_type => array($item['handle'])))).'">'.esc_html(__('Forget')).'</a>';
+		$actions = apply_filters('cfao_' . $this->_component_type . '_list_row_actions', $actions, $item);
 		foreach ($this->get_columns() as $key => $text) {
 			switch ($key) {
 				case 'cb':
