@@ -82,56 +82,84 @@ class cfao_admin {
 	
 	public static function _adminInit() {
 		global $pagenow;
-		if ($pagenow == 'admin.php' && isset($_GET['page']) && $_GET['page'] == 'cf-asset-optimizer-settings') {
+		if ($pagenow == 'admin.php' && isset($_GET['page']) && $_GET['page'] == 'cf-asset-optimizer-settings' && !empty($_REQUEST['cfao_action'])) {
 			$update_setting = false;
-			if (!empty($_GET['activate_optimizer'])) {
-				$to_activate = $_GET['activate_optimizer'];
-				if (isset(self::$_setting['plugins']['optimizers'][$to_activate])) {
-					self::$_setting['plugins']['optimizers'][$to_activate] = true;
-					$update_setting = true;
-				}
-			}
-			if (!empty($_GET['deactivate_optimizer'])) {
-				$to_deactivate = $_GET['deactivate_optimizer'];
-				if (isset(self::$_setting['plugins']['optimizers'][$to_deactivate])) {
-					self::$_setting['plugins']['optimizers'][$to_deactivate] = false;
-					$update_setting = true;
-				}
-			}
-			if (!empty($_GET['activate_cacher'])) {
-				$to_activate = $_GET['activate_cacher'];
-				if (isset(self::$_setting['plugins']['cachers'][$to_activate])) {
-					foreach (self::$_setting['plugins']['cachers'] as $class_name => $active) {
-						self::$_setting['plugins']['cachers'][$class_name] = ($class_name === $to_activate);
+			switch ($_REQUEST['cfao_action']) {
+				case 'activate':
+					if (!empty($_REQUEST['optimizer'])) {
+						if (!is_array($_REQUEST['optimizer'])) {
+							$_REQUEST['optimizer'] = array($_REQUEST['optimizer']);
+						}
+						foreach ($_REQUEST['optimizer'] as $class_name) {
+							self::$_setting['plugins']['optimizers'][$class_name] = true;
+							$update_setting = true;
+						}
 					}
-					$update_setting = true;
-				}
+					if (!empty($_REQUEST['cacher'])) {
+						if (!is_array($_REQUEST['cacher'])) {
+							$_REQUEST['cacher'] = array($_REQUEST['cacher']);
+						}
+						foreach ($_REQUEST['cacher'] as $class_name) {
+							self::$_setting['plugins']['cachers'][$class_name] = true;
+							$update_setting = true;
+						}
+					}
+					if (!empty($_REQUEST['minifier'])) {
+						if (!is_array($_REQUEST['minifier'])) {
+							$_REQUEST['minifier'] = $_REQUEST['minifier'];
+						}
+						foreach ($_REQUEST['minifier'] as $class_name) {
+							self::$_setting['plugins']['minifiers'][$class_name] = true;
+							$update_setting = true;
+						}
+					}
+					if ($update_setting) {
+						update_option(self::$_setting_name, self::$_setting);
+					}
+					do_action('cfao_admin_activate');
+					break;
+				case 'deactivate':
+					if (!empty($_REQUEST['optimizer'])) {
+						if (!is_array($_REQUEST['optimizer'])) {
+							$_REQUEST['optimizer'] = array($_REQUEST['optimizer']);
+						}
+						foreach ($_REQUEST['optimizer'] as $class_name) {
+							self::$_setting['plugins']['optimizers'][$class_name] = false;
+							$update_setting = true;
+						}
+					}
+					if (!empty($_REQUEST['cacher'])) {
+						if (!is_array($_REQUEST['cacher'])) {
+							$_REQUEST['cacher'] = array($_REQUEST['cacher']);
+						}
+						foreach ($_REQUEST['cacher'] as $class_name) {
+							self::$_setting['plugins']['cachers'][$class_name] = false;
+							$update_setting = true;
+						}
+					}
+					if (!empty($_REQUEST['minifier'])) {
+						if (!is_array($_REQUEST['minifier'])) {
+							$_REQUEST['minifier'] = $_REQUEST['minifier'];
+						}
+						foreach ($_REQUEST['minifier'] as $class_name) {
+							self::$_setting['plugins']['minifiers'][$class_name] = false;
+							$update_setting = true;
+						}
+					}
+					if ($update_setting) {
+						update_option(self::$_setting_name, self::$_setting);
+					}
+					do_action('cfao_admin_deactivate');
+					break;
+				default:
+					do_action('cfao_admin_' . $_REQUEST['cfao_action']);
+					break;
 			}
-			if (!empty($_GET['deactivate_cacher'])) {
-				$to_deactivate = $_GET['deactivate_cacher'];
-				if (isset(self::$_setting['plugins']['cachers'][$to_deactivate])) {
-					self::$_setting['plugins']['cachers'][$to_deactivate] = false;
-					$update_setting = true;
-				}
-			}
-			if (!empty($_GET['activate_minifier'])) {
-				$to_activate = $_GET['activate_minifier'];
-				if (isset(self::$_setting['plugins']['minifiers'][$to_activate])) {
-					self::$_setting['plugins']['minifiers'][$to_activate] = true;
-					$update_setting = true;
-				}
-			}
-			if (!empty($_GET['deactivate_minifier'])) {
-				$to_deactivate = $_GET['deactivate_minifier'];
-				if (isset(self::$_setting['plugins']['minifiers'][$to_deactivate])) {
-					self::$_setting['plugins']['minifiers'][$to_deactivate] = false;
-					$update_setting = true;
-				}
-			}
-			if ($update_setting) {
-				update_option(self::$_setting_name, self::$_setting);
-				wp_safe_redirect(remove_query_arg(array('activate_optimizer', 'activate_cacher', 'activate_minifier', 'deactivate_optimizer', 'deactivate_cacher', 'deactivate_minifier')));
-			}
+			
+			// We want to strip to just the base page argument.
+			$to_remove = array_diff(array_keys($_GET), array('page'));
+			wp_safe_redirect(remove_query_arg($to_remove));
+			exit();
 		}
 	}
 	

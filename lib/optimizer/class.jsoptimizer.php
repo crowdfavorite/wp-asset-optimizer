@@ -18,6 +18,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 			add_action('admin_init', 'cf_js_optimizer::_adminInit');
 			add_action('admin_menu', 'cf_js_optimizer::_adminMenu');
 			add_action('admin_enqueue_scripts', 'cf_js_optimizer::_adminEnqueueScripts');
+			add_filter('cfao_plugin_row_actions', 'cf_js_optimizer::_rowActions', 10, 3);
 		}
 	}
 	
@@ -334,6 +335,13 @@ class cf_js_optimizer extends cf_asset_optimizer {
 		if ($pagenow == 'admin.php' && !empty($_GET['page']) && $_GET['page'] == 'cf-js-optimizer-settings') {
 			wp_enqueue_style('cfao-list-table');
 		}
+	}
+
+	public static function _rowActions($actions, $component_type, $item) {
+		if ($component_type == 'optimizer' && $item['class_name'] == self::class_name() && isset($item['active']) && $item['active']) {
+			$actions['settings'] = '<a href="' . add_query_arg(array('page' => 'cf-js-optimizer-settings'), remove_query_arg(array('page'))) . '">' . esc_html(__('Settings')) . '</a>';
+		}
+		return $actions;
 	}
 	
 	protected static function _getOptionName() {

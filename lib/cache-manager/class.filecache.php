@@ -33,12 +33,14 @@ class cfao_file_cache extends cfao_cache {
 		add_filter('cfao_cache_manager', 'cfao_file_cache::class_name');
 		if (is_admin()) {
 			//add_action('admin_menu', 'cfao_file_cache::_adminMenu');
+			add_filter('cfao_plugin_row_actions', 'cfao_file_cache::_rowActions', 10, 3);
+			add_action('cfao_admin_clear', 'cfao_file_cache::clear');
 		}
 	}
 
 	public static function listItem() {
 		return array(
-			'title' => __('CF Asset Optimizer Filesystem Cache'),
+			'title' => __('CF Filesystem Cache'),
 			'description' => __('This plugin caches to a directory in the local file system. It is the fastest cache storage and retrieval method, but requires write access to the filesystem to use.'),
 		);
 	}
@@ -71,11 +73,14 @@ class cfao_file_cache extends cfao_cache {
 			if (!self::_lock()) {
 				return false;
 			}
-			while ($filename = readdir(self::$_CACHE_BASE_DIR)) {
-				if (strpos($filename, '.') === 0) {
-					continue;
+			$dir = opendir(self::$_CACHE_BASE_DIR);
+			if ($dir) {
+				while ($filename = readdir($dir)) {
+					if (strpos($filename, '.') === 0) {
+						continue;
+					}
+					$succeeded &= unlink(self::$_CACHE_BASE_DIR . '/' . $filename);
 				}
-				$succeeded &= unlink($key);
 			}
 			self::_release();
 		}
@@ -87,6 +92,13 @@ class cfao_file_cache extends cfao_cache {
 			self::_release($key);
 		}
 		return $succeeded;
+	}
+	
+	public static function _rowActions($actions, $component_type, $item) {
+		if ($component_type == 'cacher' && $item['class_name'] == self::class_name() && isset($item['active']) && $item['active']) {
+			$actions['clear'] = '<a href="' . add_query_arg(array('cfao_action' => 'clear', 'cache' => $item['class_name'])) . '">' . esc_html(__('Clear Cache')) . '</a>';
+		}
+		return $actions;
 	}
 	
 	public static function _adminMenu() {
