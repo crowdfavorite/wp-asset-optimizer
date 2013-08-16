@@ -20,6 +20,7 @@ if (is_admin()) {
 include_once CFAO_PLUGIN_DIR . 'lib/cache-manager/class.cache.php';
 include_once CFAO_PLUGIN_DIR . 'lib/cache-manager/class.filecache.php';
 //include_once CFAO_PLUGIN_DIR . 'lib/cache-manager/class.dbcache.php';
+include_once CFAO_PLUGIN_DIR . 'lib/cache-manager/class.wpcache.php';
 
 include_once CFAO_PLUGIN_DIR . 'lib/optimizer/class.assetoptimizer.php';
 include_once CFAO_PLUGIN_DIR . 'lib/optimizer/class.cssoptimizer.php';

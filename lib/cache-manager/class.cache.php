@@ -39,8 +39,5 @@ class cfao_cache {
 		throw new Exception('Required function "set" not implemented');
 	}
 	
-	public static function clear($key = null) {
-		throw new Exception('Required function "clear" not implemented');
-	}
 }
 add_filter('cfao_cachers', 'cfao_cache::register');

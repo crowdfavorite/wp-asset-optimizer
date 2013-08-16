@@ -100,27 +100,10 @@ class cfao_file_cache extends cfao_cache {
 		}
 		return $actions;
 	}
-	
-	public static function _adminMenu() {
-		add_submenu_page(
-			'cf-asset-optimizer-settings',
-			__('CF Filesystem Cacher'),
-			__('Filesystem Cacher'),
-			'activate_plugins',
-			'cf-file-cacher-settings',
-			'cfao_file_cache::_adminPage'
-		);
-	}
-	
-	public static function _adminPage() {
-		?>
-		<h1><?php screen_icon(); echo esc_html(get_admin_page_title()); ?></h1>
-		<?php
-	}
 
 	protected static function _getKey($components, $cache_type = '') {
 		$base_key_string = '';
-		$supported_cache_types = apply_filters('cfao_file_cache_types', array('css', 'js'));
+		$supported_cache_types = apply_filters('cfao_cache_types', array('css', 'js'), 'file');
 		foreach ($components as $name=>$val) {
 			$base_key_string .= "$name $val ";
 		}
