@@ -40,8 +40,8 @@ class cfao_file_cache extends cfao_cache {
 
 	public static function listItem() {
 		return array(
-			'title' => __('CF Filesystem Cache'),
-			'description' => __('This plugin caches to a directory in the local file system. It is the fastest cache storage and retrieval method, but requires write access to the filesystem to use.'),
+			'title' => __('CF Filesystem Cache', 'cf-asset-optimizer'),
+			'description' => __('This plugin caches to a directory in the local file system. It is the fastest cache storage and retrieval method, but requires write access to the filesystem to use.', 'cf-asset-optimizer'),
 		);
 	}
 	
@@ -123,7 +123,7 @@ class cfao_file_cache extends cfao_cache {
 			$nonce[$nonce_field] = $nonce_val;
 		}
 		if ($component_type == 'cacher' && $item['class_name'] == self::class_name() && isset($item['active']) && $item['active']) {
-			$actions['clear'] = '<a href="' . add_query_arg(array_merge(array('cfao_action' => 'clear', 'cache' => $item['class_name']), $nonce)) . '">' . esc_html(__('Clear Cache')) . '</a>';
+			$actions['clear'] = '<a href="' . add_query_arg(array_merge(array('cfao_action' => 'clear', 'cache' => $item['class_name']), $nonce)) . '">' . esc_html__('Clear Cache', 'cf-asset-optimizer') . '</a>';
 		}
 		return $actions;
 	}

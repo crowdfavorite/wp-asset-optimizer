@@ -166,8 +166,8 @@ class cfao_admin {
 	
 	public static function _adminMenu() {
 		add_menu_page(
-			__('CF Asset Optimizer Settings'),
-			__('Asset Optimizer'),
+			__('CF Asset Optimizer Settings', 'cf-asset-optimizer'),
+			__('Asset Optimizer', 'cf-asset-optimizer'),
 			'activate_plugins',
 			'cf-asset-optimizer-settings',
 			'cfao_admin::_mainPage'
@@ -180,13 +180,13 @@ class cfao_admin {
 		?>
 		<h1><?php screen_icon(); echo esc_html(get_admin_page_title()); ?></h1>
 		<div class="cfao-general-settings-wrapper" style="clear:both; margin: 15px;">
-		<h2><?php echo esc_html_e('Asset Optimizers'); ?></h2>
-		<p><?php echo esc_html_e('Asset Optimizers modify the output of assets in order to improve the function of your website.'); ?></p>
-		<p><?php echo esc_html_e('Any number of asset optimizers may be active at a time, but only one should run per asset type.'); ?></p>
+		<h2><?php esc_html_e('Asset Optimizers', 'cf-asset-optimizer'); ?></h2>
+		<p><?php esc_html_e('Asset Optimizers modify the output of assets in order to improve the function of your website.', 'cf-asset-optimizer'); ?></p>
+		<p><?php esc_html_e('Any number of asset optimizers may be active at a time, but only one should run per asset type.', 'cf-asset-optimizer'); ?></p>
 		<?php
 		$list_table = new CFAO_Plugins_List_Table(array(
-			'singular' => __('optimizer'),
-			'plural' => __('optimizers'),
+			'singular' => 'optimizer',
+			'plural' => 'optimizers',
 			'items' => self::$_setting['plugins']['optimizers'],
 			'type' => 'optimizer',
 			'nonce' => array('cfao_nonce' => $cfao_nonce),
@@ -195,14 +195,14 @@ class cfao_admin {
 		$list_table->display();
 		
 		?>
-		<h2><?php echo esc_html_e('Cache Managers'); ?></h2>
-		<p><?php echo esc_html_e('Cache managers handle automated storage and retrieval of the output of the asset optimizers.'); ?></p>
-		<p><?php echo esc_html_e('This plugin will not generate optimized output without a cache manager selected.'); ?></p>
-		<p><?php echo esc_html_e('Only one cache manager may be active at any time. Activating one will deactivate the current active plugin.'); ?></p>
+		<h2><?php esc_html_e('Cache Managers', 'cf-asset-optimizer'); ?></h2>
+		<p><?php esc_html_e('Cache managers handle automated storage and retrieval of the output of the asset optimizers.', 'cf-asset-optimizer'); ?></p>
+		<p><?php esc_html_e('This plugin will not generate optimized output without a cache manager selected.', 'cf-asset-optimizer'); ?></p>
+		<p><?php esc_html_e('Only one cache manager may be active at any time. Activating one will deactivate the current active plugin.', 'cf-asset-optimizer'); ?></p>
 		<?php
 		$list_table = new CFAO_Plugins_List_Table(array(
-			'singular' => __('cacher'),
-			'plural' => __('cachers'),
+			'singular' => 'cacher',
+			'plural' => 'cachers',
 			'items' => self::$_setting['plugins']['cachers'],
 			'type' => 'cacher',
 			'nonce' => array('cfao_nonce' => $cfao_nonce),
@@ -211,13 +211,13 @@ class cfao_admin {
 		$list_table->display();
 
 		?>
-		<h2><?php echo esc_html_e('Minifiers'); ?></h2>
-		<p><?php echo esc_html_e('These plugins modify asset optimizer output in order to better compact it for transmission to clients.'); ?></p>
-		<p><?php echo esc_html_e('Any number of minifiers may be active at a time, but only one should run per asset type.'); ?></p>
+		<h2><?php esc_html_e('Minifiers', 'cf-asset-optimizer'); ?></h2>
+		<p><?php esc_html_e('These plugins modify asset optimizer output in order to better compact it for transmission to clients.', 'cf-asset-optimizer'); ?></p>
+		<p><?php esc_html_e('Any number of minifiers may be active at a time, but only one should run per asset type.', 'cf-asset-optimizer'); ?></p>
 		<?php
 		$list_table = new CFAO_Plugins_List_Table(array(
-			'singular' => __('minifier'),
-			'plural' => __('minifiers'),
+			'singular' => 'minifier',
+			'plural' => 'minifiers',
 			'items' => self::$_setting['plugins']['minifiers'],
 			'type' => 'minifier',
 			'nonce' => array('cfao_nonce' => $cfao_nonce),

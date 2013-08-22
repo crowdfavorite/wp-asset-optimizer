@@ -19,8 +19,8 @@ class cfao_css_minifier extends cfao_minifier {
 
 	public static function listItem() {
 		return array(
-			'title' => __('CF CSS Minfier'),
-			'description' => __('This plugin minifies the output of the CF CSS Optimizer prior to caching using the PHP Minify library.'),
+			'title' => __('CF CSS Minfier', 'cf-asset-optimizer'),
+			'description' => __('This plugin minifies the output of the CF CSS Optimizer prior to caching using the PHP Minify library.', 'cf-asset-optimizer'),
 		);
 	}
 	
@@ -80,18 +80,18 @@ class cfao_css_minifier extends cfao_minifier {
 	
 	public static function _updateOptimizerBulkActions($actions) {
 		return array_merge($actions, array(
-			'minify' => 'Minify',
-			'preserve' => 'Preserve',
+			'minify' => _x('Minify', 'css' 'cf-asset-optimizer'),
+			'preserve' => _x('Preserve', 'css', 'cf-asset-optimizer'),
 		));
 	}
 	
 	public static function _updateOptimizerRowActions($actions, $item, $nonce_field, $nonce_val) {
 		$additional_actions = array();
 		if (!isset($item['minify']) || $item['minify'] == true) {
-			$additional_actions['preserve'] = '<a href="'.esc_url(add_query_arg(array('cfao_action' => 'preserve', 'css' => array($item['handle']), $nonce_field => $nonce_val))).'">'.esc_html(__('Preserve')).'</a>';
+			$additional_actions['preserve'] = '<a href="'.esc_url(add_query_arg(array('cfao_action' => 'preserve', 'css' => array($item['handle']), $nonce_field => $nonce_val))).'">'.esc_html_x('Preserve', 'css', 'cf-asset-optimizer').'</a>';
 		}
 		else {
-			$additional_actions['minify'] = '<a href="'.esc_url(add_query_arg(array('cfao_action' => 'minify', 'css' => array($item['handle']), $nonce_field => $nonce_val))).'">'.esc_html(__('Minify')).'</a>';
+			$additional_actions['minify'] = '<a href="'.esc_url(add_query_arg(array('cfao_action' => 'minify', 'css' => array($item['handle']), $nonce_field => $nonce_val))).'">'.esc_html_x('Minify', 'css', 'cf-asset-optimizer').'</a>';
 		}
 		return array_merge($actions, $additional_actions);
 	}

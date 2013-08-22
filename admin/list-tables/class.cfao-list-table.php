@@ -66,7 +66,7 @@ class CFAO_Plugins_List_Table extends WP_List_Table {
 			'all' => sprintf(
 				'<span class="current">%s</span>',
 				sprintf(
-					_nx('All <span class="count">(%d)</span>', 'All <span class="count">(%d)</span>', $item_count, $this->_component_type),
+					_nx('All <span class="count">(%d)</span>', 'All <span class="count">(%d)</span>', $item_count, $this->_component_type, 'cf-asset-optimizer'),
 					number_format_i18n($item_count)
 				)
 			),
@@ -102,10 +102,10 @@ class CFAO_Plugins_List_Table extends WP_List_Table {
 		echo "<tr id=\"$id\" class=\"$class\">";
 		$actions = array();
 		if (!$item['active']) {
-			$actions['enable'] = '<a href="' . esc_url(add_query_arg(array_merge(array('cfao_action' => 'activate', $this->_component_type => array($item['class_name'])), $this->_nonce))) . '">Enable</a>';
+			$actions['enable'] = '<a href="' . esc_url(add_query_arg(array_merge(array('cfao_action' => 'activate', $this->_component_type => array($item['class_name'])), $this->_nonce))) . '">' . esc_html_x('Enable', $this->_component_type, 'cf-asset-optimizer') . '</a>';
 		}
 		else {
-			$actions['disable'] = '<a href="' . esc_url(add_query_arg(array_merge(array('cfao_action' => 'deactivate', $this->_component_type => array($item['class_name'])), $this->_nonce))) . '">Disable</a>';
+			$actions['disable'] = '<a href="' . esc_url(add_query_arg(array_merge(array('cfao_action' => 'deactivate', $this->_component_type => array($item['class_name'])), $this->_nonce))) . '">' . esc_html_x('Disable', $this->_component_type, 'cf-asset-optimizer') . '</a>';
 		}
 		$nonce_field = array_keys($this->_nonce);
 		$nonce_val;

@@ -12,6 +12,8 @@ define('CFAO_VERSION', '2.0a');
 
 define('CFAO_PLUGIN_DIR', dirname(__file__).'/');
 
+load_plugin_textdomain('cf-asset-optimizer');
+
 if (is_admin()) {
 	// Not yet implemented admin interface
 	include_once CFAO_PLUGIN_DIR . 'admin/admin.php';

@@ -6,6 +6,9 @@
 - Supports CSS with media types by breaking them into separate requests.
 - Supports more extension regarding caching / minifying / concatenating.
 - Supports bulk actions on JS and CSS optimizers
+- Added WP Cache integration
+- Added hooks to file cache interface to allow adding behaviors for multiple-end-server configurations or external cache clearing.
+- Added nonce security to admin screens where appropriate.
 
 ## 1.2
 - Updated to split header/footer scripts into separate files.

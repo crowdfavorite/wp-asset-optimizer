@@ -37,8 +37,8 @@ class cfao_wp_cache extends cfao_cache {
 
 	public static function listItem() {
 		return array(
-			'title' => __('CF WP Cache Integration'),
-			'description' => __('This plugin integrates with existing wp_cache functionality provided by other caching plugins.'),
+			'title' => __('CF WP Cache Integration', 'cf-asset-optimizer'),
+			'description' => __('This plugin integrates with existing wp_cache functionality provided by other caching plugins.', 'cf-asset-optimizer'),
 		);
 	}
 	

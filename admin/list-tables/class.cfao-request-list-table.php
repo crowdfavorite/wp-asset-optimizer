@@ -25,12 +25,6 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 		else {
 			$this->_support_bulk = false;
 		}
-		if (!empty($args['item_header'])) {
-			$this->_item_header = $args['item_header'];
-		}
-		else {
-			$this->_item_header = __('Item');
-		}
 	}
 	
 	function ajax_user_can() {
@@ -42,9 +36,9 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 		$section = '-header';
 		if (!isset($this->_actions)) {
 			$actions = array(
-				'enable' => __('Enable'),
-				'disable' => __('Disable'),
-				'forget' => __('Forget'),
+				'enable' => _x('Enable', $this->_component_type, 'cf-asset-optimizer'),
+				'disable' => _x('Disable', $this->_component_type, 'cf-asset-optimizer'),
+				'forget' => _x('Forget', $this->_component_type, 'cf-asset-optimizer'),
 			);
 			$this->_actions = apply_filters('cfao_'.$this->_component_type.'_list_bulk_actions', $actions);
 		}
@@ -59,7 +53,7 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 			echo '<option value="' . esc_attr($action) . '">' . esc_html($text) . '</option>';
 		}
 		echo '</select>';
-		submit_button( __( 'Apply' ), 'action', 'submit'.$section, false, array( 'id' => "submit$section" ));
+		submit_button( _x('Apply', $this->_component_type, 'cf-asset-optimizer'), 'action', 'submit'.$section, false, array( 'id' => "submit$section" ));
 		echo "\n";
 	}
 	
@@ -90,7 +84,7 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 			'all' => sprintf(
 				'<span class="current">%s</span>',
 				sprintf(
-					_nx('All <span class="count">(%d)</span>', 'All <span class="count">(%d)</span>', $item_count, $this->_component_type),
+					_nx('All <span class="count">(%d)</span>', 'All <span class="count">(%d)</span>', $item_count, $this->_component_type, 'cf-asset-optimizer'),
 					number_format_i18n($item_count)
 				)
 			),
@@ -102,8 +96,8 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 		if ($this->_support_bulk) {
 			$columns['cb'] = '<input type="checkbox" name="" class="select-all" />';
 		}
-		$columns['handle'] = esc_html(__('Handle'));
-		$columns['source'] = esc_html(__('Source'));
+		$columns['handle'] = esc_html(_x('Handle', $this->_component_type, 'cf-asset-optimizer'));
+		$columns['source'] = esc_html(_x('Source', $this->_component_type, 'cf-asset-optimizer'));
 		return $columns;
 	}
 	
@@ -131,20 +125,20 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 				'cfao_action' => 'enable',
 				$this->_component_type => array($item['handle']),
 				'cfao_nonce_'.$this->_component_type => $nonce,
-			))).'">'.esc_html(__('Enable')).'</a>';
+			))).'">' . esc_html_x('Enable', $this->_component_type, 'cf-asset-optimizer') . '</a>';
 		}
 		else {
 			$actions['disable'] = '<a href="'.esc_url(add_query_arg(array(
 				'cfao_action' => 'disable',
 				'cfao_nonce_'.$this->_component_type => $nonce,
 				$this->_component_type => array($item['handle']),
-			))).'">'.esc_html(__('Disable')).'</a>';
+			))).'">' . esc_html_x('Disable', $this->_component_type, 'cf-asset-optimizer') . '</a>';
 		}
 		$actions['reset'] = '<a href="'.esc_url(add_query_arg(array(
 				'cfao_action' => 'forget',
 				'cfao_nonce_'.$this->_component_type => $nonce,
 				$this->_component_type => array($item['handle'])
-			))).'">'.esc_html(__('Forget')).'</a>';
+			))).'">' . esc_html('Forget', $this->_component_type, 'cf-asset-optimizer') . '</a>';
 		$actions = apply_filters('cfao_' . $this->_component_type . '_list_row_actions', $actions, $item, 'cfao_nonce_'.$this->_component_type, $nonce);
 		foreach ($this->get_columns() as $key => $text) {
 			switch ($key) {

@@ -28,8 +28,8 @@ class cf_css_optimizer extends cf_asset_optimizer {
 
 	public static function listItem() {
 		return array(
-			'title' => __('CF CSS Optimizer'),
-			'description' => __('This plugin modifies the output of enqueued styles to reduce the number of requests, and has hooks to serve minified content with asset minifiers. It respects media types, dependencies, and after blocks on scripts.'),
+			'title' => __('CF CSS Optimizer', 'cf-asset-optimizer'),
+			'description' => __('This plugin modifies the output of enqueued styles to reduce the number of requests, and has hooks to serve minified content with asset minifiers. It respects media types, dependencies, and after blocks on styles.', 'cf-asset-optimizer'),
 		);
 	}
 
@@ -49,7 +49,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 			$css_settings = get_option($option_name);
 			$content_header =
 				"/**\n" .
-				" * Included Styles\n" .
+				' * ' . __('Included Styles', 'cf-asset-optimizer') . "\n" .
 				" *\n";
 			foreach ($styles as $handle => $url) {
 				if (strpos($url, '//') === 0) {
@@ -64,7 +64,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 				);
 				if (is_wp_error($result)) {
 					$css_settings[$handle]['enabled'] = false;
-					$css_settings[$handle]['disable_reason'] = sprintf(__('WP Error: %s'), $result->get_error_message());
+					$css_settings[$handle]['disable_reason'] = sprintf(__('WP Error: %s', 'cf-asset-optimizer'), $result->get_error_message());
 					unset($styles[$handle]);
 					$changed_settings = true;
 					continue;
@@ -72,14 +72,14 @@ class cf_css_optimizer extends cf_asset_optimizer {
 				else if (empty($result['response'])) {
 					die('HTTP ERROR');
 					$css_settings[$handle]['enabled'] = false;
-					$css_settings[$handle]['disable_reason'] = sprintf(__('Empty response requesting %s'), $url);
+					$css_settings[$handle]['disable_reason'] = sprintf(__('Empty response requesting %s', 'cf-asset-optimizer'), $url);
 					$changed_settings = true;
 					unset($styles[$handle]);
 					continue;
 				}
 				else if ($result['response']['code'] < 200 || $result['response']['code'] >= 400) {
 					$css_settings[$handle]['enabled'] = false;
-					$css_settings[$handle]['disable_reason'] = sprintf(__('HTTP Error %d: %s'), $result['response']['code'], $result['response']['message']);
+					$css_settings[$handle]['disable_reason'] = sprintf(__('HTTP Error %d: %s', 'cf-asset-optimizer'), $result['response']['code'], $result['response']['message']);
 					$changed_settings = true;
 					unset($styles[$handle]);
 					continue;
@@ -193,7 +193,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 					'enabled' => self::_isLocal($url),
 				);
 				if (!$css_settings[$handle]['enabled']) {
-					$css_settings[$handle]['disable_reason'] = __('Disabled as 3rd-party offsite stylesheet.');
+					$css_settings[$handle]['disable_reason'] = __('Disabled as 3rd-party offsite stylesheet.', 'cf-asset-optimizer');
 				}
 				$save_settings = true;
 			}
@@ -214,19 +214,19 @@ class cf_css_optimizer extends cf_asset_optimizer {
 				// Double-check that I'm not conditional.
 				if (!empty($registered->extra) && !empty($registered->extra['conditional'])) {
 					$css_settings[$handle]['enabled'] = false;
-					$css_settings[$handle]['disable_reason'] = __('Disabled due to conditional requirement');
+					$css_settings[$handle]['disable_reason'] = __('Disabled due to conditional requirement', 'cf-asset-optimizer');
 					$save_settings = true;
 				}
 				// Double check that I'm not rtl (TODO include rtl later)
 				else if (!empty($registered->extra) && !empty($registered->extra['rtl'])) {
 					$css_settings[$handle]['enabled'] = false;
-					$css_settings[$handle]['disable_reason'] = __('Disabled because rtl files not currently supported');
+					$css_settings[$handle]['disable_reason'] = __('Disabled because rtl files not currently supported', 'cf-asset-optimizer');
 					$save_settings = true;
 				}
 				// Disable me if I'm dependent on disabled styles
 				else if (!empty($disabled_parents)) {
 					$css_settings[$handle]['enabled'] = false;
-					$css_settings[$handle]['disable_reason'] = sprintf(__('Disabled due to disabled parent styles: %s'), implode(', ', $disabled_parents));
+					$css_settings[$handle]['disable_reason'] = sprintf(__('Disabled due to disabled parent styles: %s', 'cf-asset-optimizer'), implode(', ', $disabled_parents));
 					$save_settings = true;
 				}
 				else {
@@ -306,7 +306,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 						if (isset($setting[$handle])) {
 							$setting[$handle]['enabled'] = false;
 							$user = wp_get_current_user();
-							$setting[$handle]['disable_reason'] = sprintf(__('Manually disabled by %s'), $user->display_name);
+							$setting[$handle]['disable_reason'] = sprintf(__('Manually disabled by %s', 'cf-asset-optimizer'), $user->display_name);
 							$update_setting = true;
 						}
 					}
@@ -336,8 +336,8 @@ class cf_css_optimizer extends cf_asset_optimizer {
 	public static function _adminMenu() {
 		add_submenu_page(
 			'cf-asset-optimizer-settings',
-			__('CF CSS Optimizer'),
-			__('CSS Optimizer'),
+			__('CF CSS Optimizer', 'cf-asset-optimizer'),
+			__('CSS Optimizer', 'cf-asset-optimizer'),
 			'activate_plugins',
 			'cf-css-optimizer-settings',
 			'cf_css_optimizer::_adminPage'
@@ -349,18 +349,17 @@ class cf_css_optimizer extends cf_asset_optimizer {
 		?>
 		<h1><?php screen_icon(); echo esc_html(get_admin_page_title()); ?></h1>
 		<div class="cf_css_optimizer_settings" style="clear:both;margin:15px;">
-		<p><?php esc_html_e('The CSS Asset Optimizer will concatenate all enabled styles below into a single request per media type declaration to reduce the number of requests used to generate a page, improving page load time and reducing server load.'); ?></p>
+		<p><?php esc_html_e('The CSS Asset Optimizer will concatenate all enabled styles below into a single request per media type declaration to reduce the number of requests used to generate a page, improving page load time and reducing server load.', 'cf-asset-optimizer'); ?></p>
 		<?php
 		include_once CFAO_PLUGIN_DIR . 'admin/list-tables/class.cfao-request-list-table.php';
 		?>
 		<form action="" method="POST">
 		<?php
 		$list_table = new CFAO_Requests_List_Table(array(
-			'singular' => __('stylesheet'),
-			'plural' => __('stylesheets'),
+			'singular' => 'stylesheet',
+			'plural' => 'stylesheets',
 			'items' => $settings,
 			'type' => 'css',
-			'item_header' => __('Stylesheet'),
 			'support_bulk' => true,
 		));
 		$list_table->prepare_items();
@@ -380,7 +379,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 	
 	public static function _rowActions($actions, $component_type, $item) {
 		if ($component_type == 'optimizer' && $item['class_name'] == self::class_name() && isset($item['active']) && $item['active']) {
-			$actions['settings'] = '<a href="' . add_query_arg(array('page' => 'cf-css-optimizer-settings'), remove_query_arg(array('page'))) . '">' . esc_html(__('Settings')) . '</a>';
+			$actions['settings'] = '<a href="' . add_query_arg(array('page' => 'cf-css-optimizer-settings'), remove_query_arg(array('page'))) . '">' . esc_html__('Settings', 'cf-asset-optimizer') . '</a>';
 		}
 		return $actions;
 	}

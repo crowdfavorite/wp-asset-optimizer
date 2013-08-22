@@ -29,8 +29,8 @@ class cf_js_optimizer extends cf_asset_optimizer {
 
 	public static function listItem() {
 		return array(
-			'title' => __('CF JavaScript Optimizer'),
-			'description' => __('This plugin modifies the output of enqueued scripts to reduce the number of requests, and has hooks to serve minified content with asset minifiers. It respects dependencies and outputs localization properly.'),
+			'title' => __('CF JavaScript Optimizer', 'cf-asset-optimizer'),
+			'description' => __('This plugin modifies the output of enqueued scripts to reduce the number of requests, and has hooks to serve minified content with asset minifiers. It respects dependencies and outputs localization properly.', 'cf-asset-optimizer'),
 		);
 	}
 
@@ -50,7 +50,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 			$js_settings = get_option($option_name);
 			$content_header =
 				"/**\n" .
-				" * Included Scripts\n" .
+				' * ' . __('Included Scripts', 'cf-asset-optimizer') . "\n" .
 				" *\n";
 			foreach ($scripts as $handle => $url) {
 				if (empty($url)) {
@@ -65,7 +65,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 				);
 				if (is_wp_error($result)) {
 					$js_settings[$handle]['enabled'] = false;
-					$js_settings[$handle]['disable_reason'] = sprintf(__('WP Error: %s'), $result->get_error_message());
+					$js_settings[$handle]['disable_reason'] = sprintf(__('WP Error: %s', 'cf-asset-optimizer'), $result->get_error_message());
 					$changed_settings = true;
 					unset($scripts[$handle]);
 					continue;
@@ -73,14 +73,14 @@ class cf_js_optimizer extends cf_asset_optimizer {
 				else if (empty($result['response'])) {
 					die('HTTP ERROR');
 					$js_settings[$handle]['enabled'] = false;
-					$js_settings[$handle]['disable_reason'] = sprintf(__('Empty response requesting %s'), $url);
+					$js_settings[$handle]['disable_reason'] = sprintf(__('Empty response requesting %s', 'cf-asset-optimizer'), $url);
 					$changed_settings = true;
 					unset($scripts[$handle]);
 					continue;
 				}
 				else if ($result['response']['code'] < 200 || $result['response']['code'] >= 400) {
 					$js_settings[$handle]['enabled'] = false;
-					$js_settings[$handle]['disable_reason'] = sprintf(__('HTTP Error %d: %s'), $result['response']['code'], $result['response']['message']);
+					$js_settings[$handle]['disable_reason'] = sprintf(__('HTTP Error %d: %s', 'cf-asset-optimizer'), $result['response']['code'], $result['response']['message']);
 					$changed_settings = true;
 					unset($scripts[$handle]);
 					continue;
@@ -128,7 +128,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 				// This is a placeholder. Treat it as always concatenated.
 				if (empty($option[$handle])) {
 					$option[$handle] = array(
-						'src' => sprintf(__('Placeholder registration for script combination: (%s)'), implode(', ', $registered->deps)),
+						'src' => sprintf(__('Placeholder registration for script combination: (%s)', 'cf-asset-optimizer'), implode(', ', $registered->deps)),
 						'enabled' => true,
 					);
 					$update_settings = true;
@@ -153,7 +153,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 					'enabled' => self::_isLocal($normalized_url),
 				);
 				if (!$option[$handle]['enabled']) {
-					$option[$handle]['disable_reason'] = __('Disabled as 3rd-party offsite script.');
+					$option[$handle]['disable_reason'] = __('Disabled as 3rd-party offsite script.', 'cf-asset-optimizer');
 				}
 				$update_settings = true;
 			}
@@ -173,7 +173,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 				if (!empty($disabled_deps)) {
 					// Can't be enabled because it is dependent on a disabled script.
 					$option[$handle]['enabled'] = false;
-					$option[$handle]['disable_reason'] = sprintf(__('Disabled as dependent on disabled scripts (%s)'), implode(',', $disabled_deps));
+					$option[$handle]['disable_reason'] = sprintf(__('Disabled as dependent on disabled scripts (%s)', 'cf-asset-optimizer'), implode(',', $disabled_deps));
 					$update_settings = true;
 				}
 				else {
@@ -267,7 +267,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 						if (isset($setting[$handle])) {
 							$setting[$handle]['enabled'] = false;
 							$user = wp_get_current_user();
-							$setting[$handle]['disable_reason'] = sprintf(__('Manually disabled by %s'), $user->display_name);
+							$setting[$handle]['disable_reason'] = sprintf(__('Manually disabled by %s', 'cf-asset-optimizer'), $user->display_name);
 							$update_setting = true;
 						}
 					}
@@ -310,18 +310,17 @@ class cf_js_optimizer extends cf_asset_optimizer {
 		?>
 		<h1><?php screen_icon(); echo esc_html(get_admin_page_title()); ?></h1>
 		<div class="cf_js_optimizer_settings" style="clear:both;margin:15px;">
-		<p><?php esc_html_e('The JavaScript Asset Optimizer will concatenate all enabled scripts below into a single request (or two if you\'ve got separate header and footer scripts) to reduce the number of requests used to generate a page, improving page load time and reducing server load.'); ?></p>
+		<p><?php esc_html_e('The JavaScript Asset Optimizer will concatenate all enabled scripts below into a single request (or two if you\'ve got separate header and footer scripts) to reduce the number of requests used to generate a page, improving page load time and reducing server load.', 'cf-asset-optimizer'); ?></p>
 		<?php
 		include_once CFAO_PLUGIN_DIR . 'admin/list-tables/class.cfao-request-list-table.php';
 		?>
 		<form action="" method="POST">
 		<?php
 		$list_table = new CFAO_Requests_List_Table(array(
-			'singular' => __('script'),
-			'plural' => __('scripts'),
+			'singular' => 'script',
+			'plural' => 'scripts',
 			'items' => $settings,
 			'type' => 'js',
-			'item_header' => 'Script',
 			'support_bulk' => true,
 		));
 		$list_table->prepare_items();
@@ -341,7 +340,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 
 	public static function _rowActions($actions, $component_type, $item) {
 		if ($component_type == 'optimizer' && $item['class_name'] == self::class_name() && isset($item['active']) && $item['active']) {
-			$actions['settings'] = '<a href="' . add_query_arg(array('page' => 'cf-js-optimizer-settings'), remove_query_arg(array('page'))) . '">' . esc_html(__('Settings')) . '</a>';
+			$actions['settings'] = '<a href="' . add_query_arg(array('page' => 'cf-js-optimizer-settings'), remove_query_arg(array('page'))) . '">' . esc_html__('Settings', 'cf-asset-optimizer') . '</a>';
 		}
 		return $actions;
 	}
