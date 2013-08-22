@@ -9,7 +9,6 @@
 class cfao_database_cache extends cfao_cache {
 	protected $_POST_TYPE = '_cfao_database_cache';
 	protected $_CACHE_TYPE_TAXONOMY = '_cfao_database_cachetype';
-	protected static $_CONTENTS_META_KEY = '_cfao_database_cache_contents';
 	
 	public static function class_name() {
 		return 'cfao_database_cache';
@@ -24,7 +23,11 @@ class cfao_database_cache extends cfao_cache {
 	}
 	
 	public static function activate() {
-		
+		add_filter('cfao_cache_manager', 'cfao_wp_cache::class_name');
+		add_filter('init', 'cfao_wp_cache::_init');
+		add_filter('parse_query', 'cfao_wp_cache::_parse_query', 100);
+		self::$_rewrite_base = apply_filters('cfao_db_cache_rewrite_base', self::$_rewrite_base);
+		return true;
 	}
 
 	public static function listItem() {

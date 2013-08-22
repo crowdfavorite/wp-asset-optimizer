@@ -102,7 +102,8 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 		if ($this->_support_bulk) {
 			$columns['cb'] = '<input type="checkbox" name="" class="select-all" />';
 		}
-		$columns['item_details'] = esc_html($this->_item_header);
+		$columns['handle'] = esc_html(__('Handle'));
+		$columns['source'] = esc_html(__('Source'));
 		return $columns;
 	}
 	
@@ -115,28 +116,36 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 	}
 	
 	function get_table_classes() {
-		return array('widefat', 'fixed', strtolower($this->_component_type . '_list_table'));
+		return array('widefat', 'fixed', strtolower($this->_component_type . '_list_table'), 'cfao-request-list-table');
 	}
 	
 	function single_row($item) {
 		$id = sanitize_title($item['handle']) . '-row';
 		$class = ($item['enabled']) ? 'active': 'inactive';
+		$cols = $this->get_columns();
 		echo "<tr id=\"$id\" class=\"$class\">";
 		$actions = array();
+		$nonce = wp_create_nonce('cfao_nonce_'.$this->_component_type);
 		if (!$item['enabled']) {
 			$actions['enable'] = '<a href="'.esc_url(add_query_arg(array(
 				'cfao_action' => 'enable',
 				$this->_component_type => array($item['handle']),
+				'cfao_nonce_'.$this->_component_type => $nonce,
 			))).'">'.esc_html(__('Enable')).'</a>';
 		}
 		else {
 			$actions['disable'] = '<a href="'.esc_url(add_query_arg(array(
 				'cfao_action' => 'disable',
+				'cfao_nonce_'.$this->_component_type => $nonce,
 				$this->_component_type => array($item['handle']),
 			))).'">'.esc_html(__('Disable')).'</a>';
 		}
-		$actions['reset'] = '<a href="'.esc_url(add_query_arg(array('cfao_action' => 'forget', $this->_component_type => array($item['handle'])))).'">'.esc_html(__('Forget')).'</a>';
-		$actions = apply_filters('cfao_' . $this->_component_type . '_list_row_actions', $actions, $item);
+		$actions['reset'] = '<a href="'.esc_url(add_query_arg(array(
+				'cfao_action' => 'forget',
+				'cfao_nonce_'.$this->_component_type => $nonce,
+				$this->_component_type => array($item['handle'])
+			))).'">'.esc_html(__('Forget')).'</a>';
+		$actions = apply_filters('cfao_' . $this->_component_type . '_list_row_actions', $actions, $item, 'cfao_nonce_'.$this->_component_type, $nonce);
 		foreach ($this->get_columns() as $key => $text) {
 			switch ($key) {
 				case 'cb':
@@ -144,14 +153,15 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 					echo '<input type="checkbox" name="' . esc_attr($this->_component_type) . '[]" value="' . esc_attr($item['handle']) . '"/>';
 					echo '</th>';
 					break;
-				case 'item_details':
-					echo '<td class="' . esc_attr($key.'-col') . '">';
-					if (!$item['enabled'] && !empty($item['disable_reason'])) {
-						echo '<div class="updated disabled-reason">' . esc_html($item['disable_reason']) . '</div>';
-					}
-					echo '<div class="item-title">' . esc_html($item['handle']) . '</div>';
-					echo '<p class="item-description">' . esc_html($item['src']) . '</p>';
-					echo $this->row_actions($actions, true);
+				case 'handle':
+					echo '<td class="' . esc_attr($key . '-col') . '">';
+					echo '<div class="handle">' . esc_html($item['handle']) . '</div>';
+					echo '<div class="actions">' . $this->row_actions($actions, true) . '</div>';
+					echo '</td>';
+					break;
+				case 'source':
+					echo '<td class="' . esc_attr($key . '-col') . '">';
+					echo '<div class="source">' . esc_html($item['src']) . '</div>';
 					echo '</td>';
 					break;
 				default:
@@ -159,6 +169,9 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 			}
 		}
 		echo '</tr>';
+		if (!$item['enabled']) {
+			echo '<tr class="disabled-reason"><td colspan="' . count($cols) . '" class="disabled-reason"><div class="updated">' . esc_html($item['disable_reason']) . '</div></td></tr>';
+		}
 		do_action('cfao_request_list_table_after_' . $this->_component_type . '_row', $item);
 	}
 	

@@ -7,6 +7,7 @@
  */
 
 class cf_js_optimizer extends cf_asset_optimizer {
+	private $_nonce_data = array();
 	
 	public static function activate() {
 		if (!is_admin()) {
@@ -240,6 +241,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 			&& !empty($_REQUEST['js'])
 			&& is_array($_REQUEST['js'])
 		) {
+			check_admin_referer('cfao_nonce_js', 'cfao_nonce_js');
 			$setting = get_option(self::_getOptionName(), array());
 			$update_setting = false;
 			$action = isset($_GET['cfao_action']) ? $_GET['cfao_action'] : '';

@@ -31,7 +31,7 @@ class cfao_js_minifier {
 		}
 		else {
 			add_action('cfao_js_list_bulk_actions', 'cfao_js_minifier::_updateOptimizerBulkActions');
-			add_action('cfao_js_list_row_actions', 'cfao_js_minifier::_updateOptimizerRowActions', 10, 2);
+			add_action('cfao_js_list_row_actions', 'cfao_js_minifier::_updateOptimizerRowActions', 10, 4);
 			add_action('cfao_admin_js_minify', 'cfao_js_minifier::_setMinify', 10, 2);
 			add_action('cfao_admin_js_preserve', 'cfao_js_minifier::_setPreserve', 10, 2);
 		}
@@ -86,13 +86,13 @@ class cfao_js_minifier {
 		));
 	}
 
-	public static function _updateOptimizerRowActions($actions, $item) {
+	public static function _updateOptimizerRowActions($actions, $item, $nonce_field, $nonce_val) {
 		$additional_actions = array();
 		if (!isset($item['minify']) || $item['minify'] == false) {
-			$additional_actions['minify'] = '<a href="'.esc_url(add_query_arg(array('cfao_action' => 'minify', 'js' => array($item['handle'])))).'">'.esc_html(__('Minify')).'</a>';
+			$additional_actions['minify'] = '<a href="'.esc_url(add_query_arg(array('cfao_action' => 'minify', 'js' => array($item['handle']), $nonce_field => $nonce_val))).'">'.esc_html(__('Minify')).'</a>';
 		}
 		else {
-			$additional_actions['preserve'] = '<a href="'.esc_url(add_query_arg(array('cfao_action' => 'preserve', 'js' => array($item['handle'])))).'">'.esc_html(__('Preserve')).'</a>';
+			$additional_actions['preserve'] = '<a href="'.esc_url(add_query_arg(array('cfao_action' => 'preserve', 'js' => array($item['handle']), $nonce_field => $nonce_val))).'">'.esc_html(__('Preserve')).'</a>';
 		}
 		return array_merge($actions, $additional_actions);
 	}

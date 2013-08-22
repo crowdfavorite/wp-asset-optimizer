@@ -33,7 +33,7 @@ class cfao_file_cache extends cfao_cache {
 		add_filter('cfao_cache_manager', 'cfao_file_cache::class_name');
 		if (is_admin()) {
 			//add_action('admin_menu', 'cfao_file_cache::_adminMenu');
-			add_filter('cfao_plugin_row_actions', 'cfao_file_cache::_rowActions', 10, 3);
+			add_filter('cfao_plugin_row_actions', 'cfao_file_cache::_rowActions', 10, 5);
 			add_action('cfao_admin_clear', 'cfao_file_cache::clear');
 		}
 	}
@@ -73,14 +73,28 @@ class cfao_file_cache extends cfao_cache {
 			if (!self::_lock()) {
 				return false;
 			}
+			$allow_clear = apply_filters('cfao_file_cache_allow_clear', true, $key);
+			if (!$allow_clear) {
+				error_log(__('File Cache clear blocked by filter', 'cf-asset-optimizer'));
+				return false;
+			}
 			$dir = opendir(self::$_CACHE_BASE_DIR);
+			$clear_count = 0;
 			if ($dir) {
 				while ($filename = readdir($dir)) {
 					if (strpos($filename, '.') === 0) {
 						continue;
 					}
-					$succeeded &= unlink(self::$_CACHE_BASE_DIR . '/' . $filename);
+					$this_succeeded = unlink(self::$_CACHE_BASE_DIR . '/' . $filename);
+					if ($this_succeeded) {
+						do_action('cfao_file_cache_deleted_file', self::$_CACHE_BASE_DIR . '/' . $filename);
+						++$clear_count;
+					}
+					$succeeded &= $this_succeeded;
 				}
+			}
+			if ($clear_count > 0) {
+				do_action('cfao_file_cache_cleared', $key);
 			}
 			self::_release();
 		}
@@ -88,15 +102,28 @@ class cfao_file_cache extends cfao_cache {
 			if (!self::_lock($key)) {
 				return false;
 			}
+			$allow_clear = apply_filters('cfao_file_cache_allow_clear', true, $key);
+			if (!$allow_clear) {
+				error_log(__('File Cache clear blocked by filter', 'cf-asset-optimizer'));
+				return false;
+			}
 			$succeeded = unlink($key);
+			if ($succeeded) {
+				do_action('cfao_file_cache_deleted_file', self::$_CACHE_BASE_DIR . '/' . $filename);
+				do_action('cfao_file_cache_cleared', $key);
+			}
 			self::_release($key);
 		}
 		return $succeeded;
 	}
 	
-	public static function _rowActions($actions, $component_type, $item) {
+	public static function _rowActions($actions, $component_type, $item, $nonce_field, $nonce_val) {
+		$nonce = array();
+		if (!empty($nonce_field)) {
+			$nonce[$nonce_field] = $nonce_val;
+		}
 		if ($component_type == 'cacher' && $item['class_name'] == self::class_name() && isset($item['active']) && $item['active']) {
-			$actions['clear'] = '<a href="' . add_query_arg(array('cfao_action' => 'clear', 'cache' => $item['class_name'])) . '">' . esc_html(__('Clear Cache')) . '</a>';
+			$actions['clear'] = '<a href="' . add_query_arg(array_merge(array('cfao_action' => 'clear', 'cache' => $item['class_name']), $nonce)) . '">' . esc_html(__('Clear Cache')) . '</a>';
 		}
 		return $actions;
 	}

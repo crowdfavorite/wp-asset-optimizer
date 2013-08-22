@@ -83,6 +83,7 @@ class cfao_admin {
 	public static function _adminInit() {
 		global $pagenow;
 		if ($pagenow == 'admin.php' && isset($_GET['page']) && $_GET['page'] == 'cf-asset-optimizer-settings' && !empty($_REQUEST['cfao_action'])) {
+			check_admin_referer('cfao_nonce', 'cfao_nonce');
 			$update_setting = false;
 			switch ($_REQUEST['cfao_action']) {
 				case 'activate':
@@ -174,6 +175,7 @@ class cfao_admin {
 	}
 	
 	public static function _mainPage() {
+		$cfao_nonce = wp_create_nonce('cfao_nonce');
 		include CFAO_PLUGIN_DIR . 'admin/list-tables/class.cfao-list-table.php';
 		?>
 		<h1><?php screen_icon(); echo esc_html(get_admin_page_title()); ?></h1>
@@ -187,6 +189,7 @@ class cfao_admin {
 			'plural' => __('optimizers'),
 			'items' => self::$_setting['plugins']['optimizers'],
 			'type' => 'optimizer',
+			'nonce' => array('cfao_nonce' => $cfao_nonce),
 		));
 		$list_table->prepare_items();
 		$list_table->display();
@@ -202,6 +205,7 @@ class cfao_admin {
 			'plural' => __('cachers'),
 			'items' => self::$_setting['plugins']['cachers'],
 			'type' => 'cacher',
+			'nonce' => array('cfao_nonce' => $cfao_nonce),
 		));
 		$list_table->prepare_items();
 		$list_table->display();
@@ -216,6 +220,7 @@ class cfao_admin {
 			'plural' => __('minifiers'),
 			'items' => self::$_setting['plugins']['minifiers'],
 			'type' => 'minifier',
+			'nonce' => array('cfao_nonce' => $cfao_nonce),
 		));
 		$list_table->prepare_items();
 		$list_table->display();

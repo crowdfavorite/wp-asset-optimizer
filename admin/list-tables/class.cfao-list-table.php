@@ -22,6 +22,15 @@ class CFAO_Plugins_List_Table extends WP_List_Table {
 		if (!empty($args['support_bulk'])) {
 			$this->_support_bulk = (bool) $args['support_bulk'];
 		}
+		if (!empty($args['nonce'])) {
+			if (!is_array($args['nonce'])) {
+				$args['nonce'] = array('_nonce' => $args['nonce']);
+			}
+			$this->_nonce = $args['nonce'];
+		}
+		else {
+			$this->_nonce = array();
+		}
 	}
 	
 	function ajax_user_can() {
@@ -80,7 +89,7 @@ class CFAO_Plugins_List_Table extends WP_List_Table {
 	}
 	
 	function get_table_classes() {
-		return array('widefat', 'fixed', strtolower($this->_component_type . '_list_table'));
+		return array('widefat', 'fixed', strtolower($this->_component_type . '_list_table'), 'cfao-list-table');
 	}
 	
 	function display_tablenav() {
@@ -93,12 +102,21 @@ class CFAO_Plugins_List_Table extends WP_List_Table {
 		echo "<tr id=\"$id\" class=\"$class\">";
 		$actions = array();
 		if (!$item['active']) {
-			$actions['enable'] = '<a href="' . esc_url(add_query_arg(array('cfao_action' => 'activate', $this->_component_type => array($item['class_name'])))) . '">Enable</a>';
+			$actions['enable'] = '<a href="' . esc_url(add_query_arg(array_merge(array('cfao_action' => 'activate', $this->_component_type => array($item['class_name'])), $this->_nonce))) . '">Enable</a>';
 		}
 		else {
-			$actions['disable'] = '<a href="' . esc_url(add_query_arg(array('cfao_action' => 'deactivate', $this->_component_type => array($item['class_name'])))) . '">Disable</a>';
+			$actions['disable'] = '<a href="' . esc_url(add_query_arg(array_merge(array('cfao_action' => 'deactivate', $this->_component_type => array($item['class_name'])), $this->_nonce))) . '">Disable</a>';
 		}
-		$actions = apply_filters('cfao_plugin_row_actions', $actions, $this->_component_type, $item);
+		$nonce_field = array_keys($this->_nonce);
+		$nonce_val;
+		if (empty($nonce_field)) {
+			$nonce_field = '';
+		}
+		else {
+			$nonce_field = $nonce_field[0];
+			$nonce_val = $this->_nonce[$nonce_field];
+		}
+		$actions = apply_filters('cfao_plugin_row_actions', $actions, $this->_component_type, $item, $this, $nonce_field, $nonce_val);
 		foreach ($this->get_columns() as $key => $text) {
 			switch ($key) {
 				case 'name':
