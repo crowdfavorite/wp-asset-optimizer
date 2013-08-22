@@ -80,7 +80,7 @@ class cfao_css_minifier extends cfao_minifier {
 	
 	public static function _updateOptimizerBulkActions($actions) {
 		return array_merge($actions, array(
-			'minify' => _x('Minify', 'css' 'cf-asset-optimizer'),
+			'minify' => _x('Minify', 'css', 'cf-asset-optimizer'),
 			'preserve' => _x('Preserve', 'css', 'cf-asset-optimizer'),
 		));
 	}
