@@ -36,6 +36,9 @@ class _cfao_handler {
 	public static $_setting_name = '_cf_asset_optimizer_settings';
 	
 	public static function initialize() {
+		if (is_admin()) {
+			cfao_admin::activate();
+		}
 		$setting = get_option(self::$_setting_name, array());
 		if (empty($setting) || empty($setting['plugins'])) {
 			// We haven't built settings for this yet. Skip it.
@@ -57,9 +60,6 @@ class _cfao_handler {
 		}
 		if ($update_setting) {
 			update_option(self::$_setting_name, $setting);
-		}
-		if (is_admin()) {
-			cfao_admin::activate();
 		}
 	}
 }

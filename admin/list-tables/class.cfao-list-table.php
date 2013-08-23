@@ -116,7 +116,7 @@ class CFAO_Plugins_List_Table extends WP_List_Table {
 			$nonce_field = $nonce_field[0];
 			$nonce_val = $this->_nonce[$nonce_field];
 		}
-		$actions = apply_filters('cfao_plugin_row_actions', $actions, $this->_component_type, $item, $this, $nonce_field, $nonce_val);
+		$actions = apply_filters('cfao_plugin_row_actions', $actions, $this->_component_type, $item, $nonce_field, $nonce_val);
 		foreach ($this->get_columns() as $key => $text) {
 			switch ($key) {
 				case 'name':

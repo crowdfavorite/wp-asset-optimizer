@@ -28,7 +28,7 @@ class cfao_file_cache extends cfao_cache {
 		$wp_content_url = trailingslashit(WP_CONTENT_URL);
 		$server_folder = $_SERVER['SERVER_NAME'];
 		self::$_CACHE_BASE_DIR = trailingslashit(apply_filters('cfao_file_cache_basedir', trailingslashit($wp_content_dir.'cfao-cache/'.$server_folder), $wp_content_dir, $server_folder));
-		self::$_CACHE_BASE_URL = trailingslashit(apply_filters('cfao_file_cache_baseurl', preg_replace('~^https?://[^/]*~', '', trailingslashit($wp_content_url.'cfao-cache/'.$server_folder)), $wp_content_url, $server_folder));
+		self::$_CACHE_BASE_URL = trailingslashit(apply_filters('cfao_file_cache_baseurl', preg_replace('~^https?:~', '', trailingslashit($wp_content_url.'cfao-cache/'.$server_folder)), $wp_content_url, $server_folder));
 		
 		add_filter('cfao_cache_manager', 'cfao_file_cache::class_name');
 		if (is_admin()) {
@@ -51,7 +51,6 @@ class cfao_file_cache extends cfao_cache {
 		if (file_exists(self::$_CACHE_BASE_DIR . $key)) {
 			$filemtime = filemtime(self::$_CACHE_BASE_DIR . $key);
 			return apply_filters('cfao_file_cache_val', array('url' => self::$_CACHE_BASE_URL . $key, 'ver' => $filemtime), self::$_CACHE_BASE_URL, $key, $filemtime);
-			return apply_filters('cfao_file_cache_url', $url, $key, self::$_CACHE_BASE_URL, $key, $filemtime);
 		}
 		return false;
 	}
@@ -148,7 +147,7 @@ class cfao_file_cache extends cfao_cache {
 		$cache_dir = self::$_CACHE_BASE_DIR;
 		if (!is_dir(self::$_CACHE_BASE_DIR)) {
 			// Make the directory if we can.
-			if (!mkdir(self::$_CACHE_BASE_DIR, 775, true)) {
+			if (!wp_mkdir_p(self::$_CACHE_BASE_DIR)) {
 				return false;
 			}
 		}
