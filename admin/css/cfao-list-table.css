@@ -3,6 +3,13 @@
 	background-color: #FFFFFF;
 }
 
+.cfao-list-table {
+	border-bottom: none;
+}
+.cfao-list-table tfoot {
+	display: none;
+}
+
 .cfao-list-table .updated ,
 .cfao-request-list-table .updated {
 	margin-left: auto;
