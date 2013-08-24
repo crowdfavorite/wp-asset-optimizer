@@ -169,4 +169,25 @@ class CFAO_Requests_List_Table extends WP_List_Table {
 		do_action('cfao_request_list_table_after_' . $this->_component_type . '_row', $item);
 	}
 	
+	/**
+	 * Copied directly from wp-list-table so we could change the nonce info.
+	 */
+	function display_tablenav( $which ) {
+		if ( 'top' == $which )
+			wp_nonce_field( 'cfao_nonce_' . $this->_component_type, 'cfao_nonce_' . $this->_component_type );
+		?>
+		<div class="tablenav <?php echo esc_attr( $which ); ?>">
+
+			<div class="alignleft actions">
+				<?php $this->bulk_actions(); ?>
+			</div>
+			<?php
+			$this->extra_tablenav( $which );
+			$this->pagination( $which );
+			?>
+			<br class="clear" />
+		</div>
+		<?php
+	}
+	
 }
