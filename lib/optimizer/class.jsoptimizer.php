@@ -198,7 +198,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 			// We're currently mandating a cache manager is attached to run this.
 			return;
 		}
-		if (!($asset = call_user_func($cachemgr, 'get'), $scripts, 'js')) {
+		if (!($asset = call_user_func(array($cachemgr, 'get'), $scripts, 'js'))) {
 			// We need to rebuild the asset.
 			$asset = self::_buildAsset($scripts);
 		}

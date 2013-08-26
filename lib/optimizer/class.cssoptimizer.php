@@ -246,7 +246,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 			return;
 		}
 		foreach ($styles_blocks as $type=>$styles) {
-			if (!($asset = call_user_func(array($cachemgr, 'get'), $styles, 'css')) {
+			if (!($asset = call_user_func(array($cachemgr, 'get'), $styles, 'css'))) {
 				// We need to generate the asset.
 				$asset = self::_buildAsset($styles, true);
 			}
