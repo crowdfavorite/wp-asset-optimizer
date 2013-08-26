@@ -48,8 +48,8 @@ class _cfao_handler {
 		foreach ($setting['plugins'] as $type => $plugins) {
 			foreach ($plugins as $class => $active) {
 				if ($active) {
-					if (is_callable("$class::activate")) {
-						$class::activate();
+					if (is_callable(array($class, 'activate'))) {
+						call_user_func(array($class, 'activate'));
 					}
 					else {
 						$setting['plugins'][$type][$class] = false;

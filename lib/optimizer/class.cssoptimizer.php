@@ -159,8 +159,8 @@ class cf_css_optimizer extends cf_asset_optimizer {
 			$concat = apply_filters('cfao_concat_contents', $concat, 'css', '', $css_settings);
 			$concat = $content_header . $concat;
 			$cachemgr = self::_getMyCacheMgr();
-			$cachemgr::set($styles, $concat, 'css');
-			return $cachemgr::get($styles, 'css');
+			call_user_func(array($cachemgr, 'set'), $styles, $concat, 'css');
+			return call_user_func(array($cachemgr, 'get'), $styles, 'css');
 		}
 		return false;
 	}
@@ -246,7 +246,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 			return;
 		}
 		foreach ($styles_blocks as $type=>$styles) {
-			if (!($asset = $cachemgr::get($styles, 'css'))) {
+			if (!($asset = call_user_func(array($cachemgr, 'get'), $styles, 'css')) {
 				// We need to generate the asset.
 				$asset = self::_buildAsset($styles, true);
 			}

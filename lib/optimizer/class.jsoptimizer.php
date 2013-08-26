@@ -100,8 +100,8 @@ class cf_js_optimizer extends cf_asset_optimizer {
 			$concat = apply_filters('cfao_concat_contents', $concat, 'js', '', $js_settings);
 			$concat = $content_header . $concat;
 			$cachemgr = self::_getMyCacheMgr();
-			$cachemgr::set($scripts, $concat, 'js');
-			return $cachemgr::get($scripts, 'js');
+			call_user_func(array($cachemgr, 'set'), $scripts, $concat, 'js');
+			return call_user_func(array($cachemgr, 'get'), $scripts, 'js');
 		}
 		return false;
 	}
@@ -198,7 +198,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 			// We're currently mandating a cache manager is attached to run this.
 			return;
 		}
-		if (!($asset = $cachemgr::get($scripts, 'js'))) {
+		if (!($asset = call_user_func($cachemgr, 'get'), $scripts, 'js')) {
 			// We need to rebuild the asset.
 			$asset = self::_buildAsset($scripts);
 		}

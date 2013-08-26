@@ -40,8 +40,8 @@ class CFAO_Plugins_List_Table extends WP_List_Table {
 	function prepare_items() {
 		$new_items = array();
 		foreach ($this->items as $class_name => $active) {
-			if (is_callable("$class_name::listItem")) {
-				$new_item = $class_name::listItem();
+			if (is_callable(array($class_name, 'listItem'))) {
+				$new_item = call_user_func(array($class_name, 'listItem'));
 				$new_item['active'] = $active;
 				$new_item['class_name'] = $class_name;
 				$new_items[] = $new_item;
