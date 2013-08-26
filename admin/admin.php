@@ -179,7 +179,7 @@ class cfao_admin {
 		include CFAO_PLUGIN_DIR . 'admin/list-tables/class.cfao-list-table.php';
 		?>
 		<h1><?php screen_icon(); echo esc_html(get_admin_page_title()); ?></h1>
-		<div class="cfao-general-settings-wrapper" style="clear:both; margin: 15px;">
+		<div class="cfao-general-settings-wrapper" style="clear:both; margin: 15px 0;">
 		<h2><?php esc_html_e('Asset Optimizers', 'cf-asset-optimizer'); ?></h2>
 		<p><?php esc_html_e('Asset Optimizers modify the output of assets in order to improve the function of your website.', 'cf-asset-optimizer'); ?></p>
 		<p><?php esc_html_e('Any number of asset optimizers may be active at a time, but only one should run per asset type.', 'cf-asset-optimizer'); ?></p>
