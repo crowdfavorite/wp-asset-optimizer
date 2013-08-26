@@ -280,7 +280,6 @@ class cf_css_optimizer extends cf_asset_optimizer {
 			&& !empty($_REQUEST['css'])
 			&& is_array($_REQUEST['css'])
 		) {
-			die(print_r($_REQUEST, true));
 			check_admin_referer('cfao_nonce_css', 'cfao_nonce_css');
 			$setting = get_option(self::_getOptionName(), array());
 			$update_setting = false;
