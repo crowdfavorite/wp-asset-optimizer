@@ -230,8 +230,18 @@ class cf_js_optimizer extends cf_asset_optimizer {
 			$handle = 'cfao-js';
 			if ($footer) {
 				$handle = 'cfao-footer-js';
+			}	
+			$enqueue_url = $asset['url'];
+			if (strpos($asset['url'], 'http') === 0) {
+				$enqueue_url = $asset['url'];
 			}
-			wp_enqueue_script($handle, $asset['url'], array(), $asset['ver'], $footer);
+			else if (strpos($asset['url'], '//') === 0) {
+				$enqueue_url = $asset['url'];
+			}
+			else if (strpos($asset['url'], '/') == 0) {
+				$enqueue_url = home_url($asset['url']);
+			}
+			wp_enqueue_script($handle, $enqueue_url, array(), $asset['ver'], $footer);
 			if (!empty($extra)) {
 				// Copy the localization data
 				$wp_scripts->registered[$handle]->extra['data'] = $extra;

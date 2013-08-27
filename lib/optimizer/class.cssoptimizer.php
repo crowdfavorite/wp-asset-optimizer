@@ -276,7 +276,16 @@ class cf_css_optimizer extends cf_asset_optimizer {
 				if (!$type == 'all') {
 					$deps = array('cfao-css-all');
 				}
-				$enqueue_url = home_url($asset['url']);
+				$enqueue_url = $asset['url'];
+				if (strpos($asset['url'], 'http') === 0) {
+					$enqueue_url = $asset['url'];
+				}
+				else if (strpos($asset['url'], '//') === 0) {
+					$enqueue_url = $asset['url'];
+				}
+				else if (strpos($asset['url'], '/') == 0) {
+					$enqueue_url = home_url($asset['url']);
+				}
 				wp_enqueue_style('cfao-css-'.$type, $enqueue_url, $deps, $asset['ver'], $type);
 			}
 		}
