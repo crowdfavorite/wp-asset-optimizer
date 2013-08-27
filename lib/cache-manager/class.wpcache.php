@@ -76,8 +76,8 @@ class cfao_wp_cache extends cfao_cache {
 	
 	public static function _init() {
 		global $wp;
-		add_rewrite_rule(trailingslashit(self::$_rewrite_base) . '(.*?)/?(\?(.*))$', 'index.php?cfao_asset=$matches[1]&$matches[3]', 'top');
-		add_rewrite_rule(trailingslashit(self::$_rewrite_base) . '(.*?)/?$', 'index.php?cfao_asset=$matches[1]', 'top');
+		add_rewrite_rule('(.*/)?' . trailingslashit(self::$_rewrite_base) . '(.*?)/?(\?(.*))$', 'index.php?cfao_asset=$matches[2]&$matches[4]', 'top');
+		add_rewrite_rule('(.*/)?' . trailingslashit(self::$_rewrite_base) . '(.*?)/?$', 'index.php?cfao_asset=$matches[2]', 'top');
 		$wp->add_query_var('cfao_asset');
 		$wp->add_query_var('ver');
 	}
