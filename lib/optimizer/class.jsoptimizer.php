@@ -62,6 +62,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 					array(
 						'reject_unsafe_urls' => false,
 						'timeout' => 1,
+						'sslverify' => false, // Some sites have self-signed certs that cause a problem here.
 					)
 				);
 				if (is_wp_error($result)) {
