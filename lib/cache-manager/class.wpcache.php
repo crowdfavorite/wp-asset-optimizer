@@ -83,6 +83,7 @@ class cfao_wp_cache extends cfao_cache {
 	}
 	
 	public static function _parse_query($query) {
+		global $wp_rewrite, $wp;
 		if ($query->is_main_query() && $asset = $query->get('cfao_asset')) {
 			$query->set('p', -1); // Ensure 404 in query results.
 			if ($cache = self::_getByKey($asset)) {

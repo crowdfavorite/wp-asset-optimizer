@@ -52,8 +52,9 @@ class cf_js_optimizer extends cf_asset_optimizer {
 				"/**\n" .
 				' * ' . __('Included Scripts', 'cf-asset-optimizer') . "\n" .
 				" *\n";
-			foreach ($scripts as $handle => $url) {
+			foreach ($scripts as $handle => $url) {	
 				if (empty($url)) {
+					$content_header .= " * $handle placeholder active\n";
 					continue;
 				}
 				$result = wp_remote_get(
@@ -178,6 +179,12 @@ class cf_js_optimizer extends cf_asset_optimizer {
 				}
 				else {
 					// We can concatenate this script.
+					if (strpos($full_url, '//') === 0) {
+						$full_url = (is_ssl() ? 'https:' : 'http:') . $full_url;
+					}
+					else if (strpos($full_url, '/') === 0) {
+						$full_url = (is_ssl() ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] . $full_url;
+					}
 					$scripts[$handle] = $full_url;
 				}
 			}

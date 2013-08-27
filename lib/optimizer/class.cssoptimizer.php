@@ -52,8 +52,8 @@ class cf_css_optimizer extends cf_asset_optimizer {
 				' * ' . __('Included Styles', 'cf-asset-optimizer') . "\n" .
 				" *\n";
 			foreach ($styles as $handle => $url) {
-				if (strpos($url, '//') === 0) {
-					$url = 'http' . (is_ssl() ? 's' : '') . ':' . $url;
+				if (empty($url)) {
+					$content_header .= " * $handle placeholder active\n";
 				}
 				$result = wp_remote_get(
 					$url,
@@ -230,6 +230,12 @@ class cf_css_optimizer extends cf_asset_optimizer {
 					$save_settings = true;
 				}
 				else {
+					if (strpos($full_url, '//') === 0) {
+						$full_url = (is_ssl() ? 'https:' : 'http:') . $full_url;
+					}
+					else if (strpos($full_url, '/') === 0) {
+						$full_url = (is_ssl() ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] . $full_url;
+					}
 					if (empty($styles_blocks[$type])) {
 						$styles_blocks[$type] = array();
 					}
@@ -267,7 +273,8 @@ class cf_css_optimizer extends cf_asset_optimizer {
 				if (!$type == 'all') {
 					$deps = array('cfao-css-all');
 				}
-				wp_enqueue_style('cfao-css-'.$type, $asset['url'], $deps, $asset['ver'], $type);
+				$enqueue_url = home_url($asset['url']);
+				wp_enqueue_style('cfao-css-'.$type, $enqueue_url, $deps, $asset['ver'], $type);
 			}
 		}
 	}
