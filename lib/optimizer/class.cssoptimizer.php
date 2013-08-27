@@ -158,10 +158,12 @@ class cf_css_optimizer extends cf_asset_optimizer {
 			// Set the cache of the file.
 			$content_header .= " **/\n";
 			$concat = apply_filters('cfao_concat_contents', $concat, 'css', '', $css_settings);
-			$concat = $content_header . $concat;
-			$cachemgr = self::_getMyCacheMgr();
-			call_user_func(array($cachemgr, 'set'), $styles, $concat, 'css');
-			return call_user_func(array($cachemgr, 'get'), $styles, 'css');
+			if (!empty($concat)) {
+				$concat = $content_header . $concat;
+				$cachemgr = self::_getMyCacheMgr();
+				call_user_func(array($cachemgr, 'set'), $styles, $concat, 'css');
+				return call_user_func(array($cachemgr, 'get'), $styles, 'css');
+			}
 		}
 		return false;
 	}

@@ -100,10 +100,12 @@ class cf_js_optimizer extends cf_asset_optimizer {
 			// Set the cache of the file.
 			$content_header .= " **/\n";
 			$concat = apply_filters('cfao_concat_contents', $concat, 'js', '', $js_settings);
-			$concat = $content_header . $concat;
-			$cachemgr = self::_getMyCacheMgr();
-			call_user_func(array($cachemgr, 'set'), $scripts, $concat, 'js');
-			return call_user_func(array($cachemgr, 'get'), $scripts, 'js');
+			if (!empty($concat)) {
+				$concat = $content_header . $concat;
+				$cachemgr = self::_getMyCacheMgr();
+				call_user_func(array($cachemgr, 'set'), $scripts, $concat, 'js');
+				return call_user_func(array($cachemgr, 'get'), $scripts, 'js');
+			}
 		}
 		return false;
 	}

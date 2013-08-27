@@ -44,7 +44,13 @@ class cfao_css_minifier extends cfao_minifier {
 				include 'Minify/CSS.php';
 			}
 			if (!isset($settings[$handle]['minify']) || $settings[$handle]['minify'] == true) {
-				$minified = Minify_CSS::minify($string, array('preserveComments' => false));
+				try {
+					$minified = Minify_CSS::minify($string, array('preserveComments' => false));
+				}
+				catch (Exception $e) {
+					error_log(sprintf(__('[CF CSS Minifier Error] - %s', 'cf-asset-optimizer'), $e->getMessage()));
+					$minified = '';
+				}
 				if (!empty($minified)) {
 					$string = $minified;
 				}

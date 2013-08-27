@@ -45,7 +45,13 @@ class cfao_js_minifier {
 				include 'JSMin.php';
 			}
 			if (!isset($settings[$handle]['minify']) || $settings[$handle]['minify'] == true) {
-				$minified = JSMin::minify($string);
+				try {
+					$minified = JSMin::minify($string);
+				}
+				catch (Exception $e) {
+					error_log(sprintf(__('[CF JS Minifier Error] - %s', 'cf-asset-optimizer'), $e->getMessage()));
+					$minified = '';
+				}
 				if (!empty($minified)) {
 					$string = $minified;
 				}
