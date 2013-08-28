@@ -182,6 +182,8 @@ class CFAssetOptimizerScripts {
 			if ( !preg_match('|^https?://|', $request_url) && ! ( $scripts_obj->content_url && 0 === strpos($request_url, $scripts_obj->content_url) ) ) {
 				$request_url = home_url($request_url);
 			}
+
+			$request_url = apply_filters('cfao_script_request_url', $request_url);
 				
 			$script_request = wp_remote_get(
 				$request_url
@@ -582,6 +584,9 @@ class CFAssetOptimizerStyles {
 					$request_url = 'http://'.$_SERVER['SERVER_NAME'].$request_url;
 				}
 			}
+
+			$request_url = apply_filters('cfao_style_request_url', $request_url);
+
 			$style_request = wp_remote_get(
 				$request_url
 			);
