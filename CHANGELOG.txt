@@ -1,14 +1,15 @@
 # CHANGE LOG
 
-## feature/experimental-major-rewrite
+## 2.0b1
 - Updated to be more modular
 - Updated to no longer make calls out to separate server to minify javascript
 - Supports CSS with media types by breaking them into separate requests.
 - Supports more extension regarding caching / minifying / concatenating.
 - Supports bulk actions on JS and CSS optimizers
-- Added WP Cache integration
+- Added WP Cache integration option.
 - Added hooks to file cache interface to allow adding behaviors for multiple-end-server configurations or external cache clearing.
 - Added nonce security to admin screens where appropriate.
+- Created new and improved admin interface that's easier to extend and use.
 
 ## 1.2
 - Updated to split header/footer scripts into separate files.
