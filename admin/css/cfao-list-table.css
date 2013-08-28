@@ -1,0 +1,33 @@
+.cfao-list-table tr.active,
+.cfao-request-list-table tr.active {
+	background-color: #FFFFFF;
+}
+
+.cfao-list-table {
+	border-bottom: none;
+}
+.cfao-list-table tfoot {
+	display: none;
+}
+
+.cfao-list-table .updated ,
+.cfao-request-list-table .updated {
+	margin-left: auto;
+	font-weight: bold;
+}
+
+.cfao-list-table .column-name {
+	width: 200px;
+}
+
+.cfao-request-list-table .column-handle {
+	width: 200px;
+}
+
+.cfao-request-list-table .inactive > * {
+	border-bottom: none;
+}
+
+.cfao-request-list-table tr.disabled-reason > *{
+	border-top: none;
+}
