@@ -87,10 +87,13 @@ class cfao_admin {
 			$update_setting = false;
 			switch ($_REQUEST['cfao_action']) {
 				case 'activate':
+					$activated = array();
+					$deactivated = array();
 					if (!empty($_REQUEST['optimizer'])) {
 						if (!is_array($_REQUEST['optimizer'])) {
 							$_REQUEST['optimizer'] = array($_REQUEST['optimizer']);
 						}
+						$activated = array_merge($activated, $_REQUEST['optimizer']);
 						foreach ($_REQUEST['optimizer'] as $class_name) {
 							self::$_setting['plugins']['optimizers'][$class_name] = true;
 							$update_setting = true;
@@ -99,6 +102,15 @@ class cfao_admin {
 					if (!empty($_REQUEST['cacher'])) {
 						if (!is_array($_REQUEST['cacher'])) {
 							$_REQUEST['cacher'] = array($_REQUEST['cacher']);
+						}
+						$activated = array_merge($activated, $_REQUEST['cacher']);
+						foreach (self::$_setting['plugins']['cachers'] as $class_name => $active) {
+							if ($active && $_REQUEST['cachers'][0] !== $class_name) {
+								// We're deactivating.
+								$deactivated[] = $class_name;
+								self::$_setting['plugins']['cachers'][$class_name] = false;
+								$update_setting = true;
+							}
 						}
 						foreach ($_REQUEST['cacher'] as $class_name) {
 							self::$_setting['plugins']['cachers'][$class_name] = true;
@@ -109,6 +121,7 @@ class cfao_admin {
 						if (!is_array($_REQUEST['minifier'])) {
 							$_REQUEST['minifier'] = $_REQUEST['minifier'];
 						}
+						$activated = array_merge($activated, $_REQUEST['minifier']);
 						foreach ($_REQUEST['minifier'] as $class_name) {
 							self::$_setting['plugins']['minifiers'][$class_name] = true;
 							$update_setting = true;
@@ -117,13 +130,25 @@ class cfao_admin {
 					if ($update_setting) {
 						update_option(self::$_setting_name, self::$_setting);
 					}
+					foreach ($activated as $activated_class) {
+						do_action('cfao_admin_activate_' . $activated_class);
+					}
 					do_action('cfao_admin_activate');
+					if (!empty($deactivated)) {
+						// Special case since cachers should only have one active and thus can deactivate here.
+						foreach ($deactivated as $activated_class) {
+							do_action('cfao_admin_deactivate_' . $activated_class);
+						}
+						do_action('cfao_admin_deactivate');
+					}
 					break;
 				case 'deactivate':
+					$deactivated = array();
 					if (!empty($_REQUEST['optimizer'])) {
 						if (!is_array($_REQUEST['optimizer'])) {
 							$_REQUEST['optimizer'] = array($_REQUEST['optimizer']);
 						}
+						$deactivated = array_merge($deactivated, $_REQUEST['optimizer']);
 						foreach ($_REQUEST['optimizer'] as $class_name) {
 							self::$_setting['plugins']['optimizers'][$class_name] = false;
 							$update_setting = true;
@@ -133,6 +158,7 @@ class cfao_admin {
 						if (!is_array($_REQUEST['cacher'])) {
 							$_REQUEST['cacher'] = array($_REQUEST['cacher']);
 						}
+						$deactivated = array_merge($deactivated, $_REQUEST['cacher']);
 						foreach ($_REQUEST['cacher'] as $class_name) {
 							self::$_setting['plugins']['cachers'][$class_name] = false;
 							$update_setting = true;
@@ -142,6 +168,7 @@ class cfao_admin {
 						if (!is_array($_REQUEST['minifier'])) {
 							$_REQUEST['minifier'] = $_REQUEST['minifier'];
 						}
+						$deactivated = array_merge($deactivated, $_REQUEST['minifier']);
 						foreach ($_REQUEST['minifier'] as $class_name) {
 							self::$_setting['plugins']['minifiers'][$class_name] = false;
 							$update_setting = true;
@@ -149,6 +176,9 @@ class cfao_admin {
 					}
 					if ($update_setting) {
 						update_option(self::$_setting_name, self::$_setting);
+					}
+					foreach ($deactivated as $activated_class) {
+						do_action('cfao_admin_deactivate_' . $activated_class);
 					}
 					do_action('cfao_admin_deactivate');
 					break;

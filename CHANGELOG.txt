@@ -1,5 +1,11 @@
 # CHANGE LOG
 
+## 2.0b2
+- Updated to ensure only one cacher is activated at a time
+- Updated with actions and ability to interact on activation / deactivation of plugins
+- Updated WP Cache plugin to automatically flush the rewrite rules when it's activated or deactivated.
+- Updated minifiers to reduce potential for white screen on site if submodules are not initialized properly.
+
 ## 2.0b1
 - Updated to be more modular
 - Updated to no longer make calls out to separate server to minify javascript

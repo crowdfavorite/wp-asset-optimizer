@@ -21,6 +21,10 @@ class cfao_wp_cache extends cfao_cache {
 		if (!empty($class_name)) {
 			$handles = array_merge($handles, array($class_name));
 		}
+		if (is_admin()) {
+			add_action('cfao_admin_activate_' . $class_name, $class_name.'::_add_rewrite_rules');
+			add_action('cfao_admin_deactivate_' . $class_name, $class_name.'::_clear_rewrite_rules');
+		}
 		return $handles;
 	}
 	
@@ -76,10 +80,18 @@ class cfao_wp_cache extends cfao_cache {
 	
 	public static function _init() {
 		global $wp;
-		add_rewrite_rule('(.*/)?' . trailingslashit(self::$_rewrite_base) . '(.*?)/?(\?(.*))$', 'index.php?cfao_asset=$matches[2]&$matches[4]', 'top');
-		add_rewrite_rule('(.*/)?' . trailingslashit(self::$_rewrite_base) . '(.*?)/?$', 'index.php?cfao_asset=$matches[2]', 'top');
 		$wp->add_query_var('cfao_asset');
 		$wp->add_query_var('ver');
+	}
+	
+	public static function _add_rewrite_rules() {
+		add_rewrite_rule('(.*/)?' . trailingslashit(self::$_rewrite_base) . '(.*?)/?(\?(.*))$', 'index.php?cfao_asset=$matches[2]&$matches[4]', 'top');
+		add_rewrite_rule('(.*/)?' . trailingslashit(self::$_rewrite_base) . '(.*?)/?$', 'index.php?cfao_asset=$matches[2]', 'top');
+		flush_rewrite_rules();
+	}
+	
+	public static function _clear_rewrite_rules() {
+		flush_rewrite_rules();
 	}
 	
 	public static function _parse_query($query) {

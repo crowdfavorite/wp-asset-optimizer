@@ -44,18 +44,20 @@ class cfao_js_minifier {
 			if (!class_exists('JSMin')) {
 				include 'JSMin.php';
 			}
-			if (!isset($settings[$handle]['minify']) || $settings[$handle]['minify'] == true) {
-				try {
-					$minified = JSMin::minify($string);
+			if (class_exists('JSMin')) {
+				if (!isset($settings[$handle]['minify']) || $settings[$handle]['minify'] == true) {
+					try {
+						$minified = JSMin::minify($string);
+					}
+					catch (Exception $e) {
+						error_log(sprintf(__('[CF JS Minifier Error] - %s', 'cf-asset-optimizer'), $e->getMessage()));
+						$minified = '';
+					}
+					if (!empty($minified)) {
+						$string = $minified;
+					}
 				}
-				catch (Exception $e) {
-					error_log(sprintf(__('[CF JS Minifier Error] - %s', 'cf-asset-optimizer'), $e->getMessage()));
-					$minified = '';
-				}
-				if (!empty($minified)) {
-					$string = $minified;
-				}
-			}	
+			}
 			restore_include_path();
 		}
 		return $string;
