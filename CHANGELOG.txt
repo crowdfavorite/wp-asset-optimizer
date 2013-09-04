@@ -1,5 +1,8 @@
 # CHANGE LOG
 
+## 2.0b3
+- Added admin notice when using CF File Cache if cache directory is not writeable.
+
 ## 2.0b2
 - Updated to ensure only one cacher is activated at a time
 - Updated with actions and ability to interact on activation / deactivation of plugins

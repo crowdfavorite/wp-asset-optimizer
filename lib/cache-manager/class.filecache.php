@@ -35,6 +35,7 @@ class cfao_file_cache extends cfao_cache {
 			//add_action('admin_menu', 'cfao_file_cache::_adminMenu');
 			add_filter('cfao_plugin_row_actions', 'cfao_file_cache::_rowActions', 10, 5);
 			add_action('cfao_admin_clear', 'cfao_file_cache::clear');
+			add_action('admin_notices', 'cfao_file_cache::_check_cache_dir');
 		}
 	}
 
@@ -125,6 +126,25 @@ class cfao_file_cache extends cfao_cache {
 			$actions['clear'] = '<a href="' . add_query_arg(array_merge(array('cfao_action' => 'clear', 'cache' => $item['class_name']), $nonce)) . '">' . esc_html__('Clear Cache', 'cf-asset-optimizer') . '</a>';
 		}
 		return $actions;
+	}
+	
+	public static function _check_cache_dir() {
+		$show_notice = true;
+		if (!is_dir(self::$_CACHE_BASE_DIR)) {
+			if (!wp_mkdir_p(self::$_CACHE_BASE_DIR)) {
+				$show_notice = true;
+			}
+		}
+		
+		if (!$show_notice && !is_writeable(self::$_CACHE_BASE_DIR)) {
+			$show_notice = true;
+		}
+		
+		if ($show_notice) {
+			?>
+			<div class="error"><p><?php echo esc_html(sprintf(__('CF File Cache cannot write files to %s. Ensure the directory exists and is writeable.', 'cf-asset-optimizer'), self::$_CACHE_BASE_DIR)); ?></p></div>
+			<?php
+		}
 	}
 
 	protected static function _getKey($components, $cache_type = '') {
