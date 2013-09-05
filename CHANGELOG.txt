@@ -1,5 +1,8 @@
 # CHANGE LOG
 
+## 2.0b4
+- Added direct 404 with no body contents for assets that cannot be found in cache.
+
 ## 2.0b3
 - Added admin notice when using CF File Cache if cache directory is not writeable.
 

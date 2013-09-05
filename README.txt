@@ -25,6 +25,6 @@
  - Ensure that you meet any requirements for the minifier you are using. Check your error log for further details.
 - What if I want to use a different optimizer, minifier, or cache manager than those that come with your plugin?
  - The plugin includes an interface to register your own modules. Either use modules someone else has made or write your own, register them with the plugin, and then activate them on your site as you please.
-- I'm using the CF WP Cache integration plugin. Why are my concatenated files returning 404?
+- I'm using the CF WordPress Object Cache integration plugin. Why are my concatenated files returning 404?
  - Ensure that you have no custom .htaccess rules blocking the URLs given.
  - Ensure you're using a persistent caching plugin of some variety with object cache enabled. If you are not, then the cache is lost at the end of the original page request, and cannot be served via an additional request.

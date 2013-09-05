@@ -1,6 +1,6 @@
 <?php
 /**
- * Cache Manager Interface Class
+ * CF Persistent WordPress Object Cache Manager
  * Defines an interface for caching optimized content to the file system.
  *
  * @package CFAssetOptimizer
@@ -41,7 +41,7 @@ class cfao_wp_cache extends cfao_cache {
 
 	public static function listItem() {
 		return array(
-			'title' => __('CF WP Cache Integration', 'cf-asset-optimizer'),
+			'title' => __('CF WordPress Object Cache Integration', 'cf-asset-optimizer'),
 			'description' => __('This plugin integrates with existing wp_cache functionality provided by other caching plugins.', 'cf-asset-optimizer'),
 		);
 	}
@@ -97,11 +97,14 @@ class cfao_wp_cache extends cfao_cache {
 	public static function _parse_query($query) {
 		global $wp_rewrite, $wp;
 		if ($query->is_main_query() && $asset = $query->get('cfao_asset')) {
-			$query->set('p', -1); // Ensure 404 in query results.
 			if ($cache = self::_getByKey($asset)) {
 				$file_data = wp_check_filetype($asset);
 				header('Content-Type: ' . $file_data['type']);
 				echo $cache['contents'];
+				exit();
+			}
+			else {
+				header('HTTP/1.1 404 Not Found');
 				exit();
 			}
 		}
