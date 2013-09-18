@@ -99,7 +99,10 @@ class cfao_wp_cache extends cfao_cache {
 		if ($query->is_main_query() && $asset = $query->get('cfao_asset')) {
 			if ($cache = self::_getByKey($asset)) {
 				$file_data = wp_check_filetype($asset);
-				header('Content-Type: ' . $file_data['type']);
+				$content_type = apply_filters('cfao_wp_cache_contenttype', (isset($file_data['type']) ? $file_data['type'] : ''), $asset);
+				if (!empty($content_type)) {
+					header('Content-Type: ' . $file_data['type']);
+				}
 				echo $cache['contents'];
 				exit();
 			}
