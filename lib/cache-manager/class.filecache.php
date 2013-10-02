@@ -129,7 +129,7 @@ class cfao_file_cache extends cfao_cache {
 	}
 	
 	public static function _check_cache_dir() {
-		$show_notice = true;
+		$show_notice = false;
 		if (!is_dir(self::$_CACHE_BASE_DIR)) {
 			if (!wp_mkdir_p(self::$_CACHE_BASE_DIR)) {
 				$show_notice = true;
