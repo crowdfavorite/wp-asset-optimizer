@@ -1,5 +1,8 @@
 # CHANGE LOG
 
+## 2.0b6
+- Updated File Cache plugin to not always display cache directory as unwriteable
+
 ## 2.0b5
 - Added filter on wp cache content type to allow the site to use custom keys and still get proper mimetypes output.
 
