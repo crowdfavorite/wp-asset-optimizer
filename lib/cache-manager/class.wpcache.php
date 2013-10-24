@@ -22,9 +22,10 @@ class cfao_wp_cache extends cfao_cache {
 			$handles = array_merge($handles, array($class_name));
 		}
 		if (is_admin()) {
-			add_action('cfao_admin_activate_' . $class_name, $class_name.'::_add_rewrite_rules');
+			add_action('cfao_admin_activate_' . $class_name, $class_name.'::_clear_rewrite_rules');
 			add_action('cfao_admin_deactivate_' . $class_name, $class_name.'::_clear_rewrite_rules');
 		}
+		add_action('admin_init', $class_name.'::_add_rewrite_rules');
 		return $handles;
 	}
 	
@@ -87,7 +88,6 @@ class cfao_wp_cache extends cfao_cache {
 	public static function _add_rewrite_rules() {
 		add_rewrite_rule('(.*/)?' . trailingslashit(self::$_rewrite_base) . '(.*?)/?(\?(.*))$', 'index.php?cfao_asset=$matches[2]&$matches[4]', 'top');
 		add_rewrite_rule('(.*/)?' . trailingslashit(self::$_rewrite_base) . '(.*?)/?$', 'index.php?cfao_asset=$matches[2]', 'top');
-		flush_rewrite_rules();
 	}
 	
 	public static function _clear_rewrite_rules() {
