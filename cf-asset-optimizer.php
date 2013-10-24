@@ -8,7 +8,7 @@ Version: 2.0b6
 Author URI: http://crowdfavorite.com
 */
 
-define('CFAO_VERSION', '2.0b5');
+define('CFAO_VERSION', '2.0b7');
 
 define('CFAO_PLUGIN_DIR', dirname(__file__).'/');
 
