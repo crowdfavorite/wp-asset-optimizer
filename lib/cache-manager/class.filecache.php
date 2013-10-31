@@ -23,13 +23,25 @@ class cfao_file_cache extends cfao_cache {
 		return $handles;
 	}
 	
+	private static function _get_cache_base_dir() {
+		if (empty(self::$_CACHE_BASE_DIR)) {
+			$wp_content_dir = trailingslashit(WP_CONTENT_DIR);
+			$server_folder = $_SERVER['SERVER_NAME'];
+			self::$_CACHE_BASE_DIR = trailingslashit(apply_filters('cfao_file_cache_basedir', trailingslashit($wp_content_dir.'cfao-cache/'.$server_folder), $wp_content_dir, $server_folder));
+		}
+		return self::$_CACHE_BASE_DIR;
+	}
+	
+	private static function _get_cache_base_url() {
+		if (empty(self::$_CACHE_BASE_URL)) {
+			$wp_content_url = trailingslashit(WP_CONTENT_URL);
+			$server_folder = $_SERVER['SERVER_NAME'];
+			self::$_CACHE_BASE_URL = trailingslashit(apply_filters('cfao_file_cache_baseurl', preg_replace('~^https?:~', '', trailingslashit($wp_content_url.'cfao-cache/'.$server_folder)), $wp_content_url, $server_folder));
+		}
+		return self::$_CACHE_BASE_URL;
+	}
+	
 	public static function activate() {
-		$wp_content_dir = trailingslashit(WP_CONTENT_DIR);
-		$wp_content_url = trailingslashit(WP_CONTENT_URL);
-		$server_folder = $_SERVER['SERVER_NAME'];
-		self::$_CACHE_BASE_DIR = trailingslashit(apply_filters('cfao_file_cache_basedir', trailingslashit($wp_content_dir.'cfao-cache/'.$server_folder), $wp_content_dir, $server_folder));
-		self::$_CACHE_BASE_URL = trailingslashit(apply_filters('cfao_file_cache_baseurl', preg_replace('~^https?:~', '', trailingslashit($wp_content_url.'cfao-cache/'.$server_folder)), $wp_content_url, $server_folder));
-		
 		add_filter('cfao_cache_manager', 'cfao_file_cache::class_name');
 		if (is_admin()) {
 			//add_action('admin_menu', 'cfao_file_cache::_adminMenu');
@@ -49,9 +61,11 @@ class cfao_file_cache extends cfao_cache {
 	public static function get($reference, $type = '') {
 		// Find out if we have the output requested cached.
 		$key = self::_getKey($reference, $type);
-		if (file_exists(self::$_CACHE_BASE_DIR . $key)) {
-			$filemtime = filemtime(self::$_CACHE_BASE_DIR . $key);
-			return apply_filters('cfao_file_cache_val', array('url' => self::$_CACHE_BASE_URL . $key, 'ver' => $filemtime), self::$_CACHE_BASE_URL, $key, $filemtime);
+		$cache_dir = self::_get_cache_base_dir();
+		$cache_url = self::_get_cache_base_url();
+		if (file_exists($cache_dir . $key)) {
+			$filemtime = filemtime($cache_dir . $key);
+			return apply_filters('cfao_file_cache_val', array('url' => $cache_url . $key, 'ver' => $filemtime), $cache_url, $key, $filemtime);
 		}
 		return false;
 	}
@@ -62,13 +76,15 @@ class cfao_file_cache extends cfao_cache {
 		if (!self::_lock($key)) {
 			return false;
 		}
-		$success = (file_put_contents(self::$_CACHE_BASE_DIR . $key, $content) !== false);
+		$cache_dir = self::_get_cache_base_dir();
+		$success = (file_put_contents($cache_dir . $key, $content) !== false);
 		self::_release($key);
 		return $success;
 	}
 	
 	public static function clear($key = null) {
 		$succeeded = true;
+		$cache_dir = self::_get_cache_base_dir();
 		if (empty($key)) {
 			if (!self::_lock()) {
 				return false;
@@ -78,16 +94,16 @@ class cfao_file_cache extends cfao_cache {
 				error_log(__('File Cache clear blocked by filter', 'cf-asset-optimizer'));
 				return false;
 			}
-			$dir = opendir(self::$_CACHE_BASE_DIR);
+			$dir = opendir($cache_dir);
 			$clear_count = 0;
 			if ($dir) {
 				while ($filename = readdir($dir)) {
 					if (strpos($filename, '.') === 0) {
 						continue;
 					}
-					$this_succeeded = unlink(self::$_CACHE_BASE_DIR . '/' . $filename);
+					$this_succeeded = unlink($cache_dir . '/' . $filename);
 					if ($this_succeeded) {
-						do_action('cfao_file_cache_deleted_file', self::$_CACHE_BASE_DIR . '/' . $filename);
+						do_action('cfao_file_cache_deleted_file', $cache_dir . '/' . $filename);
 						++$clear_count;
 					}
 					$succeeded &= $this_succeeded;
@@ -109,7 +125,7 @@ class cfao_file_cache extends cfao_cache {
 			}
 			$succeeded = unlink($key);
 			if ($succeeded) {
-				do_action('cfao_file_cache_deleted_file', self::$_CACHE_BASE_DIR . '/' . $filename);
+				do_action('cfao_file_cache_deleted_file', $cache_dir . '/' . $filename);
 				do_action('cfao_file_cache_cleared', $key);
 			}
 			self::_release($key);
@@ -130,19 +146,20 @@ class cfao_file_cache extends cfao_cache {
 	
 	public static function _check_cache_dir() {
 		$show_notice = false;
-		if (!is_dir(self::$_CACHE_BASE_DIR)) {
-			if (!wp_mkdir_p(self::$_CACHE_BASE_DIR)) {
+		$cache_dir = self::_get_cache_base_dir();
+		if (!is_dir($cache_dir)) {
+			if (!wp_mkdir_p($cache_dir)) {
 				$show_notice = true;
 			}
 		}
 		
-		if (!$show_notice && !is_writeable(self::$_CACHE_BASE_DIR)) {
+		if (!$show_notice && !is_writeable($cache_dir)) {
 			$show_notice = true;
 		}
 		
 		if ($show_notice) {
 			?>
-			<div class="error"><p><?php echo esc_html(sprintf(__('CF File Cache cannot write files to %s. Ensure the directory exists and is writeable.', 'cf-asset-optimizer'), self::$_CACHE_BASE_DIR)); ?></p></div>
+			<div class="error"><p><?php echo esc_html(sprintf(__('CF File Cache cannot write files to %s. Ensure the directory exists and is writeable.', 'cf-asset-optimizer'), $cache_dir)); ?></p></div>
 			<?php
 		}
 	}
@@ -164,10 +181,10 @@ class cfao_file_cache extends cfao_cache {
 	}
 	
 	protected static function _lock($key = null) {
-		$cache_dir = self::$_CACHE_BASE_DIR;
-		if (!is_dir(self::$_CACHE_BASE_DIR)) {
+		$cache_dir = self::_get_cache_base_dir();
+		if (!is_dir($cache_dir)) {
 			// Make the directory if we can.
-			if (!wp_mkdir_p(self::$_CACHE_BASE_DIR)) {
+			if (!wp_mkdir_p($cache_dir)) {
 				return false;
 			}
 		}
@@ -201,11 +218,12 @@ class cfao_file_cache extends cfao_cache {
 	}
 	
 	protected static function _release($key = null) {
+		$cache_dir = self::_get_cache_base_dir();
 		if (empty($key)) {
-			return (!file_exists(self::$_CACHE_BASE_DIR . '.lock.global') || unlink(self::$_CACHE_BASE_DIR . '.lock.global'));
+			return (!file_exists($cache_dir . '.lock.global') || unlink($cache_dir . '.lock.global'));
 		}
 		else {
-			return (!file_exists(self::$_CACHE_BASE_DIR . '.lock.local.' . $key) || unlink(self::$_CACHE_BASE_DIR . '.lock.local.' . $key));
+			return (!file_exists($cache_dir . '.lock.local.' . $key) || unlink($cache_dir . '.lock.local.' . $key));
 		}
 	}
 }

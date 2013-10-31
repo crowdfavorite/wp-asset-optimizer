@@ -1,5 +1,8 @@
 # CHANGE LOG
 
+## 2.0b9
+- Updated to change filtering timing for Asset directory functionality on file caching so that it runs after the theme is loaded.
+
 ## 2.0b8
 - Updated to ensure wp cache manager endpoint sets mime type for files properly
 
