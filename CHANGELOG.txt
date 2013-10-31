@@ -1,5 +1,8 @@
 # CHANGE LOG
 
+## 2.0b8
+- Updated to ensure wp cache manager endpoint sets mime type for files properly
+
 ## 2.0b6
 - Updated File Cache plugin to not always display cache directory as unwriteable
 

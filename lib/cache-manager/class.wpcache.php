@@ -99,6 +99,19 @@ class cfao_wp_cache extends cfao_cache {
 		if ($query->is_main_query() && $asset = $query->get('cfao_asset')) {
 			if ($cache = self::_getByKey($asset)) {
 				$file_data = wp_check_filetype($asset);
+				if (empty($file_data['type'])) {
+					// Let's do our own check on file extensions we know are commonly used, but for some reason may not show up in the mime types within WordPress.
+					if (preg_match('~\.css$~', $asset)) {
+						$file_data = array(
+							'type' => 'text/css',
+						);
+					}
+					else if (preg_match('~\.js$~', $asset)) {
+						$file_data = array(
+							'type' => 'text/javascript',
+						);
+					}
+				}
 				$content_type = apply_filters('cfao_wp_cache_contenttype', (isset($file_data['type']) ? $file_data['type'] : ''), $asset);
 				if (!empty($content_type)) {
 					header('Content-Type: ' . $file_data['type']);
