@@ -200,7 +200,9 @@ class cfao_admin {
 			__('Asset Optimizer', 'cf-asset-optimizer'),
 			'activate_plugins',
 			'cf-asset-optimizer-settings',
-			'cfao_admin::_mainPage'
+			'cfao_admin::_mainPage',
+			null,
+			'81'
 		);
 	}
 	
