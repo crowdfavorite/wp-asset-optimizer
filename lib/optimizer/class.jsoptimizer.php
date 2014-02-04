@@ -68,14 +68,15 @@ class cf_js_optimizer extends cf_asset_optimizer {
 				if (is_wp_error($result)) {
 					$js_settings[$handle]['enabled'] = false;
 					$js_settings[$handle]['disable_reason'] = sprintf(__('WP Error: %s', 'cf-asset-optimizer'), $result->get_error_message());
+					error_log('[CF Asset Optimizer] ('.$url.') - WP Error: ' . $result->get_error_message());
 					$changed_settings = true;
 					unset($scripts[$handle]);
 					continue;
 				}
 				else if (empty($result['response'])) {
-					die('HTTP ERROR');
 					$js_settings[$handle]['enabled'] = false;
 					$js_settings[$handle]['disable_reason'] = sprintf(__('Empty response requesting %s', 'cf-asset-optimizer'), $url);
+					error_log('[CF Asset Optimizer] ('.$url.') - Empty response');
 					$changed_settings = true;
 					unset($scripts[$handle]);
 					continue;
@@ -83,6 +84,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 				else if ($result['response']['code'] < 200 || $result['response']['code'] >= 400) {
 					$js_settings[$handle]['enabled'] = false;
 					$js_settings[$handle]['disable_reason'] = sprintf(__('HTTP Error %d: %s', 'cf-asset-optimizer'), $result['response']['code'], $result['response']['message']);
+					error_log('[CF Asset Optimizer] ('.$url.') - HTTP Error: ' . $result['response']['code'] . ' ' . $result['response']['message']);
 					$changed_settings = true;
 					unset($scripts[$handle]);
 					continue;
