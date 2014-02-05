@@ -91,7 +91,7 @@ class cfao_file_cache extends cfao_cache {
 			}
 			$allow_clear = apply_filters('cfao_file_cache_allow_clear', true, $key);
 			if (!$allow_clear) {
-				error_log(__('File Cache clear blocked by filter', 'cf-asset-optimizer'));
+				cfao_handler::log(__('File Cache clear blocked by filter', 'cf-asset-optimizer'));
 				return false;
 			}
 			$dir = opendir($cache_dir);
@@ -120,7 +120,7 @@ class cfao_file_cache extends cfao_cache {
 			}
 			$allow_clear = apply_filters('cfao_file_cache_allow_clear', true, $key);
 			if (!$allow_clear) {
-				error_log(__('File Cache clear blocked by filter', 'cf-asset-optimizer'));
+				cfao_handler::log(__('File Cache clear blocked by filter', 'cf-asset-optimizer'));
 				return false;
 			}
 			$succeeded = unlink($key);

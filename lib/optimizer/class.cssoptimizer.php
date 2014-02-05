@@ -55,6 +55,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 				if (empty($url)) {
 					$content_header .= " * $handle placeholder active\n";
 				}
+				cfao_handler::log('[CF CSS Optimizer] Requesting ('.$url.')', true);
 				$result = wp_remote_get(
 					$url,
 					array(
@@ -66,7 +67,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 				if (is_wp_error($result)) {
 					$css_settings[$handle]['enabled'] = false;
 					$css_settings[$handle]['disable_reason'] = sprintf(__('WP Error: %s', 'cf-asset-optimizer'), $result->get_error_message());
-					error_log('[CF Asset Optimizer] ('.$url.') - WP Error: ' . $result->get_error_message());
+					cfao_handler::log('[CF CSS Optimizer] ('.$url.') - WP Error: ' . $result->get_error_message());
 					unset($styles[$handle]);
 					$changed_settings = true;
 					continue;
@@ -74,7 +75,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 				else if (empty($result['response'])) {
 					$css_settings[$handle]['enabled'] = false;
 					$css_settings[$handle]['disable_reason'] = sprintf(__('Empty response requesting %s', 'cf-asset-optimizer'), $url);
-					error_log('[CF Asset Optimizer] ('.$url.') - Empty response');
+					cfao_handler::log('[CF CSS Optimizer] ('.$url.') - Empty response');
 					$changed_settings = true;
 					unset($styles[$handle]);
 					continue;
@@ -82,7 +83,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 				else if ($result['response']['code'] < 200 || $result['response']['code'] >= 400) {
 					$css_settings[$handle]['enabled'] = false;
 					$css_settings[$handle]['disable_reason'] = sprintf(__('HTTP Error %d: %s', 'cf-asset-optimizer'), $result['response']['code'], $result['response']['message']);
-					error_log('[CF Asset Optimizer] ('.$url.') - HTTP Error: ' . $result['response']['code'] . ' ' . $result['response']['message']);
+					cfao_handler::log('[CF CSS Optimizer] ('.$url.') - HTTP Error: ' . $result['response']['code'] . ' ' . $result['response']['message']);
 					$changed_settings = true;
 					unset($styles[$handle]);
 					continue;
@@ -152,6 +153,8 @@ class cf_css_optimizer extends cf_asset_optimizer {
 					$concat .= apply_filters('cfao_single_contents', $src, 'css', $handle, $css_settings);
 					$concat .= $src . "\n";
 				}
+				
+				cfao_handler::log('[CF JS Optimizer] Successfully processed ('.$url.')', true);
 				
 			}
 			if ($changed_settings) {

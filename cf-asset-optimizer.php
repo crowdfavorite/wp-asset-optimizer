@@ -4,11 +4,11 @@ Plugin Name: CF Asset Optimizer
 Plugin URI: http://crowdfavorite.com
 Description: Used to serve optimized and concatenated JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 2.0b10
+Version: 2.0b11
 Author URI: http://crowdfavorite.com
 */
 
-define('CFAO_VERSION', '2.0b10');
+define('CFAO_VERSION', '2.0b11');
 
 define('CFAO_PLUGIN_DIR', dirname(__file__).'/');
 
@@ -32,7 +32,7 @@ include_once CFAO_PLUGIN_DIR . 'lib/minifier/class.minifier.php';
 include_once CFAO_PLUGIN_DIR . 'lib/minifier/class.cssminifier.php';
 include_once CFAO_PLUGIN_DIR . 'lib/minifier/class.jsminifier.php';
 
-class _cfao_handler {
+class cfao_handler {
 	public static $_setting_name = '_cf_asset_optimizer_settings';
 	
 	public static function initialize() {
@@ -62,5 +62,30 @@ class _cfao_handler {
 			update_option(self::$_setting_name, $setting);
 		}
 	}
+	
+	public static function log($message, $debug_only = false) {
+		$setting = get_option(self::$_setting_name, array());
+		if (!empty($setting['debug']) && $setting['debug'] == 1) {
+			$file = null;
+			if (!empty($setting['custom_log']) && !empty($setting['logdir'])) {
+				$file = trailingslashit($setting['logdir']) . 'cfao-debug.log';
+				if (!file_exists($file) && is_writable($setting['logdir'])) {
+					touch($file);
+				}
+				if (is_writable($file)) {
+					error_log("[CF Asset Optimizer] $message\n", 3, $file);
+				}
+				else {
+					error_log($message);
+				}
+			}
+			else {
+				error_log($message);
+			}
+		}
+		if (!$debug_only) {
+			error_log($message);
+		}
+	}
 }
-add_action('plugins_loaded', '_cfao_handler::initialize', 1);
+add_action('plugins_loaded', 'cfao_handler::initialize', 1);

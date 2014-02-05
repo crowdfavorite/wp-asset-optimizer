@@ -50,7 +50,7 @@ class cfao_js_minifier {
 						$minified = JSMin::minify($string);
 					}
 					catch (Exception $e) {
-						error_log(sprintf(__('[CF JS Minifier Error] - %s', 'cf-asset-optimizer'), $e->getMessage()));
+						cfao_handler::log(sprintf(__('[CF JS Minifier Error] - %s', 'cf-asset-optimizer'), $e->getMessage()));
 						$minified = '';
 					}
 					if (!empty($minified)) {

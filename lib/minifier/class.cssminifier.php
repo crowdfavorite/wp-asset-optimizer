@@ -49,7 +49,7 @@ class cfao_css_minifier extends cfao_minifier {
 						$minified = Minify_CSS::minify($string, array('preserveComments' => false));
 					}
 					catch (Exception $e) {
-						error_log(sprintf(__('[CF CSS Minifier Error] - %s', 'cf-asset-optimizer'), $e->getMessage()));
+						cfao_handler::log(sprintf(__('[CF CSS Minifier Error] - %s', 'cf-asset-optimizer'), $e->getMessage()));
 						$minified = '';
 					}
 					if (!empty($minified)) {

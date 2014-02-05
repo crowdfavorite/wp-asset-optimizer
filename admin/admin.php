@@ -22,6 +22,24 @@ class cfao_admin {
 		$optimizers = apply_filters('cfao_optimizers', array());
 		
 		$setting_changed = false;
+		if (!isset($setting['debug'])) {
+			$setting['debug'] = false;
+			$setting_changed = true;
+		}
+		if (!isset($setting['custom_log'])) {
+			$setting['custom_log'] = false;
+			$setting_changed = true;
+		}
+		if (!isset($setting['logdir'])) {
+			$upload_dir = wp_upload_dir();
+			if (!empty($upload_dir)) {
+				$setting['logdir'] = trailingslashit($upload_dir['basedir']);
+			}
+			else {
+				$setting['logdir'] = '';
+			}
+			$setting_changed = true;
+		}
 		if (!empty($setting['plugins']['cachers'])) {
 			foreach ($setting['plugins']['cachers'] as $class => $active) {
 				if (!class_exists($class) || !in_array($class, $cachers)) {
@@ -182,6 +200,12 @@ class cfao_admin {
 					}
 					do_action('cfao_admin_deactivate');
 					break;
+				case 'debug_update':
+					self::$_setting['debug'] = (isset($_POST['debug']) && !empty($_POST['debug']));
+					self::$_setting['custom_log'] = (isset($_POST['custom_log']) && !empty($_POST['custom_log']));
+					self::$_setting['logdir'] = isset($_POST['logdir']) ? $_POST['logdir'] : '';
+					update_option(self::$_setting_name, self::$_setting);
+					break;
 				default:
 					do_action('cfao_admin_' . $_REQUEST['cfao_action']);
 					break;
@@ -189,7 +213,7 @@ class cfao_admin {
 			
 			// We want to strip to just the base page argument.
 			$to_remove = array_diff(array_keys($_GET), array('page'));
-			wp_safe_redirect(remove_query_arg($to_remove));
+			wp_safe_redirect(remove_query_arg($to_remove, $_SERVER['REQUEST_URI']));
 			exit();
 		}
 	}
@@ -208,10 +232,32 @@ class cfao_admin {
 	
 	public static function _mainPage() {
 		$cfao_nonce = wp_create_nonce('cfao_nonce');
+		$debug_active = !empty(self::$_setting['debug']) ? (bool) self::$_setting['debug'] : false;
+		$custom_log = !empty(self::$_setting['custom_log']) ? (bool) self::$_setting['custom_log'] : false;
+		$logdir = self::$_setting['logdir'];
 		include CFAO_PLUGIN_DIR . 'admin/list-tables/class.cfao-list-table.php';
 		?>
 		<h1><?php screen_icon(); echo esc_html(get_admin_page_title()); ?></h1>
 		<div class="cfao-general-settings-wrapper" style="clear:both; margin: 15px 0;">
+		<h2><?php esc_html_e('General Options', 'cf-asset-optimizer'); ?></h2>
+		<form method="POST" action="">
+			<input type="hidden" name="cfao_nonce" value="<?php esc_attr_e($cfao_nonce); ?>" />
+			<p>
+				<input id="cb-cfao-debug" type="checkbox" name="debug" value="1" <?php checked($debug_active); ?> />
+				<label for="cb-cfao-debug"><?php esc_html_e('Debug Logging Active', 'cf-asset-optimizer'); ?></label>
+			</p>
+			<p>
+				<input id="cb-cfao-custom-log" type="checkbox" name="custom_log" value="1" <?php checked($custom_log); ?> />
+				<label for="cb-cfao-custom-log"><?php esc_html_e('Use Custom Log File', 'cf-asset-optimizer'); ?><label>
+			</p>
+			<p>
+				<label for="in-cfao-logdir" style="display:block;"><?php esc_html_e('Custom Log Directory', 'cf-asset-optimizer'); ?></label>
+				<input id="in-cfao-logdir" type="text" name="logdir" class="widefat" value="<?php echo esc_attr_e($logdir); ?>" />
+			</p>
+			<p>
+				<button type="submit" class="button button-primary" name="cfao_action" value="debug_update"><?php esc_html_e('Update Debug Settings', 'cf-asset-optimizer'); ?></button>
+			</p>
+		</form>
 		<h2><?php esc_html_e('Asset Optimizers', 'cf-asset-optimizer'); ?></h2>
 		<p><?php esc_html_e('Asset Optimizers modify the output of assets in order to improve the function of your website.', 'cf-asset-optimizer'); ?></p>
 		<p><?php esc_html_e('Any number of asset optimizers may be active at a time, but only one should run per asset type.', 'cf-asset-optimizer'); ?></p>

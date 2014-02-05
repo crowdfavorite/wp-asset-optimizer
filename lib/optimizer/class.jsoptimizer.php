@@ -57,6 +57,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 					$content_header .= " * $handle placeholder active\n";
 					continue;
 				}
+				cfao_handler::log('[CF JS Optimizer] Requesting ('.$url.')', true);
 				$result = wp_remote_get(
 					$url,
 					array(
@@ -68,7 +69,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 				if (is_wp_error($result)) {
 					$js_settings[$handle]['enabled'] = false;
 					$js_settings[$handle]['disable_reason'] = sprintf(__('WP Error: %s', 'cf-asset-optimizer'), $result->get_error_message());
-					error_log('[CF Asset Optimizer] ('.$url.') - WP Error: ' . $result->get_error_message());
+					cfao_handler::log('[CF JS Optimizer] ('.$url.') - WP Error: ' . $result->get_error_message());
 					$changed_settings = true;
 					unset($scripts[$handle]);
 					continue;
@@ -76,7 +77,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 				else if (empty($result['response'])) {
 					$js_settings[$handle]['enabled'] = false;
 					$js_settings[$handle]['disable_reason'] = sprintf(__('Empty response requesting %s', 'cf-asset-optimizer'), $url);
-					error_log('[CF Asset Optimizer] ('.$url.') - Empty response');
+					cfao_handler::log('[CF JS Optimizer] ('.$url.') - Empty response');
 					$changed_settings = true;
 					unset($scripts[$handle]);
 					continue;
@@ -84,12 +85,13 @@ class cf_js_optimizer extends cf_asset_optimizer {
 				else if ($result['response']['code'] < 200 || $result['response']['code'] >= 400) {
 					$js_settings[$handle]['enabled'] = false;
 					$js_settings[$handle]['disable_reason'] = sprintf(__('HTTP Error %d: %s', 'cf-asset-optimizer'), $result['response']['code'], $result['response']['message']);
-					error_log('[CF Asset Optimizer] ('.$url.') - HTTP Error: ' . $result['response']['code'] . ' ' . $result['response']['message']);
+					cfao_handler::log('[CF JS Optimizer] ('.$url.') - HTTP Error: ' . $result['response']['code'] . ' ' . $result['response']['message']);
 					$changed_settings = true;
 					unset($scripts[$handle]);
 					continue;
 				}
 				
+				cfao_handler::log('[CF JS Optimizer] Successfully processed ('.$url.')', true);
 				$content_header .= ' * ' . $handle . ' => ' . $url . "\n";
 				$src = $result['body'];
 				
