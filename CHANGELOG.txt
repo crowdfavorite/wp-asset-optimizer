@@ -1,5 +1,8 @@
 # CHANGE LOG
 
+## 2.0b12
+- Removed reliance on $_SERVER['SERVER_NAME'] in optimizers, as this was returning an empty string in certain circumstances.
+
 ## 2.0b11
 - Added debugging log option with custom log directory configuration (optional).
 

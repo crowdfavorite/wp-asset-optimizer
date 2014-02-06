@@ -4,11 +4,11 @@ Plugin Name: CF Asset Optimizer
 Plugin URI: http://crowdfavorite.com
 Description: Used to serve optimized and concatenated JS and CSS files enqueued on a page.
 Author: Crowd Favorite
-Version: 2.0b11
+Version: 2.0b12
 Author URI: http://crowdfavorite.com
 */
 
-define('CFAO_VERSION', '2.0b11');
+define('CFAO_VERSION', '2.0b12');
 
 define('CFAO_PLUGIN_DIR', dirname(__file__).'/');
 

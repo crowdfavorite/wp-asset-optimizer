@@ -124,6 +124,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 		$option = get_option($option_name, array());
 		$update_settings = false;
 		$scripts = array();
+		$server_name = parse_url(home_url(), PHP_URL_HOST);
 		foreach ($wp_scripts->to_do as $handle) {
 			$registered = $wp_scripts->registered[$handle];
 			// Double-check script settings
@@ -190,7 +191,7 @@ class cf_js_optimizer extends cf_asset_optimizer {
 						$full_url = (is_ssl() ? 'https:' : 'http:') . $full_url;
 					}
 					else if (strpos($full_url, '/') === 0) {
-						$full_url = (is_ssl() ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] . $full_url;
+						$full_url = (is_ssl() ? 'https://' : 'http://') . $server_name . $full_url;
 					}
 					$scripts[$handle] = $full_url;
 				}

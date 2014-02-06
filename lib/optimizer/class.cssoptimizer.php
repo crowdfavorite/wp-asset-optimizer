@@ -184,6 +184,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 		$styles_blocks = array('all'=>array()); // Ensure all runs first.
 		$css_settings = get_option($option_name, array());
 		$save_settings = false;
+		$server_name = parse_url(home_url(), PHP_URL_HOST);
 		if (empty($css_settings)) {
 			$save_settings = true;
 			$css_settings = array();
@@ -242,7 +243,7 @@ class cf_css_optimizer extends cf_asset_optimizer {
 						$full_url = (is_ssl() ? 'https:' : 'http:') . $full_url;
 					}
 					else if (strpos($full_url, '/') === 0) {
-						$full_url = (is_ssl() ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] . $full_url;
+						$full_url = (is_ssl() ? 'https://' : 'http://') . $server_name . $full_url;
 					}
 					if (empty($styles_blocks[$type])) {
 						$styles_blocks[$type] = array();
