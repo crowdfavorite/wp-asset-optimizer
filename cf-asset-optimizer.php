@@ -93,6 +93,7 @@ class CFAssetOptimizerScripts {
 				admin_url('admin-ajax.php?action=concat-build-js'),
 				array(
 					'body' => $build_args,
+					'sslverify' => false,
 					'redirection' => 0,
 					'timeout' => 1,
 				)
@@ -156,6 +157,7 @@ class CFAssetOptimizerScripts {
 		$current_block = 0;
 		$my_domain = strtolower(untrailingslashit(preg_replace('#^http(s)?:#', '', site_url())));
 		$scripts_changed = false;
+		$protocol = is_ssl() ? 'https:' : 'http:';
 		foreach ($scripts as $handle => $src) {
 			// We're going to be blind on this end, and let the front-end handle things except when a request can't happen.
 			if (empty($src)) {
@@ -166,10 +168,10 @@ class CFAssetOptimizerScripts {
 			else {
 				$request_url = $src;
 				if (strpos($request_url, '//') === 0) {
-					$request_url = 'http:'.$request_url;
+					$request_url = $protocol . $request_url;
 				}
 				if (!preg_match('|^https?://|', $request_url) && true) {
-					$request_url = 'http://'.$_SERVER['SERVER_NAME'].$request_url;
+					$request_url = $protocol . '//'.$_SERVER['SERVER_NAME'].$request_url;
 				}
 			}
 			
@@ -177,16 +179,19 @@ class CFAssetOptimizerScripts {
 			// Request the file
 			$request_url = $src;			
 			if (strpos($request_url, '//') === 0) {
-				$request_url = 'http:'.$request_url;
+				$request_url = $protocol . $request_url;
 			}
 			if ( !preg_match('|^https?://|', $request_url) && ! ( $scripts_obj->content_url && 0 === strpos($request_url, $scripts_obj->content_url) ) ) {
 				$request_url = home_url($request_url);
 			}
 
 			$request_url = apply_filters('cfao_script_request_url', $request_url);
-				
+
 			$script_request = wp_remote_get(
-				$request_url
+				$request_url,
+				array(
+					'sslverify' => false,
+				)
 			);
 				
 			// Handle the response
@@ -427,6 +432,7 @@ class CFAssetOptimizerScripts {
 				array(
 					'body' => $build_args,
 					'redirection' => 0,
+					'sslverify' => false,
 				)
 			);
 			if (file_exists($directory.$filename)) {
@@ -518,6 +524,7 @@ class CFAssetOptimizerStyles {
 				array(
 					'body' => $build_args,
 					'timeout' => 1,
+					'sslverify' => false,
 					'redirection' => 0,
 				)
 			);
@@ -530,6 +537,7 @@ class CFAssetOptimizerStyles {
 		if ($security_key != $_POST['key']) {
 			exit();
 		}
+		$protocol = is_ssl() ? 'https:' : 'http:';
 		if (!(file_exists($directory) && is_dir($directory))) {
 			// We need to attempt to make the directory.
 			if (!mkdir($directory, 0775, true)) {
@@ -578,17 +586,20 @@ class CFAssetOptimizerStyles {
 			else {
 				$request_url = $url;
 				if (strpos($request_url, '//') === 0) {
-					$request_url = 'http:'.$request_url;
+					$request_url = $protocol . $request_url;
 				}
 				if (!preg_match('|^https?://|', $request_url) && true) {
-					$request_url = 'http://'.$_SERVER['SERVER_NAME'].$request_url;
+					$request_url = $protocol . '//' . $_SERVER['SERVER_NAME'] . $request_url;
 				}
 			}
 
 			$request_url = apply_filters('cfao_style_request_url', $request_url);
 
 			$style_request = wp_remote_get(
-				$request_url
+				$request_url,
+				array(
+					'sslverify' => false,
+				)
 			);
 					
 			// Handle the response
@@ -801,6 +812,7 @@ class CFAssetOptimizerStyles {
 				admin_url('admin-ajax.php?action=concat-build-css'),
 				array(
 					'body' => $build_args,
+					'sslverify' => false,
 					'redirection' => 0,
 				)
 			);
